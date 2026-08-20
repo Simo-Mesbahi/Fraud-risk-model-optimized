@@ -1486,7 +1486,7 @@ def _render_capacity_chart(
                 str(
                     figure_path
                 ),
-                use_container_width=True,
+                width="stretch",
             )
 
             st.caption(
@@ -1662,7 +1662,7 @@ def _render_capacity_chart(
 
     st.altair_chart(
         chart,
-        use_container_width=True,
+        width="stretch",
     )
 
     st.caption(
@@ -2262,7 +2262,7 @@ def _render_contract_consistency(
             pd.DataFrame(
                 records
             ),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "Field":
@@ -2509,7 +2509,7 @@ def _render_risk_drivers() -> None:
 
         st.altair_chart(
             chart,
-            use_container_width=True,
+            width="stretch",
         )
 
     with right:
@@ -2533,7 +2533,7 @@ def _render_risk_drivers() -> None:
             top[
                 display_columns
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             height=350,
             column_config={
@@ -3094,7 +3094,7 @@ def _render_artifact_coverage() -> None:
             pd.DataFrame(
                 records
             ),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "Artifact":

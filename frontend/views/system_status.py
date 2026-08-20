@@ -2011,7 +2011,7 @@ def _render_contract_consistency(
                 pd.DataFrame(
                     rows
                 ),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 column_config={
                     "Field":
@@ -2221,7 +2221,7 @@ def _render_artifacts() -> None:
             pd.DataFrame(
                 rows
             ),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "Category":

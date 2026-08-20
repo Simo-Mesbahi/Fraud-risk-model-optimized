@@ -61,7 +61,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            api/requirements.txt
+            frontend/requirements.txt
 
 
       # -----------------------------------------------------------------------
@@ -220,10 +223,14 @@ jobs:
       # -----------------------------------------------------------------------
 
       - name: Run full test suite
+        shell: bash
         run: |
-          python -m pytest \
-            tests \
-            -q
+          set -euo pipefail
+
+          # These are separate Python packages, both named "tests".
+          # Collecting them independently prevents import-name collisions.
+          python -m pytest tests -q
+          python -m pytest api/tests -q
 
           echo
           echo "✓ FULL TEST SUITE: OK"
@@ -234,7 +241,10 @@ jobs:
       # -----------------------------------------------------------------------
 
       - name: Run critical-path coverage
+        shell: bash
         run: |
+          set -euo pipefail
+
           python -m pytest \
             tests \
             --cov=health_fraud.models.predict \
@@ -243,6 +253,17 @@ jobs:
             --cov=frontend.api_client \
             --cov=frontend.utils.formatting \
             --cov=frontend.utils.validation \
+            --cov-report=term-missing
+
+          python -m pytest \
+            api/tests \
+            --cov=health_fraud.models.predict \
+            --cov=health_fraud.features.build \
+            --cov=api.app \
+            --cov=frontend.api_client \
+            --cov=frontend.utils.formatting \
+            --cov=frontend.utils.validation \
+            --cov-append \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
             --cov-report=html:htmlcov \

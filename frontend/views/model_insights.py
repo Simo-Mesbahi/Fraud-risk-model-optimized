@@ -1970,7 +1970,7 @@ def _render_global_explainability(
 
     st.altair_chart(
         chart,
-        use_container_width=True,
+        width="stretch",
     )
 
     table_columns = [
@@ -1992,7 +1992,7 @@ def _render_global_explainability(
             top[
                 table_columns
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "display_feature":
@@ -2047,7 +2047,7 @@ def _render_global_explainability(
                     str(
                         global_figure
                     ),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
             else:
@@ -2075,7 +2075,7 @@ def _render_global_explainability(
                     str(
                         beeswarm
                     ),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
             else:
@@ -2345,7 +2345,7 @@ def _render_mechanism_analysis() -> dict[str, Any]:
 
         st.altair_chart(
             chart,
-            use_container_width=True,
+            width="stretch",
         )
 
     with right:
@@ -2366,7 +2366,7 @@ def _render_mechanism_analysis() -> dict[str, Any]:
             data[
                 visible_columns
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             height=360,
             column_config={
@@ -2651,7 +2651,7 @@ def _render_difficulty_analysis() -> dict[str, Any]:
 
     st.altair_chart(
         chart,
-        use_container_width=True,
+        width="stretch",
     )
 
     summary: dict[str, Any] = {}
@@ -2825,7 +2825,7 @@ def _render_evaluation_diagnostics() -> None:
 
                 st.image(
                     str(path),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
             else:
@@ -2932,7 +2932,7 @@ def _render_error_analysis() -> None:
 
                 st.image(
                     str(path),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
 
@@ -3168,7 +3168,7 @@ def _render_artifact_coverage() -> None:
 
         st.dataframe(
             inventory,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 

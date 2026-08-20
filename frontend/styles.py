@@ -3352,6 +3352,8 @@ hr {
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
+[role="combobox"]:focus-visible,
+summary:focus-visible,
 [tabindex]:focus-visible {
     outline:
         2px solid
@@ -3359,6 +3361,102 @@ textarea:focus-visible,
 
     outline-offset:
         2px;
+}
+
+
+/* ===========================================================================
+   PRODUCT INTERACTION POLISH
+   =========================================================================== */
+
+/* Main-workspace radios are used as compact workflow selectors. This keeps
+   Claim Analysis visually calm while making the active operating mode clear. */
+[data-testid="stMain"] [data-testid="stRadio"] > div {
+    gap: .45rem;
+}
+
+
+[data-testid="stMain"] [data-testid="stRadio"] label {
+    min-height: 42px;
+
+    padding: .45rem .78rem;
+
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+
+    background: rgba(255,255,255,.018);
+
+    transition:
+        transform var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+
+[data-testid="stMain"] [data-testid="stRadio"] label:hover {
+    transform: translateY(-1px);
+
+    border-color: rgba(76,141,255,.34);
+
+    background: rgba(76,141,255,.065);
+}
+
+
+[data-testid="stMain"] [data-testid="stRadio"] label:has(input:checked) {
+    border-color: rgba(76,141,255,.58);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(76,141,255,.16),
+            rgba(139,92,246,.10)
+        );
+
+    box-shadow:
+        0 8px 22px rgba(31,90,220,.13);
+}
+
+
+[data-testid="stMain"] [data-testid="stRadio"] label p {
+    color: #C9D5E5;
+
+    font-size: .82rem;
+    font-weight: 700;
+}
+
+
+/* Make primary actions easier to scan and operate on desktop and touch
+   devices without changing the visual language of secondary actions. */
+.stButton > button,
+.stDownloadButton > button,
+[data-testid="stFormSubmitButton"] > button {
+    line-height: 1.25;
+
+    touch-action: manipulation;
+}
+
+
+@media (hover: none) {
+
+    .stButton > button:hover,
+    .stDownloadButton > button:hover,
+    [data-testid="stFormSubmitButton"] > button:hover,
+    [data-testid="stMain"] [data-testid="stRadio"] label:hover {
+        transform: none;
+    }
+
+}
+
+
+@media (prefers-contrast: more) {
+
+    :root {
+        --border-soft: rgba(255,255,255,.18);
+        --border: rgba(255,255,255,.28);
+        --text-secondary: #C7D2E2;
+        --text-muted: #A9B6C8;
+    }
+
 }
 
 
@@ -3623,6 +3721,20 @@ textarea:focus-visible,
    ========================================================================== */
 
 @media (max-width: 700px) {
+
+    /* Streamlit preserves desktop column rows by default. On phones, stack
+       every card and result panel before labels are compressed vertically. */
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        gap: 1rem !important;
+    }
+
+
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+
 
     .block-container {
         padding-top:

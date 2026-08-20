@@ -9,7 +9,7 @@ from datetime import (
     time,
     timedelta,
 )
-
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -40,7 +40,6 @@ from frontend.utils.formatting import (
 # =============================================================================
 
 
-MAX_CONTEXT_ROWS = 100_000
 MAX_VISIBLE_SHAP_DRIVERS = 6
 MAX_TECHNICAL_SHAP_ROWS = 107
 
@@ -65,6 +64,32 @@ REQUIRED_CONTEXT_COLUMNS = {
     "claim_amount",
     "claim_submission_timestamp",
 }
+
+
+# Smart Analysis intentionally loads only the operational columns used to
+# construct historical features. This keeps the Streamlit process below the
+# memory ceiling of constrained hosting plans without changing model inputs.
+SMART_CONTEXT_COLUMNS = [
+    "claim_id",
+    "customer_id",
+    "policy_id",
+    "provider_id",
+    "service_category",
+    "service_code",
+    "claim_amount",
+    "requested_reimbursement",
+    "coverage_limit",
+    "customer_age",
+    "customer_tenure_months",
+    "coverage_level",
+    "policy_tenure_months",
+    "recent_policy_change",
+    "days_since_policy_change",
+    "provider_type",
+    "provider_region",
+    "provider_tenure_months",
+    "claim_submission_timestamp",
+]
 
 
 SMART_WIDGET_KEYS = {
@@ -482,19 +507,30 @@ def _format_feature_value(
 # =============================================================================
 
 
-@st.cache_data(
+@st.cache_resource(
     show_spinner=False,
 )
 def _load_context_data() -> pd.DataFrame:
     """
-    Load and normalize the historical claim context.
+    Load one shared, read-only historical context for Smart Analysis.
+
+    Unlike ``st.cache_data``, the resource cache does not create a serialized
+    dataframe copy per session. The dataframe is not mutated after this
+    normalization step.
     """
 
-    frame = (
-        load_demo_claims(
-            limit=MAX_CONTEXT_ROWS
-        )
-        .copy()
+    dataset_path = (
+        Path(__file__)
+        .resolve()
+        .parents[2]
+        / "data"
+        / "interim"
+        / "claims.parquet"
+    )
+
+    frame = pd.read_parquet(
+        dataset_path,
+        columns=SMART_CONTEXT_COLUMNS,
     )
 
     if frame.empty:
@@ -582,7 +618,6 @@ def _history_before(
             ]
             < timestamp
         ]
-        .copy()
     )
 
 
@@ -2291,7 +2326,7 @@ def _render_explainability() -> None:
 
             st.dataframe(
                 technical_frame,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -3065,7 +3100,7 @@ def _render_smart_form(
     analyze = st.button(
         "Analyze Claim",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         key="smart_analyze_claim",
         disabled=invalid_dates,
     )
@@ -3208,7 +3243,7 @@ def _render_quick_demo(
         if st.button(
             "Analyze Demo Claim",
             type="primary",
-            use_container_width=True,
+            width="stretch",
             key="analyze_demo_claim",
         ):
             with st.spinner(
@@ -3291,7 +3326,7 @@ def _render_advanced_json(
     analyze = st.button(
         "Analyze JSON",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         key="analyze_json",
     )
 
@@ -3409,7 +3444,7 @@ def render(
     with right:
         if st.button(
             "Reset Analysis",
-            use_container_width=True,
+            width="stretch",
             key="reset_claim_analysis",
         ):
             _reset_analysis()
@@ -3417,25 +3452,29 @@ def render(
 
     st.write("")
 
-    smart_tab, demo_tab, json_tab = st.tabs(
+    mode = st.radio(
+        "Analysis mode",
         [
             "Smart Analysis",
             "Quick Demo",
             "Advanced JSON",
-        ]
+        ],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="claim_analysis_mode",
     )
 
-    with smart_tab:
+    if mode == "Smart Analysis":
         _render_smart_form(
             client
         )
 
-    with demo_tab:
+    elif mode == "Quick Demo":
         _render_quick_demo(
             client
         )
 
-    with json_tab:
+    else:
         _render_advanced_json(
             client
         )

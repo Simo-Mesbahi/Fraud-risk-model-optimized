@@ -2,13 +2,19 @@ FROM python:3.12-slim
 
 
 # =============================================================================
-# Environment
+# Runtime environment
 # =============================================================================
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    ARTIFACTS_ROOT=/app/artifacts
+    ARTIFACTS_ROOT=/app/artifacts \
+    PIP_NO_CACHE_DIR=1 \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1
 
 
 # =============================================================================
@@ -19,13 +25,20 @@ WORKDIR /app
 
 
 # =============================================================================
-# Python dependencies
+# Frontend-only dependencies
 # =============================================================================
 
-COPY requirements.txt ./requirements.txt
+COPY frontend/requirements.txt ./requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
+
+
+# =============================================================================
+# Streamlit production configuration
+# =============================================================================
+
+COPY .streamlit ./.streamlit
 
 
 # =============================================================================
@@ -36,7 +49,7 @@ COPY frontend ./frontend
 
 
 # =============================================================================
-# Demo data
+# Demonstration data required by Smart Analysis and Quick Demo
 # =============================================================================
 
 COPY data/interim/claims.parquet \
@@ -44,7 +57,7 @@ COPY data/interim/claims.parquet \
 
 
 # =============================================================================
-# Frontend analytical artifacts
+# Lightweight frontend analytical artifacts
 # =============================================================================
 
 COPY artifacts/metadata \
@@ -70,7 +83,7 @@ HEALTHCHECK \
     --timeout=5s \
     --start-period=20s \
     --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3)" || exit 1
+    CMD python -c "import os, urllib.request; port = os.getenv('PORT', '8501'); urllib.request.urlopen(f'http://127.0.0.1:{port}/_stcore/health', timeout=3)" || exit 1
 
 
 # =============================================================================

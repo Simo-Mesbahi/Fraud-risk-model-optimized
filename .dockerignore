@@ -1,0 +1,17 @@
+.git
+.github
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+notebooks/
+docs/
+tests/
+api/tests/
+data/raw/
+data/synthetic/
+data/interim/customers.parquet
+data/interim/policies.parquet
+data/interim/claims_rejected.parquet
+artifacts/predictions/

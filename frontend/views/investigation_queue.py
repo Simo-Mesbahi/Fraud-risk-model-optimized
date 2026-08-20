@@ -1759,14 +1759,14 @@ def _render_queue_builder(
 
                     st.dataframe(
                         preview.head(20),
-                        use_container_width=True,
+                        width="stretch",
                         hide_index=True,
                     )
 
                 if st.button(
                     "Build Investigation Queue",
                     type="primary",
-                    use_container_width=True,
+                    width="stretch",
                     key="build_uploaded_queue",
                 ):
 
@@ -1853,7 +1853,7 @@ def _render_queue_builder(
         if st.button(
             "Build Demo Queue",
             type="primary",
-            use_container_width=True,
+            width="stretch",
             key="build_demo_queue",
         ):
 
@@ -2778,7 +2778,7 @@ def _render_worklist_table(
         display[
             columns
         ],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         height=520,
         column_config={
@@ -3289,7 +3289,7 @@ def _render_claim_detail(
             if st.button(
                 "Open Full Claim Analysis",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
                 key=(
                     "queue_open_claim_analysis_"
                     + str(
@@ -3407,7 +3407,7 @@ def _render_claim_detail(
             if st.button(
                 "Save Human Decision",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
                 key=(
                     f"save_decision_"
                     f"{claim_key}"
@@ -3578,7 +3578,7 @@ def _render_export(
             "investigation_queue.csv"
         ),
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
     )
 
     st.caption(
@@ -3640,7 +3640,7 @@ def render(
 
         if st.button(
             "Reset Queue",
-            use_container_width=True,
+            width="stretch",
             key="reset_investigation_queue",
         ):
 

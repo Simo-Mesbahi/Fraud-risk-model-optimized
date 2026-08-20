@@ -1302,14 +1302,14 @@ def _render_portfolio_input(
                 ):
                     st.dataframe(
                         raw_frame.head(25),
-                        use_container_width=True,
+                        width="stretch",
                         hide_index=True,
                     )
 
                 if st.button(
                     "Score Portfolio",
                     type="primary",
-                    use_container_width=True,
+                    width="stretch",
                     disabled=not valid,
                     key="score_uploaded_portfolio",
                 ):
@@ -1368,7 +1368,7 @@ def _render_portfolio_input(
         if st.button(
             "Score Demo Portfolio",
             type="primary",
-            use_container_width=True,
+            width="stretch",
             key="score_demo_portfolio",
         ):
 
@@ -1684,7 +1684,7 @@ def _render_distribution(
 
         st.altair_chart(
             histogram,
-            use_container_width=True,
+            width="stretch",
         )
 
     with right:
@@ -1751,7 +1751,7 @@ def _render_distribution(
 
         st.altair_chart(
             tier_chart,
-            use_container_width=True,
+            width="stretch",
         )
 
 
@@ -2015,7 +2015,7 @@ def _render_top_risk(
 
     st.dataframe(
         top[columns],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "portfolio_rank":
@@ -2304,7 +2304,7 @@ def _render_table(
 
     st.dataframe(
         display[columns],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         height=520,
         column_config={
@@ -2790,7 +2790,7 @@ def _render_claim_detail(
             if st.button(
                 "Open Full Claim Analysis",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
                 key=(
                     "portfolio_open_claim_analysis_"
                     + str(selected)
@@ -2908,7 +2908,7 @@ def _render_exports(
                 "fraud_portfolio_scores.csv"
             ),
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
 
     with right:
@@ -2931,7 +2931,7 @@ def _render_exports(
                 "_review.csv"
             ),
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
 
     st.caption(
@@ -3078,7 +3078,7 @@ def render(
 
         if st.button(
             "Reset Portfolio",
-            use_container_width=True,
+            width="stretch",
             key="reset_portfolio_scoring",
         ):
             _reset_portfolio()
