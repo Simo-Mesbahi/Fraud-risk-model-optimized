@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from health_fraud.config import MAX_BATCH_SIZE as SHARED_MAX_BATCH_SIZE
+
 import math
 
 from datetime import (
@@ -103,7 +105,7 @@ class FraudAPIClient:
     audit logging, workflow events or other side effects.
     """
 
-    MAX_BATCH_SIZE = 10_000
+    MAX_BATCH_SIZE = SHARED_MAX_BATCH_SIZE
 
     MAX_EXPLANATION_TOP_K = 50
 

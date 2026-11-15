@@ -7,7 +7,7 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app \
+    PYTHONPATH=/app:/app/src \
     ARTIFACTS_ROOT=/app/artifacts \
     PIP_NO_CACHE_DIR=1 \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
@@ -46,6 +46,9 @@ COPY .streamlit ./.streamlit
 # =============================================================================
 
 COPY frontend ./frontend
+COPY src ./src
+COPY configs ./configs
+COPY data/interim/policies.parquet ./data/interim/policies.parquet
 
 
 # =============================================================================

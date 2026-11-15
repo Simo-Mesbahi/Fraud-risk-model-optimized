@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import yaml
+
+from health_fraud.features.history import add_historical_features
 
 
 # =============================================================================
@@ -56,9 +59,7 @@ def _validate_probabilities(probabilities: dict[str, float], name: str) -> None:
     total = float(values.sum())
 
     if not np.isclose(total, 1.0, atol=1e-8):
-        raise ValueError(
-            f"{name}: probabilities must sum to 1.0, got {total:.8f}"
-        )
+        raise ValueError(f"{name}: probabilities must sum to 1.0, got {total:.8f}")
 
 
 def _sample_categories(
@@ -133,14 +134,18 @@ def generate_customers(
     age_cfg = cfg["age"]
 
     if age_cfg.get("distribution") == "truncated_normal":
-        ages = _truncated_normal(
-            rng=rng,
-            mean=float(age_cfg["mean"]),
-            std=float(age_cfg["std"]),
-            minimum=float(age_cfg["min"]),
-            maximum=float(age_cfg["max"]),
-            size=n_customers,
-        ).round().astype(int)
+        ages = (
+            _truncated_normal(
+                rng=rng,
+                mean=float(age_cfg["mean"]),
+                std=float(age_cfg["std"]),
+                minimum=float(age_cfg["min"]),
+                maximum=float(age_cfg["max"]),
+                size=n_customers,
+            )
+            .round()
+            .astype(int)
+        )
     else:
         ages = rng.integers(
             age_cfg["min"],
@@ -176,9 +181,7 @@ def generate_customers(
 
     return pd.DataFrame(
         {
-            "customer_id": [
-                f"CUST_{i:06d}" for i in range(1, n_customers + 1)
-            ],
+            "customer_id": [f"CUST_{i:06d}" for i in range(1, n_customers + 1)],
             "customer_age": ages,
             "customer_tenure_months": tenure_months,
             "coverage_level": coverage_level,
@@ -207,6 +210,25 @@ def generate_providers(
         "provider types",
     )
 
+    # Small deterministic research worlds must still contain every supported
+    # provider type. Replace only a duplicated type, preserving singleton types.
+    required_types = [
+        name for name, weight in cfg["provider_types"].items() if weight > 0
+    ]
+    if n_providers < len(required_types):
+        raise ValueError(
+            "Provider population is too small to represent all configured types."
+        )
+    counts = Counter(provider_type)
+    for name in required_types:
+        if counts[name] == 0:
+            index = next(
+                i for i, current in enumerate(provider_type) if counts[current] > 1
+            )
+            counts[provider_type[index]] -= 1
+            provider_type[index] = name
+            counts[name] += 1
+
     provider_region = _sample_categories(
         rng,
         cfg["regions"],
@@ -231,9 +253,7 @@ def generate_providers(
 
     return pd.DataFrame(
         {
-            "provider_id": [
-                f"PROV_{i:05d}" for i in range(1, n_providers + 1)
-            ],
+            "provider_id": [f"PROV_{i:05d}" for i in range(1, n_providers + 1)],
             "provider_type": provider_type,
             "provider_region": provider_region,
             "provider_tenure_months": provider_tenure_months,
@@ -262,10 +282,7 @@ def generate_policies(
     )
 
     prior_policy_tenure = np.asarray(
-        [
-            rng.integers(1, int(max_tenure) + 1)
-            for max_tenure in max_prior_tenure
-        ]
+        [rng.integers(1, int(max_tenure) + 1) for max_tenure in max_prior_tenure]
     )
 
     policy_start_date = simulation_start - pd.to_timedelta(
@@ -679,13 +696,9 @@ def _set_customer(
     df.loc[indices, "customer_id"] = customer_id
     df.loc[indices, "policy_id"] = policy["policy_id"]
     df.loc[indices, "customer_age"] = customer["customer_age"]
-    df.loc[indices, "customer_tenure_months"] = customer[
-        "customer_tenure_months"
-    ]
+    df.loc[indices, "customer_tenure_months"] = customer["customer_tenure_months"]
     df.loc[indices, "coverage_level"] = customer["coverage_level"]
-    df.loc[indices, "customer_behavior_segment"] = customer[
-        "customer_behavior_segment"
-    ]
+    df.loc[indices, "customer_behavior_segment"] = customer["customer_behavior_segment"]
 
     timestamps = pd.to_datetime(df.loc[indices, "claim_submission_timestamp"])
     tenure = (
@@ -708,12 +721,8 @@ def _set_provider(
     df.loc[indices, "provider_id"] = provider_id
     df.loc[indices, "provider_type"] = provider["provider_type"]
     df.loc[indices, "provider_region"] = provider["provider_region"]
-    df.loc[indices, "provider_tenure_months"] = provider[
-        "provider_tenure_months"
-    ]
-    df.loc[indices, "provider_behavior_segment"] = provider[
-        "provider_behavior_segment"
-    ]
+    df.loc[indices, "provider_tenure_months"] = provider["provider_tenure_months"]
+    df.loc[indices, "provider_behavior_segment"] = provider["provider_behavior_segment"]
 
 
 def _sample_provider_for_service(
@@ -800,16 +809,14 @@ def _recompute_coverage_and_reimbursement(
         )
 
     requested = np.minimum(
-        df.loc[indices, "claim_amount"].to_numpy(dtype=float)
-        * reimbursement_rates,
+        df.loc[indices, "claim_amount"].to_numpy(dtype=float) * reimbursement_rates,
         limits,
     )
 
     df.loc[indices, "requested_reimbursement"] = np.round(requested, 2)
-    df.loc[indices, "reimbursement_ratio"] = (
-        df.loc[indices, "requested_reimbursement"].to_numpy(dtype=float)
-        / df.loc[indices, "claim_amount"].to_numpy(dtype=float)
-    )
+    df.loc[indices, "reimbursement_ratio"] = df.loc[
+        indices, "requested_reimbursement"
+    ].to_numpy(dtype=float) / df.loc[indices, "claim_amount"].to_numpy(dtype=float)
 
 
 def _set_episode_timestamps(
@@ -921,9 +928,7 @@ def _choose_episode_rows(
     candidates = _available_indices(used, eligible_mask)
 
     if len(candidates) < size:
-        raise RuntimeError(
-            f"Not enough unused claims to build episode of size {size}."
-        )
+        raise RuntimeError(f"Not enough unused claims to build episode of size {size}.")
 
     return np.asarray(rng.choice(candidates, size=size, replace=False), dtype=int)
 
@@ -985,10 +990,7 @@ def _effective_mechanism_mix(
     config: dict[str, Any],
     after_drift: bool,
 ) -> dict[str, float]:
-    mix = {
-        key: float(value)
-        for key, value in config["fraud"]["mechanism_mix"].items()
-    }
+    mix = {key: float(value) for key, value in config["fraud"]["mechanism_mix"].items()}
 
     if after_drift and config["concept_drift"].get("enabled", False):
         multipliers = config["concept_drift"]["mechanism_weight_multiplier"]
@@ -1027,9 +1029,7 @@ def inject_fraud_behaviors(
     warmup_cutoff = simulation_start + pd.Timedelta(days=warmup_days)
     drift_start = pd.Timestamp(config["concept_drift"]["start_date"])
 
-    eligible = (
-        df["claim_submission_timestamp"] >= warmup_cutoff
-    ).to_numpy()
+    eligible = (df["claim_submission_timestamp"] >= warmup_cutoff).to_numpy()
 
     total_target = _fraud_target_before_label_noise(config, n)
 
@@ -1061,15 +1061,13 @@ def inject_fraud_behaviors(
         (
             "before_drift",
             before_target,
-            eligible
-            & (df["claim_submission_timestamp"] < drift_start).to_numpy(),
+            eligible & (df["claim_submission_timestamp"] < drift_start).to_numpy(),
             _effective_mechanism_mix(config, after_drift=False),
         ),
         (
             "after_drift",
             after_target,
-            eligible
-            & (df["claim_submission_timestamp"] >= drift_start).to_numpy(),
+            eligible & (df["claim_submission_timestamp"] >= drift_start).to_numpy(),
             _effective_mechanism_mix(config, after_drift=True),
         ),
     ]
@@ -1155,9 +1153,7 @@ def inject_fraud_behaviors(
                         if rng.random() < same_service_probability:
                             service = anchor_service
                         else:
-                            service = str(
-                                _sample_service_categories(config, rng, 1)[0]
-                            )
+                            service = str(_sample_service_categories(config, rng, 1)[0])
 
                         _set_service(df, np.asarray([idx]), service, config, rng)
 
@@ -1221,7 +1217,10 @@ def inject_fraud_behaviors(
                     )
 
                     for idx in indices:
-                        if anchor_compatible and rng.random() < same_provider_probability:
+                        if (
+                            anchor_compatible
+                            and rng.random() < same_provider_probability
+                        ):
                             provider_id = anchor_provider
                         else:
                             provider_id = _sample_provider_for_service(
@@ -1620,170 +1619,6 @@ def inject_legitimate_anomaly_behaviors(
 # =============================================================================
 
 
-def _rolling_feature(
-    df: pd.DataFrame,
-    group_columns: str | list[str],
-    value_column: str,
-    window: str,
-    aggregation: str,
-) -> pd.Series:
-    output = pd.Series(index=df.index, dtype=float)
-
-    grouped = df.groupby(
-        group_columns,
-        sort=False,
-        dropna=False,
-    )
-
-    for _, group in grouped:
-        ordered = group.sort_values("claim_submission_timestamp")
-        rolling = (
-            ordered.set_index("claim_submission_timestamp")[value_column]
-            .rolling(window, closed="left")
-        )
-
-        if aggregation == "count":
-            result = rolling.count()
-        elif aggregation == "sum":
-            result = rolling.sum()
-        elif aggregation == "mean":
-            result = rolling.mean()
-        elif aggregation == "median":
-            result = rolling.median()
-        else:
-            raise ValueError(f"Unsupported rolling aggregation: {aggregation}")
-
-        output.loc[ordered.index] = result.to_numpy()
-
-    if aggregation in {"count", "sum"}:
-        output = output.fillna(0.0)
-
-    return output
-
-
-def add_historical_features(
-    claims: pd.DataFrame,
-    config: dict[str, Any],
-) -> pd.DataFrame:
-    df = claims.sort_values("claim_submission_timestamp").reset_index(drop=True).copy()
-
-    for window in (7, 30, 90, 365):
-        df[f"customer_claims_{window}d"] = _rolling_feature(
-            df,
-            "customer_id",
-            "claim_id",
-            f"{window}D",
-            "count",
-        )
-
-    df["customer_amount_30d"] = _rolling_feature(
-        df,
-        "customer_id",
-        "claim_amount",
-        "30D",
-        "sum",
-    )
-    df["customer_amount_365d"] = _rolling_feature(
-        df,
-        "customer_id",
-        "claim_amount",
-        "365D",
-        "sum",
-    )
-    df["customer_avg_claim_amount_365d"] = _rolling_feature(
-        df,
-        "customer_id",
-        "claim_amount",
-        "365D",
-        "mean",
-    )
-
-    df["days_since_customer_previous_claim"] = (
-        df.groupby("customer_id")["claim_submission_timestamp"]
-        .diff()
-        .dt.total_seconds()
-        .div(86400)
-    )
-
-    df["days_since_same_provider_claim"] = (
-        df.groupby(["customer_id", "provider_id"])["claim_submission_timestamp"]
-        .diff()
-        .dt.total_seconds()
-        .div(86400)
-    )
-
-    df["customer_provider_claims_30d"] = _rolling_feature(
-        df,
-        ["customer_id", "provider_id"],
-        "claim_id",
-        "30D",
-        "count",
-    )
-
-    df["same_service_claims_30d"] = _rolling_feature(
-        df,
-        ["customer_id", "service_category"],
-        "claim_id",
-        "30D",
-        "count",
-    )
-
-    df["provider_claims_30d"] = _rolling_feature(
-        df,
-        "provider_id",
-        "claim_id",
-        "30D",
-        "count",
-    )
-    df["provider_claims_90d"] = _rolling_feature(
-        df,
-        "provider_id",
-        "claim_id",
-        "90D",
-        "count",
-    )
-    df["provider_avg_claim_amount_90d"] = _rolling_feature(
-        df,
-        "provider_id",
-        "claim_amount",
-        "90D",
-        "mean",
-    )
-
-    historical_service_median = (
-        df.groupby("service_code")["claim_amount"]
-        .transform(lambda series: series.shift(1).expanding().median())
-    )
-
-    configured_service_prior = {
-        service: float(service_cfg["amount"]["median"])
-        for service, service_cfg in config["services"].items()
-    }
-    service_prior = (
-        df["service_category"].map(configured_service_prior).astype(float)
-    )
-
-    df["service_typical_amount"] = historical_service_median.fillna(service_prior)
-    df["claim_to_service_median_ratio"] = (
-        df["claim_amount"] / df["service_typical_amount"]
-    )
-    df["claim_to_customer_avg_ratio"] = (
-        df["claim_amount"] / df["customer_avg_claim_amount_365d"]
-    )
-    df["claim_to_provider_avg_ratio"] = (
-        df["claim_amount"] / df["provider_avg_claim_amount_90d"]
-    )
-
-    ratio_columns = [
-        "claim_to_service_median_ratio",
-        "claim_to_customer_avg_ratio",
-        "claim_to_provider_avg_ratio",
-    ]
-    df[ratio_columns] = df[ratio_columns].replace([np.inf, -np.inf], np.nan)
-
-    return df
-
-
 # =============================================================================
 # Final fraud labels and synthetic diagnostic metadata
 # =============================================================================
@@ -1934,9 +1769,9 @@ def inject_quality_issues(
             df.loc[idx, "claim_amount"] *= -1
 
         elif issue_type == "service_after_submission":
-            df.loc[idx, "service_date"] = (
-                df.loc[idx, "claim_submission_date"] + pd.Timedelta(days=2)
-            )
+            df.loc[idx, "service_date"] = df.loc[
+                idx, "claim_submission_date"
+            ] + pd.Timedelta(days=2)
 
         elif issue_type == "zero_units":
             df.loc[idx, "service_units"] = 0
@@ -1991,6 +1826,13 @@ def generate_synthetic_data(
         config,
         rng,
     )
+
+    if config.get("longitudinal_context", {}).get("enabled", False):
+        from health_fraud.data.longitudinal import enrich_longitudinal
+
+        customers, providers, policies, claims = enrich_longitudinal(
+            customers, providers, policies, claims, config, rng
+        )
 
     claims = add_historical_features(claims, config)
     claims = finalize_fraud_labels(claims, config, rng)

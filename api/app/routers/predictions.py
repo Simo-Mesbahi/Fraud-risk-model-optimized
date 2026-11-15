@@ -92,7 +92,7 @@ def _raise_validation_error(
 
     raise HTTPException(
         status_code=(
-            status.HTTP_422_UNPROCESSABLE_ENTITY
+            422
         ),
         detail=detail,
     ) from exc

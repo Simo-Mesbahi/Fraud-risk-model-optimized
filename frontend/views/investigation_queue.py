@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from health_fraud.data.io import spreadsheet_csv
+
+from health_fraud.config import RISK_LOW_THRESHOLD, RISK_MEDIUM_THRESHOLD, RISK_HIGH_THRESHOLD
+
+from health_fraud.config import MAX_BATCH_SIZE as SHARED_MAX_BATCH_SIZE
+
 from datetime import (
     datetime,
     timezone,
@@ -40,7 +46,7 @@ from frontend.utils.formatting import (
 # =============================================================================
 
 
-MAX_QUEUE_SOURCE_SIZE = 10_000
+MAX_QUEUE_SOURCE_SIZE = SHARED_MAX_BATCH_SIZE
 
 DEFAULT_REVIEW_FRACTION = 0.03
 
@@ -309,13 +315,13 @@ def _risk_priority(
         field="fraud_risk_score",
     )
 
-    if score >= 0.50:
+    if score >= RISK_HIGH_THRESHOLD:
         return "P1 — Immediate"
 
-    if score >= 0.20:
+    if score >= RISK_MEDIUM_THRESHOLD:
         return "P2 — High"
 
-    if score >= 0.05:
+    if score >= RISK_LOW_THRESHOLD:
         return "P3 — Standard"
 
     return "P4 — Monitor"
@@ -333,17 +339,17 @@ def _model_recommendation(
         field="fraud_risk_score",
     )
 
-    if score >= 0.50:
+    if score >= RISK_HIGH_THRESHOLD:
         return (
             "Immediate investigator review"
         )
 
-    if score >= 0.20:
+    if score >= RISK_MEDIUM_THRESHOLD:
         return (
             "Investigator review recommended"
         )
 
-    if score >= 0.05:
+    if score >= RISK_LOW_THRESHOLD:
         return (
             "Review if capacity allows"
         )
@@ -3562,13 +3568,7 @@ def _render_export(
     )
 
     csv = (
-        export
-        .to_csv(
-            index=False
-        )
-        .encode(
-            "utf-8-sig"
-        )
+        spreadsheet_csv(export)
     )
 
     st.download_button(

@@ -14,6 +14,11 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from health_fraud.config import MAX_BATCH_SIZE, MAX_UPLOAD_COLUMNS
+from health_fraud.data.io import (
+    read_csv_bounded, read_parquet_bounded, read_upload_bytes, strict_json_loads,
+)
+
 
 # =============================================================================
 # Paths
@@ -40,7 +45,7 @@ DEMO_CLAIMS_PATH = (
 # =============================================================================
 
 
-MAX_UPLOAD_ROWS = 100_000
+MAX_UPLOAD_ROWS = MAX_BATCH_SIZE
 
 SUPPORTED_UPLOAD_EXTENSIONS = (
     ".json",
@@ -307,6 +312,9 @@ def dataframe_to_records(
                 f"{MAX_UPLOAD_ROWS:,}."
             )
         )
+
+    if len(frame.columns) > MAX_UPLOAD_COLUMNS:
+        raise ValueError(f"Dataset exceeds the {MAX_UPLOAD_COLUMNS}-column limit.")
 
     return [
         serialize_mapping(
@@ -794,6 +802,7 @@ def read_uploaded_file(
             )
         )
 
+    raw = read_upload_bytes(uploaded)
     # -------------------------------------------------------------------------
     # Ensure repeated Streamlit reads start from the beginning when possible.
     # -------------------------------------------------------------------------
@@ -815,9 +824,7 @@ def read_uploaded_file(
 
         try:
 
-            data = json.load(
-                uploaded
-            )
+            data = strict_json_loads(raw)
 
         except (
             json.JSONDecodeError,
@@ -852,9 +859,7 @@ def read_uploaded_file(
 
         try:
 
-            frame = pd.read_csv(
-                uploaded
-            )
+            frame = read_csv_bounded(raw)
 
         except pd.errors.EmptyDataError as exc:
 
@@ -906,9 +911,7 @@ def read_uploaded_file(
 
         try:
 
-            frame = pd.read_parquet(
-                uploaded
-            )
+            frame = read_parquet_bounded(raw)
 
         except Exception as exc:
 

@@ -11,9 +11,7 @@ from typing import Any
 # =============================================================================
 
 
-RISK_LOW_THRESHOLD = 0.05
-RISK_MEDIUM_THRESHOLD = 0.20
-RISK_HIGH_THRESHOLD = 0.50
+from health_fraud.config import RISK_LOW_THRESHOLD, RISK_MEDIUM_THRESHOLD, RISK_HIGH_THRESHOLD
 
 
 RISK_TIERS = (

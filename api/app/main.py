@@ -4,6 +4,7 @@ import logging
 import os
 import time
 import uuid
+import re
 
 from contextlib import asynccontextmanager
 from typing import (
@@ -42,6 +43,7 @@ from api.app.routers.healthcheck import (
 from api.app.routers.predictions import (
     router as predictions_router,
 )
+from api.app.middleware import RequestBudgetMiddleware
 
 
 # =============================================================================
@@ -536,6 +538,7 @@ app = FastAPI(
 # CORS
 # =============================================================================
 
+app.add_middleware(RequestBudgetMiddleware)
 
 allowed_origins = (
     _cors_origins()
@@ -601,6 +604,9 @@ async def request_context_middleware(
         )
         or uuid.uuid4().hex
     )
+
+    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", request_id):
+        request_id = uuid.uuid4().hex
 
     request.state.request_id = (
         request_id
@@ -745,11 +751,18 @@ async def request_validation_exception_handler(
 
     return JSONResponse(
         status_code=(
-            status.HTTP_422_UNPROCESSABLE_ENTITY
+            422
         ),
         content={
-            "detail":
-                exc.errors(),
+            # Never echo the raw invalid input or exception context. Either can
+            # contain non-finite numbers, private claim fields, or Python objects
+            # which JSONResponse cannot serialize.
+            "detail": [
+                {"loc": list(error.get("loc", [])),
+                 "msg": str(error.get("msg", "Invalid input")),
+                 "type": str(error.get("type", "value_error"))}
+                for error in exc.errors()
+            ],
 
             "request_id":
                 request_id,

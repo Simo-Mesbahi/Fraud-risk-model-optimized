@@ -9,7 +9,10 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    field_validator,
 )
+from health_fraud.config import MAX_BATCH_SIZE
+from health_fraud.data.contracts import validate_claim_record, validate_claim_records
 
 
 # =============================================================================
@@ -84,6 +87,8 @@ class SingleClaimRequest(
         ),
     )
 
+    _validate_claim = field_validator("claim")(validate_claim_record)
+
 
 class BatchClaimsRequest(
     APIModel,
@@ -99,12 +104,14 @@ class BatchClaimsRequest(
         ]
     ] = Field(
         min_length=1,
-        max_length=10_000,
+        max_length=MAX_BATCH_SIZE,
         description=(
             "Claims to score. "
             "Maximum batch size: 10,000 claims."
         ),
     )
+
+    _validate_claims = field_validator("claims")(validate_claim_records)
 
 
 class TopReviewRequest(
@@ -124,11 +131,13 @@ class TopReviewRequest(
         ]
     ] = Field(
         min_length=1,
-        max_length=10_000,
+        max_length=MAX_BATCH_SIZE,
         description=(
             "Portfolio of claims to rank."
         ),
     )
+
+    _validate_claims = field_validator("claims")(validate_claim_records)
 
     review_fraction: float = Field(
         default=0.03,
@@ -162,6 +171,8 @@ class ExplainClaimRequest(
             "Complete claim payload to explain."
         ),
     )
+
+    _validate_claim = field_validator("claim")(validate_claim_record)
 
     top_k: int = Field(
         default=8,

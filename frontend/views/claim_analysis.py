@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from health_fraud.config import RISK_LOW_THRESHOLD, RISK_MEDIUM_THRESHOLD, RISK_HIGH_THRESHOLD
+
 import json
 import uuid
 
@@ -15,6 +17,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import streamlit as st
+import yaml
 
 from frontend.components import (
     human_review_notice,
@@ -33,6 +36,11 @@ from frontend.utils.data import (
 from frontend.utils.formatting import (
     risk_tier,
 )
+from health_fraud.config import MAX_ADVANCED_JSON_CHARS
+from health_fraud.features.history import (
+    _amount_mean, _amount_median, _amount_sum, _amount_values, _build_smart_claim, _days_since_last, _history_before, _json_safe, _latest_row, _new_claim_id, _safe_bool, _safe_float, _safe_int, _safe_optional_float, _strip_leakage, _window
+)
+from health_fraud.data.io import strict_json_loads
 
 
 # =============================================================================
@@ -173,211 +181,18 @@ FEATURE_LABELS = {
 # =============================================================================
 
 
-def _safe_float(
-    value: Any,
-    default: float = 0.0,
-) -> float:
-    """
-    Convert a value to a finite float.
-    """
-
-    try:
-        result = float(value)
-
-        if np.isfinite(result):
-            return result
-
-    except (
-        TypeError,
-        ValueError,
-    ):
-        pass
-
-    return float(default)
 
 
-def _safe_int(
-    value: Any,
-    default: int = 0,
-) -> int:
-    """
-    Convert numeric-like values to integer safely.
-    """
-
-    try:
-        if pd.isna(value):
-            return default
-
-        return int(
-            round(
-                float(value)
-            )
-        )
-
-    except (
-        TypeError,
-        ValueError,
-    ):
-        return default
 
 
-def _safe_optional_float(
-    value: Any,
-) -> float | None:
-    """
-    Convert a value to float while preserving missing values.
-    """
-
-    try:
-        if pd.isna(value):
-            return None
-
-        result = float(value)
-
-        if np.isfinite(result):
-            return result
-
-    except (
-        TypeError,
-        ValueError,
-    ):
-        pass
-
-    return None
 
 
-def _safe_bool(
-    value: Any,
-    default: bool = False,
-) -> bool:
-    """
-    Convert heterogeneous boolean representations safely.
-    """
-
-    if value is None:
-        return default
-
-    try:
-        if pd.isna(value):
-            return default
-
-    except (
-        TypeError,
-        ValueError,
-    ):
-        pass
-
-    if isinstance(
-        value,
-        str,
-    ):
-        return (
-            value
-            .strip()
-            .lower()
-            in {
-                "true",
-                "1",
-                "yes",
-                "y",
-            }
-        )
-
-    return bool(value)
 
 
-def _json_safe(
-    value: Any,
-) -> Any:
-    """
-    Convert pandas / numpy / datetime values into JSON-safe values.
-    """
-
-    if value is None:
-        return None
-
-    if isinstance(
-        value,
-        (
-            pd.Timestamp,
-            datetime,
-            date,
-        ),
-    ):
-        return value.isoformat()
-
-    if isinstance(
-        value,
-        dict,
-    ):
-        return {
-            str(key): _json_safe(item)
-            for key, item in value.items()
-        }
-
-    if isinstance(
-        value,
-        (
-            list,
-            tuple,
-            set,
-        ),
-    ):
-        return [
-            _json_safe(item)
-            for item in value
-        ]
-
-    try:
-        if pd.isna(value):
-            return None
-
-    except (
-        TypeError,
-        ValueError,
-    ):
-        pass
-
-    if hasattr(
-        value,
-        "item",
-    ):
-        try:
-            return _json_safe(
-                value.item()
-            )
-
-        except Exception:
-            pass
-
-    return value
 
 
-def _new_claim_id() -> str:
-    """
-    Generate an identifier for a new live inference request.
-    """
-
-    return (
-        "LIVE_"
-        + uuid.uuid4()
-        .hex[:12]
-        .upper()
-    )
 
 
-def _strip_leakage(
-    claim: dict[str, Any],
-) -> dict[str, Any]:
-    """
-    Remove target/generation variables that must never enter inference.
-    """
-
-    return {
-        key: _json_safe(value)
-        for key, value in claim.items()
-        if key not in LEAKAGE_COLUMNS
-    }
 
 
 def _format_identifier(
@@ -594,6 +409,12 @@ def _load_context_data() -> pd.DataFrame:
             )
         )
 
+    root = Path(__file__).resolve().parents[2]
+    frame.attrs["policies"] = pd.read_parquet(root / "data/interim/policies.parquet")
+    with (root / "configs/data.yaml").open(encoding="utf-8") as file:
+        settings = yaml.safe_load(file)
+    frame.attrs["coverage_limits"] = settings["policy"]["coverage_limits"]
+    frame.attrs["service_priors"] = {name: value["amount"]["median"] for name, value in settings["services"].items()}
     return frame
 
 
@@ -602,199 +423,20 @@ def _load_context_data() -> pd.DataFrame:
 # =============================================================================
 
 
-def _history_before(
-    claims: pd.DataFrame,
-    timestamp: pd.Timestamp,
-) -> pd.DataFrame:
-    """
-    Restrict historical context strictly to information available
-    before the current claim.
-    """
-
-    return (
-        claims.loc[
-            claims[
-                "claim_submission_timestamp"
-            ]
-            < timestamp
-        ]
-    )
 
 
-def _latest_row(
-    frame: pd.DataFrame,
-) -> pd.Series | None:
-    """
-    Return the most recent historical row.
-    """
-
-    if frame.empty:
-        return None
-
-    return (
-        frame
-        .sort_values(
-            "claim_submission_timestamp"
-        )
-        .iloc[-1]
-    )
 
 
-def _window(
-    frame: pd.DataFrame,
-    timestamp: pd.Timestamp,
-    days: int,
-) -> pd.DataFrame:
-    """
-    Restrict data to a trailing historical window.
-    """
-
-    if frame.empty:
-        return frame
-
-    lower = (
-        timestamp
-        - pd.Timedelta(
-            days=days
-        )
-    )
-
-    mask = (
-        (
-            frame[
-                "claim_submission_timestamp"
-            ]
-            >= lower
-        )
-        &
-        (
-            frame[
-                "claim_submission_timestamp"
-            ]
-            < timestamp
-        )
-    )
-
-    return frame.loc[mask]
 
 
-def _amount_values(
-    frame: pd.DataFrame,
-) -> pd.Series:
-    """
-    Return valid numerical claim amounts.
-    """
-
-    if (
-        frame.empty
-        or "claim_amount"
-        not in frame.columns
-    ):
-        return pd.Series(
-            dtype=float
-        )
-
-    return (
-        pd.to_numeric(
-            frame["claim_amount"],
-            errors="coerce",
-        )
-        .dropna()
-    )
 
 
-def _amount_sum(
-    frame: pd.DataFrame,
-) -> float:
-    """
-    Sum claim amounts safely.
-    """
-
-    values = _amount_values(frame)
-
-    if values.empty:
-        return 0.0
-
-    return float(
-        values.sum()
-    )
 
 
-def _amount_mean(
-    frame: pd.DataFrame,
-    default: float,
-) -> float:
-    """
-    Compute historical mean amount with safe fallback.
-    """
-
-    values = _amount_values(frame)
-
-    if values.empty:
-        return float(default)
-
-    return float(
-        values.mean()
-    )
 
 
-def _amount_median(
-    frame: pd.DataFrame,
-    default: float,
-) -> float:
-    """
-    Compute historical median amount with safe fallback.
-    """
-
-    values = _amount_values(frame)
-
-    if values.empty:
-        return float(default)
-
-    return float(
-        values.median()
-    )
 
 
-def _days_since_last(
-    frame: pd.DataFrame,
-    timestamp: pd.Timestamp,
-) -> float | None:
-    """
-    Calculate elapsed days since the latest previous claim.
-    """
-
-    if frame.empty:
-        return None
-
-    dates = (
-        frame[
-            "claim_submission_timestamp"
-        ]
-        .dropna()
-    )
-
-    dates = (
-        dates[
-            dates < timestamp
-        ]
-    )
-
-    if dates.empty:
-        return None
-
-    delta = (
-        timestamp
-        - dates.max()
-    )
-
-    return max(
-        0.0,
-        float(
-            delta.total_seconds()
-            / 86_400
-        ),
-    )
 
 
 # =============================================================================
@@ -880,502 +522,6 @@ def _service_reference(
 # =============================================================================
 
 
-def _build_smart_claim(
-    *,
-    history: pd.DataFrame,
-    customer_id: str,
-    provider_id: str,
-    service_category: str,
-    service_code: str,
-    service_units: int,
-    service_date: date,
-    submission_datetime: datetime,
-    claim_amount: float,
-    requested_reimbursement: float,
-    submission_channel: str,
-    document_count: int,
-    has_invoice: bool,
-    has_prescription: bool | None,
-) -> dict[str, Any]:
-    """
-    Enrich a minimal operational claim with historical model features.
-
-    Only information available before submission_datetime is used.
-    """
-
-    submission_ts = pd.Timestamp(
-        submission_datetime
-    )
-
-    service_ts = pd.Timestamp(
-        service_date
-    )
-
-    if (
-        service_ts.normalize()
-        > submission_ts.normalize()
-    ):
-        raise ValueError(
-            (
-                "Service date cannot occur after "
-                "the claim submission date."
-            )
-        )
-
-    if claim_amount <= 0:
-        raise ValueError(
-            "Claim amount must be positive."
-        )
-
-    if requested_reimbursement < 0:
-        raise ValueError(
-            (
-                "Requested reimbursement "
-                "cannot be negative."
-            )
-        )
-
-    historical = _history_before(
-        history,
-        submission_ts,
-    )
-
-    customer_history = (
-        historical.loc[
-            historical[
-                "customer_id"
-            ]
-            .astype(str)
-            == str(customer_id)
-        ]
-        .copy()
-    )
-
-    provider_history = (
-        historical.loc[
-            historical[
-                "provider_id"
-            ]
-            .astype(str)
-            == str(provider_id)
-        ]
-        .copy()
-    )
-
-    relationship_history = (
-        customer_history.loc[
-            customer_history[
-                "provider_id"
-            ]
-            .astype(str)
-            == str(provider_id)
-        ]
-        .copy()
-    )
-
-    same_service_history = (
-        customer_history.loc[
-            customer_history[
-                "service_code"
-            ]
-            .astype(str)
-            == str(service_code)
-        ]
-        .copy()
-    )
-
-    service_history = (
-        historical.loc[
-            historical[
-                "service_code"
-            ]
-            .astype(str)
-            == str(service_code)
-        ]
-        .copy()
-    )
-
-    customer_latest = _latest_row(
-        customer_history
-    )
-
-    provider_latest = _latest_row(
-        provider_history
-    )
-
-    if customer_latest is None:
-        raise ValueError(
-            (
-                "No historical context exists for "
-                f"customer {customer_id} before "
-                "the selected submission date."
-            )
-        )
-
-    if provider_latest is None:
-        raise ValueError(
-            (
-                "No historical context exists for "
-                f"provider {provider_id} before "
-                "the selected submission date."
-            )
-        )
-
-    # -------------------------------------------------------------------------
-    # Historical windows
-    # -------------------------------------------------------------------------
-
-    customer_7d = _window(
-        customer_history,
-        submission_ts,
-        7,
-    )
-
-    customer_30d = _window(
-        customer_history,
-        submission_ts,
-        30,
-    )
-
-    customer_90d = _window(
-        customer_history,
-        submission_ts,
-        90,
-    )
-
-    customer_365d = _window(
-        customer_history,
-        submission_ts,
-        365,
-    )
-
-    provider_30d = _window(
-        provider_history,
-        submission_ts,
-        30,
-    )
-
-    provider_90d = _window(
-        provider_history,
-        submission_ts,
-        90,
-    )
-
-    relationship_30d = _window(
-        relationship_history,
-        submission_ts,
-        30,
-    )
-
-    same_service_30d = _window(
-        same_service_history,
-        submission_ts,
-        30,
-    )
-
-    # -------------------------------------------------------------------------
-    # Monetary references
-    # -------------------------------------------------------------------------
-
-    service_typical_amount = (
-        _amount_median(
-            service_history,
-            default=claim_amount,
-        )
-    )
-
-    customer_avg_amount = (
-        _amount_mean(
-            customer_365d,
-            default=claim_amount,
-        )
-    )
-
-    provider_avg_amount = (
-        _amount_mean(
-            provider_90d,
-            default=claim_amount,
-        )
-    )
-
-    eps = 1e-6
-
-    coverage_limit = (
-        _safe_float(
-            customer_latest.get(
-                "coverage_limit"
-            ),
-            default=max(
-                requested_reimbursement,
-                claim_amount,
-            ),
-        )
-    )
-
-    coverage_limit = max(
-        coverage_limit,
-        eps,
-    )
-
-    days_since_policy_change = (
-        _safe_optional_float(
-            customer_latest.get(
-                "days_since_policy_change"
-            )
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # Production-like inference payload
-    # -------------------------------------------------------------------------
-
-    claim = {
-        "claim_id":
-            _new_claim_id(),
-
-        "customer_id":
-            str(customer_id),
-
-        "policy_id":
-            _json_safe(
-                customer_latest.get(
-                    "policy_id"
-                )
-            ),
-
-        "provider_id":
-            str(provider_id),
-
-        "service_category":
-            str(service_category),
-
-        "service_code":
-            str(service_code),
-
-        "service_units":
-            int(service_units),
-
-        "service_date":
-            service_date.isoformat(),
-
-        "claim_submission_date":
-            submission_datetime
-            .date()
-            .isoformat(),
-
-        "claim_submission_timestamp":
-            submission_datetime.isoformat(),
-
-        "claim_amount":
-            float(claim_amount),
-
-        "requested_reimbursement":
-            float(requested_reimbursement),
-
-        "coverage_limit":
-            float(coverage_limit),
-
-        "submission_channel":
-            str(submission_channel),
-
-        "document_count":
-            int(document_count),
-
-        "has_invoice":
-            int(
-                bool(has_invoice)
-            ),
-
-        "has_prescription":
-            has_prescription,
-
-        "customer_age":
-            _safe_int(
-                customer_latest.get(
-                    "customer_age"
-                )
-            ),
-
-        "customer_tenure_months":
-            _safe_int(
-                customer_latest.get(
-                    "customer_tenure_months"
-                )
-            ),
-
-        "coverage_level":
-            _json_safe(
-                customer_latest.get(
-                    "coverage_level"
-                )
-            ),
-
-        "policy_tenure_months":
-            _safe_int(
-                customer_latest.get(
-                    "policy_tenure_months"
-                )
-            ),
-
-        "recent_policy_change":
-            int(
-                _safe_bool(
-                    customer_latest.get(
-                        "recent_policy_change"
-                    )
-                )
-            ),
-
-        "days_since_policy_change":
-            days_since_policy_change,
-
-        "provider_type":
-            _json_safe(
-                provider_latest.get(
-                    "provider_type"
-                )
-            ),
-
-        "provider_region":
-            _json_safe(
-                provider_latest.get(
-                    "provider_region"
-                )
-            ),
-
-        "provider_tenure_months":
-            _safe_int(
-                provider_latest.get(
-                    "provider_tenure_months"
-                )
-            ),
-
-        "days_service_to_submission":
-            int(
-                max(
-                    0,
-                    (
-                        submission_ts.normalize()
-                        - service_ts.normalize()
-                    ).days,
-                )
-            ),
-
-        "reimbursement_ratio":
-            float(
-                requested_reimbursement
-                / max(
-                    claim_amount,
-                    eps,
-                )
-            ),
-
-        # ---------------------------------------------------------------------
-        # Customer history
-        # ---------------------------------------------------------------------
-
-        "customer_claims_7d":
-            len(customer_7d),
-
-        "customer_claims_30d":
-            len(customer_30d),
-
-        "customer_claims_90d":
-            len(customer_90d),
-
-        "customer_claims_365d":
-            len(customer_365d),
-
-        "customer_amount_30d":
-            _amount_sum(
-                customer_30d
-            ),
-
-        "customer_amount_365d":
-            _amount_sum(
-                customer_365d
-            ),
-
-        "customer_avg_claim_amount_365d":
-            customer_avg_amount,
-
-        "days_since_customer_previous_claim":
-            _days_since_last(
-                customer_history,
-                submission_ts,
-            ),
-
-        # ---------------------------------------------------------------------
-        # Customer-provider relationship
-        # ---------------------------------------------------------------------
-
-        "days_since_same_provider_claim":
-            _days_since_last(
-                relationship_history,
-                submission_ts,
-            ),
-
-        "customer_provider_claims_30d":
-            len(
-                relationship_30d
-            ),
-
-        "same_service_claims_30d":
-            len(
-                same_service_30d
-            ),
-
-        # ---------------------------------------------------------------------
-        # Provider history
-        # ---------------------------------------------------------------------
-
-        "provider_claims_30d":
-            len(provider_30d),
-
-        "provider_claims_90d":
-            len(provider_90d),
-
-        "provider_avg_claim_amount_90d":
-            provider_avg_amount,
-
-        # ---------------------------------------------------------------------
-        # Contextual monetary ratios
-        # ---------------------------------------------------------------------
-
-        "service_typical_amount":
-            service_typical_amount,
-
-        "claim_to_service_median_ratio":
-            float(
-                claim_amount
-                / max(
-                    service_typical_amount,
-                    eps,
-                )
-            ),
-
-        "claim_to_customer_avg_ratio":
-            float(
-                claim_amount
-                / max(
-                    customer_avg_amount,
-                    eps,
-                )
-            ),
-
-        "claim_to_provider_avg_ratio":
-            float(
-                claim_amount
-                / max(
-                    provider_avg_amount,
-                    eps,
-                )
-            ),
-    }
-
-    return _strip_leakage(
-        claim
-    )
 
 
 # =============================================================================
@@ -1571,7 +717,7 @@ def _recommendation(
     Convert model risk into an operational recommendation.
     """
 
-    if score >= 0.50:
+    if score >= RISK_HIGH_THRESHOLD:
         return (
             "Priority review",
             (
@@ -1582,7 +728,7 @@ def _recommendation(
             "danger",
         )
 
-    if score >= 0.20:
+    if score >= RISK_MEDIUM_THRESHOLD:
         return (
             "Review recommended",
             (
@@ -1592,7 +738,7 @@ def _recommendation(
             "warning",
         )
 
-    if score >= 0.05:
+    if score >= RISK_LOW_THRESHOLD:
         return (
             "Capacity dependent",
             (
@@ -2660,17 +1806,17 @@ def _render_assessment() -> None:
 
             st.divider()
 
-            if score >= 0.50:
+            if score >= RISK_HIGH_THRESHOLD:
                 st.error(
                     explanation
                 )
 
-            elif score >= 0.20:
+            elif score >= RISK_MEDIUM_THRESHOLD:
                 st.warning(
                     explanation
                 )
 
-            elif score >= 0.05:
+            elif score >= RISK_LOW_THRESHOLD:
                 st.info(
                     explanation
                 )
@@ -2731,7 +1877,8 @@ def _render_smart_form(
         (
             "Enter only the core claim information. "
             "Customer history, provider activity and "
-            "contextual model features are generated automatically."
+            "contextual model features are generated automatically. "
+            "Synthetic history uses UTC; later unrecorded policy events are unknown."
         ),
     )
 
@@ -3313,6 +2460,7 @@ def _render_advanced_json(
 
     raw = st.text_area(
         "Complete claim JSON",
+        max_chars=MAX_ADVANCED_JSON_CHARS,
         height=420,
         placeholder=(
             "{\n"
@@ -3343,9 +2491,7 @@ def _render_advanced_json(
         return
 
     try:
-        claim = json.loads(
-            raw
-        )
+        claim = strict_json_loads(raw)
 
         if not isinstance(
             claim,

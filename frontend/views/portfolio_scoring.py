@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from health_fraud.data.io import spreadsheet_csv
+
+from health_fraud.config import MAX_BATCH_SIZE as SHARED_MAX_BATCH_SIZE
+
 from datetime import (
     datetime,
     timezone,
@@ -35,7 +39,7 @@ from frontend.utils.formatting import (
 # =============================================================================
 
 
-MAX_BATCH_SIZE = 10_000
+MAX_BATCH_SIZE = SHARED_MAX_BATCH_SIZE
 
 DEFAULT_REVIEW_FRACTION = 0.03
 
@@ -2896,13 +2900,7 @@ def _render_exports(
         st.download_button(
             "Download All Scores",
             data=(
-                export
-                .to_csv(
-                    index=False
-                )
-                .encode(
-                    "utf-8-sig"
-                )
+                spreadsheet_csv(export)
             ),
             file_name=(
                 "fraud_portfolio_scores.csv"
@@ -2918,13 +2916,7 @@ def _render_exports(
                 f"{fraction:.0%} Review Set"
             ),
             data=(
-                review
-                .to_csv(
-                    index=False
-                )
-                .encode(
-                    "utf-8-sig"
-                )
+                spreadsheet_csv(review)
             ),
             file_name=(
                 f"fraud_top_{percentage_label}"

@@ -4,3 +4,18 @@ htmlcov/
 .pytest_cache/
 __pycache__/
 *.pyc
+
+# Local environments, credentials and generated working files
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+playwright-report/
+test-results/
+data/research/
+artifacts/research/**/*.joblib
+artifacts/research/**/candidate_predictions.parquet
+*.log
