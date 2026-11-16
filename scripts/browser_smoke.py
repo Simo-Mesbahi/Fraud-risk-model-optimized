@@ -30,9 +30,12 @@ def main():
         page.goto(args.url)
         page.get_by_text("Scoring service operational", exact=True).wait_for(timeout=90000)
 
-        def clean():
-            expect(page.get_by_test_id("stException")).to_have_count(0)
-            assert "Diagnostic reference:" not in page.locator("body").inner_text()
+        def clean(target=page):
+            expect(target.get_by_test_id("stApp")).to_have_attribute(
+                "data-test-script-state", "notRunning", timeout=90000
+            )
+            expect(target.get_by_test_id("stException")).to_have_count(0)
+            assert "Diagnostic reference:" not in target.locator("body").inner_text()
 
         def navigate(name):
             page.get_by_test_id("stSidebar").get_by_text(name, exact=True).click()
@@ -65,7 +68,11 @@ def main():
             clean()
             passed.append("expanded-lab:" + workspace)
         choose("Analysis workspace", "Exploration")
+        page.get_by_text(workspaces["Exploration"], exact=True).wait_for()
+        clean()
         page.screenshot(path=str(args.output / "science-desktop.png"), full_page=True)
+        page.get_by_test_id("stVegaLiteChart").first.scroll_into_view_if_needed()
+        page.screenshot(path=str(args.output / "science-charts-desktop.png"), full_page=True)
 
         navigate("Claim Analysis")
         # Streamlit overlays its native radio input with a styled option label.
@@ -79,8 +86,14 @@ def main():
         page.get_by_role("button", name="Analyze Demo Claim", exact=True).click()
         page.get_by_text("Demo claim scored and explained successfully.", exact=True).wait_for()
         clean()
+        expect(page.locator(".metric-card-pro").filter(
+            has=page.get_by_text("SHAP Additivity", exact=True)
+        ).locator(".metric-value")).to_have_text("Verified")
+        expect(page.locator(".metric-card-pro").filter(
+            has=page.get_by_text("Feature Space", exact=True)
+        ).locator(".metric-value")).to_have_text("107")
         page.screenshot(path=str(args.output / "claim-desktop.png"), full_page=True)
-        passed.append("score-and-explain:quick-demo")
+        passed.extend(["score-and-explain:quick-demo", "explanation:107-features-and-additivity"])
 
         navigate("Portfolio Scoring")
         csv = pd.read_parquet(ROOT / "data/interim/claims.parquet").head(5).to_csv(index=False).encode()
@@ -153,6 +166,7 @@ def main():
                 control.first.click()
                 break
         expect(mobile.get_by_role("combobox", name="Analysis workspace", exact=True)).to_be_visible()
+        clean(mobile)
         assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4"), "Mobile document overflow"
         expect(mobile.get_by_test_id("stException")).to_have_count(0)
         mobile.screenshot(path=str(args.output / "science-mobile.png"), full_page=True)

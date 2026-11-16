@@ -14,6 +14,8 @@ def test_compact_reader_preserves_claim_values_and_missing_context(tmp_path):
     path = tmp_path / "claims.parquet"
     original.to_parquet(path, index=False)
     actual = read_public_corpus(path)
-    pd.testing.assert_frame_equal(actual.astype(object), original.astype(object))
+    actual_values = actual.astype(object).where(actual.notna(), None)
+    expected_values = original.astype(object).where(original.notna(), None)
+    pd.testing.assert_frame_equal(actual_values, expected_values)
     assert isinstance(actual.provider_id.dtype, pd.CategoricalDtype)
     assert actual.claim_id.tolist() == ["A", "B", "C"]
