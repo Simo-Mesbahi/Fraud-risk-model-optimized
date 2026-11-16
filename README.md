@@ -115,7 +115,7 @@ python scripts/browser_smoke.py
 
 Both images pin the Python base digest, use hash-checked dependency locks, run without root and forward termination signals to the application process. `docker compose up --build -d` starts the stack. [render.yaml](render.yaml) documents the two existing free-tier Frankfurt services; it does not require creating another stack. Git-linked auto-deploys wait for checks to pass.
 
-Local benchmark measurements, their environment and limitations are recorded in [local-api.json](artifacts/benchmarks/local-api.json). They are not Render latency guarantees. Free-tier services can sleep and need a cold start. Horizontal replicas would each have their own admission limit and session state; distributed rate limiting and external state are required before real multi-user scaling.
+Local benchmark measurements, their environment and limitations are recorded in [local-api.json](artifacts/benchmarks/local-api.json) and [frontend-data-memory.json](artifacts/benchmarks/frontend-data-memory.json). Public datasets share compact, read-only buffers; score joins avoid duplicating the complete corpus. The container workflow checks the real browser with a 512 MiB memory limit per service. These measurements are not Render latency or concurrency guarantees. Free-tier services can sleep and need a cold start. Horizontal replicas would each have their own admission limit and session state; distributed rate limiting and external state are required before real multi-user scaling.
 
 ## Scope and next evidence
 

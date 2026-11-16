@@ -124,24 +124,12 @@ def main():
         expect(decision_select.get_by_role("combobox", name="Human decision", exact=True)).to_have_value("Clear")
         page.get_by_role("button", name="Save Human Decision", exact=True).click()
         resume = page.get_by_test_id("stFileUploader").filter(has_text="Resume decisions JSON")
-        uploader = resume.locator('input[type="file"]')
-        expect(uploader).to_have_count(1)
-        # Streamlit may rerender the uploader after saving a decision.
-        # Wait for the actual uploaded-file chip, not just the DOM FileList.
-        uploader.set_input_files(snapshot)
-        try:
-            expect(resume.get_by_text("decisions.json", exact=True)).to_be_visible(timeout=15000)
-        except AssertionError:
-            # Retry against the newly rendered uploader if Streamlit replaced it.
-            uploader = page.get_by_test_id("stFileUploader").filter(
-                has_text="Resume decisions JSON"
-            ).locator('input[type="file"]')
-            uploader.set_input_files(snapshot)
-            expect(
-                page.get_by_test_id("stFileUploader").filter(
-                    has_text="Resume decisions JSON"
-                ).get_by_text("decisions.json", exact=True)
-            ).to_be_visible(timeout=20000)
+        # Use the same native picker action as a user. This also waits for
+        # Streamlit to finish rendering the current uploader after a rerun.
+        with page.expect_file_chooser() as chosen:
+            resume.get_by_role("button", name="Upload", exact=True).click()
+        chosen.value.set_files(snapshot)
+        expect(resume.get_by_text("decisions.json", exact=True)).to_be_visible(timeout=30000)
         restore = page.get_by_role("button", name="Restore decisions", exact=True)
         expect(restore).to_be_enabled(timeout=20000)
         restore.click()

@@ -38,7 +38,11 @@ jobs:
           cache: pip
           cache-dependency-path: requirements/dev.lock
       - run: python -m pip install --require-hashes -r requirements/dev.lock
+      - name: Verify or publish immutable assets
+        id: assets
+        run: python scripts/publish_research_assets.py
       - name: Diagnose research corpus reproducibility
+        if: failure() && steps.assets.outcome == 'failure'
         run: |
           python - <<'PY'
           import hashlib
@@ -73,8 +77,6 @@ jobs:
               "pyarrow": pyarrow.__version__,
           }, indent=2))
           PY
-      - name: Verify or publish immutable assets
-        run: python scripts/publish_research_assets.py
       - name: Install browser
         run: python -m playwright install --with-deps chromium
       - name: Exercise real browser workflows

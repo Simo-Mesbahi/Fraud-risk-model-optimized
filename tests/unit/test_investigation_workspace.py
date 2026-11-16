@@ -55,3 +55,34 @@ def test_rejects_ambiguous_or_invalid_decision_records(corrupt):
         row["updated_at"] = "tomorrow"
     with pytest.raises(ValueError):
         import_decisions(json.dumps(obj).encode(), frame, meta, source)
+
+
+def test_restore_callback_updates_widgets_before_render_without_changing_scores(monkeypatch):
+    from types import SimpleNamespace
+    import streamlit as st
+    from frontend.utils.workspace import restore_uploaded_decisions
+
+    class State(dict):
+        __getattr__ = dict.__getitem__
+        __setattr__ = dict.__setitem__
+
+    raw, frame, meta, source = snapshot()
+    state = State(
+        queue_resume_file=SimpleNamespace(getvalue=lambda: raw),
+        queue_results=frame.copy(), queue_metadata=meta, queue_source_claims=source,
+        queue_human_decisions={"A": "Clear"}, queue_human_notes={"A": "old note"},
+        queue_decision_timestamps={}, decision_A="Clear", note_A="old note",
+    )
+    monkeypatch.setattr(st, "session_state", state)
+    restore_uploaded_decisions()
+    assert state.decision_A == "Escalate"
+    assert state.note_A == "Invoice requires review"
+    assert state.queue_human_decisions["A"] == "Escalate"
+    assert state.queue_results.loc[0, "human_decision"] == "Escalate"
+    assert state.queue_results.loc[0, "fraud_risk_score"] == 0.9
+    before = state.queue_results.copy(deep=True)
+    state.queue_resume_file = SimpleNamespace(getvalue=lambda: b'{"invalid":true}')
+    restore_uploaded_decisions()
+    pd.testing.assert_frame_equal(before, state.queue_results)
+    assert state.decision_A == "Escalate"
+    assert "Unsupported" in state.queue_resume_error

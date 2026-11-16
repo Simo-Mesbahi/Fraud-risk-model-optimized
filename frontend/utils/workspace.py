@@ -89,6 +89,38 @@ def import_decisions(raw, frame, metadata, source_claims):
     return decisions, notes, timestamps
 
 
+def restore_uploaded_decisions():
+    """Restore before widgets are rendered, so their state and the worklist agree."""
+    import streamlit as st
+
+    upload = st.session_state.get("queue_resume_file")
+    try:
+        if upload is None:
+            raise ValueError("Choose a saved decisions JSON file first.")
+        restored = import_decisions(
+            upload.getvalue(), st.session_state.queue_results,
+            st.session_state.queue_metadata, st.session_state.queue_source_claims,
+        )
+    except (ValueError, UnicodeError) as error:
+        st.session_state.queue_resume_error = str(error)
+        return
+    for key, values in zip(
+        ["queue_human_decisions", "queue_human_notes", "queue_decision_timestamps"], restored
+    ):
+        st.session_state[key].update(values)
+    for index, row in st.session_state.queue_results.iterrows():
+        identifier = str(row.claim_id)
+        if identifier in restored[0]:
+            for column, values in zip(
+                ["human_decision", "investigator_note", "decision_updated_at"], restored
+            ):
+                st.session_state.queue_results.at[index, column] = values[identifier]
+            st.session_state["decision_" + identifier] = restored[0][identifier]
+            st.session_state["note_" + identifier] = restored[1][identifier]
+    st.session_state.queue_resume_notice = len(restored[0])
+    st.session_state.pop("queue_resume_error", None)
+
+
 def render_decision_workspace(frame, metadata, source_claims):
     import streamlit as st
 
@@ -104,26 +136,10 @@ def render_decision_workspace(frame, metadata, source_claims):
             st.session_state.queue_human_notes,
             st.session_state.queue_decision_timestamps,
         )
-        st.download_button("Save investigator decisions", raw, "investigator-decisions.json", "application/json")
-        upload = st.file_uploader("Resume decisions JSON (2 MiB maximum)", type=["json"], key="queue_resume_file")
-        if st.button("Restore decisions", disabled=upload is None):
-            try:
-                restored = import_decisions(upload.getvalue(), frame, metadata, source_claims)
-            except (ValueError, UnicodeError) as error:
-                st.error(str(error))
-            else:
-                for key, values in zip(
-                    ["queue_human_decisions", "queue_human_notes", "queue_decision_timestamps"], restored
-                ):
-                    st.session_state[key].update(values)
-                for index, row in st.session_state.queue_results.iterrows():
-                    identifier = str(row.claim_id)
-                    if identifier in restored[0]:
-                        for column, values in zip(
-                            ["human_decision", "investigator_note", "decision_updated_at"], restored
-                        ):
-                            st.session_state.queue_results.at[index, column] = values[identifier]
-                        for prefix in ["decision_", "note_"]:
-                            st.session_state.pop(prefix + identifier, None)
-                st.session_state.queue_resume_notice = len(restored[0])
-                st.rerun()
+        st.download_button("Save investigator decisions", raw, "investigator-decisions.json", "application/json", on_click="ignore")
+        upload = st.file_uploader("Resume decisions JSON (2 MiB maximum)", type=["json"], key="queue_resume_file", max_upload_size=2)
+        st.button("Restore decisions", disabled=upload is None, on_click=restore_uploaded_decisions)
+        if st.session_state.get("queue_resume_error"):
+            st.error(st.session_state.queue_resume_error)
+        if "queue_resume_notice" in st.session_state:
+            st.success(f"Restored {st.session_state.pop('queue_resume_notice')} investigator decisions.")

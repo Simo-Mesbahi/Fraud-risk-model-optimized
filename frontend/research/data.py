@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+from frontend.utils.corpus import read_public_corpus, reference_claims
 
 ROOT = Path(__file__).resolve().parents[2]
 RESEARCH = ROOT / "artifacts/research"
@@ -50,7 +51,7 @@ def available_corpora():
     return result
 
 
-@st.cache_resource(max_entries=2, show_spinner=False)
+@st.cache_resource(max_entries=1, show_spinner=False)
 def load_corpus(key: str) -> Corpus:
     """Only bundled synthetic data are cached globally. Consumers never mutate it."""
     if key not in {"reference", "expanded"}:
@@ -64,7 +65,7 @@ def load_corpus(key: str) -> Corpus:
     digest = file_digest(path)
     if report and report.get("input_sha256") != digest:
         raise ValueError("Dataset and experiment report fingerprints do not match.")
-    frame = pd.read_parquet(path)
+    frame = reference_claims().copy(deep=False) if key == "reference" else read_public_corpus(path)
     if frame.claim_id.duplicated().any():
         raise ValueError("Ambiguous claim IDs in analytical corpus.")
     reference_path = (
@@ -73,18 +74,18 @@ def load_corpus(key: str) -> Corpus:
         else RESEARCH / key / "reference_scores.parquet"
     )
     if reference_path.exists():
-        scores = pd.read_parquet(reference_path)[
-            ["claim_id", "fraud_risk_score"]
-        ].rename(columns={"fraud_risk_score": "reference_score"})
-        frame = frame.merge(scores, on="claim_id", how="left", validate="one_to_one")
+        scores = pd.read_parquet(reference_path, columns=["claim_id", "fraud_risk_score"], use_threads=False)
+        if scores.claim_id.duplicated().any():
+            raise ValueError("Ambiguous reference score identifiers.")
+        frame["reference_score"] = frame.claim_id.map(scores.set_index("claim_id").fraud_risk_score)
         if frame.reference_score.isna().any():
             raise ValueError("Incomplete reference scoring artifact.")
     candidate_path = RESEARCH / key / "candidate_predictions.parquet"
     if candidate_path.exists() and report:
-        candidate = pd.read_parquet(candidate_path)[
-            ["claim_id", "fraud_risk_score"]
-        ].rename(columns={"fraud_risk_score": "candidate_score"})
-        frame = frame.merge(candidate, on="claim_id", how="left", validate="one_to_one")
+        candidate = pd.read_parquet(candidate_path, columns=["claim_id", "fraud_risk_score"], use_threads=False)
+        if candidate.claim_id.duplicated().any():
+            raise ValueError("Ambiguous candidate score identifiers.")
+        frame["candidate_score"] = frame.claim_id.map(candidate.set_index("claim_id").fraud_risk_score)
     for column in ["reference_score", "candidate_score"]:
         if column not in frame:
             frame[column] = np.nan

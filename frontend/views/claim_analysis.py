@@ -332,19 +332,11 @@ def _load_context_data() -> pd.DataFrame:
     normalization step.
     """
 
-    dataset_path = (
-        Path(__file__)
-        .resolve()
-        .parents[2]
-        / "data"
-        / "interim"
-        / "claims.parquet"
-    )
+    from frontend.utils.corpus import reference_claims
 
-    frame = pd.read_parquet(
-        dataset_path,
-        columns=SMART_CONTEXT_COLUMNS,
-    )
+    frame = reference_claims().loc[:, SMART_CONTEXT_COLUMNS].copy()
+    for column in frame.select_dtypes(include="category").columns:
+        frame[column] = frame[column].astype(object)
 
     if frame.empty:
         raise ValueError(

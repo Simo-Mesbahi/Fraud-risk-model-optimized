@@ -13,6 +13,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import streamlit as st
+from frontend.utils.corpus import reference_claims
 
 from health_fraud.config import MAX_BATCH_SIZE, MAX_UPLOAD_COLUMNS
 from health_fraud.data.io import (
@@ -332,7 +333,7 @@ def dataframe_to_records(
 # =============================================================================
 
 
-@st.cache_data(
+@st.cache_resource(
     show_spinner=False,
 )
 def _read_demo_dataset() -> pd.DataFrame:
@@ -360,9 +361,7 @@ def _read_demo_dataset() -> pd.DataFrame:
 
     try:
 
-        frame = pd.read_parquet(
-            DEMO_CLAIMS_PATH
-        )
+        frame = reference_claims()
 
     except Exception as exc:
 
