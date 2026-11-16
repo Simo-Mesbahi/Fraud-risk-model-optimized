@@ -38,6 +38,41 @@ jobs:
           cache: pip
           cache-dependency-path: requirements/dev.lock
       - run: python -m pip install --require-hashes -r requirements/dev.lock
+      - name: Diagnose research corpus reproducibility
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          import pandas as pd
+          import pyarrow
+          from health_fraud.data.scenarios import materialize_scenario
+
+          root = Path.cwd()
+          report = json.loads((root / "artifacts/research/expanded/report.json").read_text())
+          target = root / "data/research/expanded"
+          if not (target / "claims.parquet").exists():
+              materialize_scenario(root / "configs/data.yaml", target, rows=150000, seed=1729)
+          path = target / "claims.parquet"
+          actual = hashlib.sha256(path.read_bytes()).hexdigest()
+          expected = report["input_sha256"]
+          frame = pd.read_parquet(path)
+          recorded = report["dataset"]
+          manifest = json.loads((target / "manifest.json").read_text())
+          print(json.dumps({
+              "expected_sha256": expected,
+              "actual_sha256": actual,
+              "byte_hash_matches": actual == expected,
+              "expected_rows": recorded["accepted_claims"],
+              "actual_rows": len(frame),
+              "expected_fraud_prevalence": recorded["fraud_prevalence"],
+              "actual_fraud_prevalence": float(frame.is_fraud.mean()),
+              "expected_config_sha256": recorded["config_sha256"],
+              "actual_config_sha256": manifest["config_sha256"],
+              "python_pandas": pd.__version__,
+              "pyarrow": pyarrow.__version__,
+          }, indent=2))
+          PY
       - name: Verify or publish immutable assets
         run: python scripts/publish_research_assets.py
       - name: Install browser
