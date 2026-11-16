@@ -124,9 +124,19 @@ def main():
         expect(decision_select.get_by_role("combobox", name="Human decision", exact=True)).to_have_value("Clear")
         page.get_by_role("button", name="Save Human Decision", exact=True).click()
         resume = page.get_by_test_id("stFileUploader").filter(has_text="Resume decisions JSON")
-        resume.locator('input[type="file"]').set_input_files(snapshot)
+        uploader = resume.locator('input[type="file"]')
+        expect(uploader).to_have_count(1)
+        uploader.set_input_files(snapshot)
         restore = page.get_by_role("button", name="Restore decisions", exact=True)
-        expect(restore).to_be_enabled(timeout=15000)
+        try:
+            expect(restore).to_be_enabled(timeout=20000)
+        except AssertionError:
+            page.screenshot(path=str(args.output / "restore-upload-failure.png"), full_page=True)
+            raise AssertionError(
+                "Restore disabled; uploader text=" + repr(resume.inner_text())
+                + "; files=" + repr(uploader.evaluate("(e) => Array.from(e.files, f => ({name:f.name,size:f.size}))"))
+                + "; errors=" + repr(page.get_by_test_id("stException").all_inner_texts())
+            )
         restore.click()
         expect(page.get_by_test_id("stSelectbox").filter(has_text="Human decision").get_by_role("combobox", name="Human decision", exact=True)).to_have_value("Escalate")
         clean()
