@@ -126,17 +126,24 @@ def main():
         resume = page.get_by_test_id("stFileUploader").filter(has_text="Resume decisions JSON")
         uploader = resume.locator('input[type="file"]')
         expect(uploader).to_have_count(1)
+        # Streamlit may rerender the uploader after saving a decision.
+        # Wait for the actual uploaded-file chip, not just the DOM FileList.
         uploader.set_input_files(snapshot)
-        restore = page.get_by_role("button", name="Restore decisions", exact=True)
         try:
-            expect(restore).to_be_enabled(timeout=20000)
+            expect(resume.get_by_text("decisions.json", exact=True)).to_be_visible(timeout=15000)
         except AssertionError:
-            page.screenshot(path=str(args.output / "restore-upload-failure.png"), full_page=True)
-            raise AssertionError(
-                "Restore disabled; uploader text=" + repr(resume.inner_text())
-                + "; files=" + repr(uploader.evaluate("(e) => Array.from(e.files, f => ({name:f.name,size:f.size}))"))
-                + "; errors=" + repr(page.get_by_test_id("stException").all_inner_texts())
-            )
+            # Retry against the newly rendered uploader if Streamlit replaced it.
+            uploader = page.get_by_test_id("stFileUploader").filter(
+                has_text="Resume decisions JSON"
+            ).locator('input[type="file"]')
+            uploader.set_input_files(snapshot)
+            expect(
+                page.get_by_test_id("stFileUploader").filter(
+                    has_text="Resume decisions JSON"
+                ).get_by_text("decisions.json", exact=True)
+            ).to_be_visible(timeout=20000)
+        restore = page.get_by_role("button", name="Restore decisions", exact=True)
+        expect(restore).to_be_enabled(timeout=20000)
         restore.click()
         expect(page.get_by_test_id("stSelectbox").filter(has_text="Human decision").get_by_role("combobox", name="Human decision", exact=True)).to_have_value("Escalate")
         clean()
