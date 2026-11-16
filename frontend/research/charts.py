@@ -62,7 +62,7 @@ def histogram(frame, field="claim_amount", by_label=False):
             data,
             description=f"Distribution of {field}; logarithmic monetary axis and explicit bin counts.",
         )
-        .mark_bar(opacity=0.6)
+        .mark_bar(opacity=0.6, orient="vertical")
         .encode(
             x=alt.X(
                 "from:Q",
