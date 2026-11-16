@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from health_fraud.config import DEFAULT_REVIEW_FRACTION
+
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -1628,7 +1630,7 @@ class FraudScorer:
     def select_top_fraction(
         self,
         dataframe: pd.DataFrame,
-        review_fraction: float = 0.03,
+        review_fraction: float = DEFAULT_REVIEW_FRACTION,
         claim_id_column: str = "claim_id",
     ) -> pd.DataFrame:
         """

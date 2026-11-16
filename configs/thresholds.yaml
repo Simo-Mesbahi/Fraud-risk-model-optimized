@@ -1,0 +1,8 @@
+schema_version: "1.0.0"
+interpretation: "Illustrative score bands; not a fraud verdict or rejection rule"
+score_bands:
+  low: 0.05
+  medium: 0.20
+  high: 0.50
+review_capacity: 0.03
+review_selection: "Descending score, stable ties, ceil(n * capacity)"

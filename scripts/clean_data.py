@@ -1,13 +1,7 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SRC_DIR = PROJECT_ROOT / "src"
-
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
 
 from health_fraud.data.clean import clean_claims
 from health_fraud.data.load import (
@@ -15,6 +9,8 @@ from health_fraud.data.load import (
     save_interim_tables,
 )
 
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 def main() -> None:
     tables = load_synthetic_tables(

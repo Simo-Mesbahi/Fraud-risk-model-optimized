@@ -13,6 +13,12 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import streamlit as st
+from frontend.utils.corpus import reference_claims
+
+from health_fraud.config import MAX_BATCH_SIZE, MAX_UPLOAD_COLUMNS
+from health_fraud.data.io import (
+    read_csv_bounded, read_parquet_bounded, read_upload_bytes, strict_json_loads,
+)
 
 
 # =============================================================================
@@ -40,7 +46,7 @@ DEMO_CLAIMS_PATH = (
 # =============================================================================
 
 
-MAX_UPLOAD_ROWS = 100_000
+MAX_UPLOAD_ROWS = MAX_BATCH_SIZE
 
 SUPPORTED_UPLOAD_EXTENSIONS = (
     ".json",
@@ -308,6 +314,9 @@ def dataframe_to_records(
             )
         )
 
+    if len(frame.columns) > MAX_UPLOAD_COLUMNS:
+        raise ValueError(f"Dataset exceeds the {MAX_UPLOAD_COLUMNS}-column limit.")
+
     return [
         serialize_mapping(
             record
@@ -324,7 +333,7 @@ def dataframe_to_records(
 # =============================================================================
 
 
-@st.cache_data(
+@st.cache_resource(
     show_spinner=False,
 )
 def _read_demo_dataset() -> pd.DataFrame:
@@ -352,9 +361,7 @@ def _read_demo_dataset() -> pd.DataFrame:
 
     try:
 
-        frame = pd.read_parquet(
-            DEMO_CLAIMS_PATH
-        )
+        frame = reference_claims()
 
     except Exception as exc:
 
@@ -794,6 +801,7 @@ def read_uploaded_file(
             )
         )
 
+    raw = read_upload_bytes(uploaded)
     # -------------------------------------------------------------------------
     # Ensure repeated Streamlit reads start from the beginning when possible.
     # -------------------------------------------------------------------------
@@ -815,9 +823,7 @@ def read_uploaded_file(
 
         try:
 
-            data = json.load(
-                uploaded
-            )
+            data = strict_json_loads(raw)
 
         except (
             json.JSONDecodeError,
@@ -852,9 +858,7 @@ def read_uploaded_file(
 
         try:
 
-            frame = pd.read_csv(
-                uploaded
-            )
+            frame = read_csv_bounded(raw)
 
         except pd.errors.EmptyDataError as exc:
 
@@ -906,9 +910,7 @@ def read_uploaded_file(
 
         try:
 
-            frame = pd.read_parquet(
-                uploaded
-            )
+            frame = read_parquet_bounded(raw)
 
         except Exception as exc:
 

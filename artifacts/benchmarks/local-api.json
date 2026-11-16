@@ -1,0 +1,43 @@
+{
+  "python": "3.12.14",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "transport": "in-process ASGI TestClient; includes JSON/validation, excludes public network",
+  "startup_seconds": 0.059979136000038125,
+  "process_peak_rss_mib": 408.875,
+  "thread_limits": "OMP_NUM_THREADS=1, OPENBLAS_NUM_THREADS=1",
+  "measurements": [
+    {
+      "endpoint": "/score-batch",
+      "claims": 1,
+      "warm_repetitions": 3,
+      "median_seconds": 0.014772980000088864,
+      "p95_seconds": 0.016317388999777905,
+      "median_claims_per_second": 67.69114965254029
+    },
+    {
+      "endpoint": "/score-batch",
+      "claims": 100,
+      "warm_repetitions": 3,
+      "median_seconds": 0.024343822999981057,
+      "p95_seconds": 0.024641568200149778,
+      "median_claims_per_second": 4107.818233811419
+    },
+    {
+      "endpoint": "/score-batch",
+      "claims": 1000,
+      "warm_repetitions": 3,
+      "median_seconds": 0.09846244299978935,
+      "p95_seconds": 0.10564576599999782,
+      "median_claims_per_second": 10156.15669826656
+    },
+    {
+      "endpoint": "/explain",
+      "claims": 1,
+      "single_measurement_seconds": 0.019056832999922335
+    }
+  ],
+  "limitations": [
+    "Local development hardware, three warm repetitions per batch; p95 is descriptive, not a service-level guarantee.",
+    "Peak RSS includes this benchmark's pandas data and imports. Render cold starts, concurrency and memory limits require separate production observation."
+  ]
+}

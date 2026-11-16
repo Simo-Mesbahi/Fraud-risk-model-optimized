@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "repository": "Simo-Mesbahi/Fraud-risk-model-optimized",
+  "release_tag": "fraud-research-v4-51539b872984",
+  "synthetic": true,
+  "assets": [
+    {
+      "path": "artifacts/research/expanded/explorer.parquet",
+      "name": "expanded-claims.parquet",
+      "sha256": "3081f180938159c602ce8c5e76bfc40d83ba36f70cb2a8b3a2d959b0b77b5627",
+      "bytes": 19768826
+    },
+    {
+      "path": "artifacts/research/expanded/reference_scores.parquet",
+      "name": "expanded-reference-scores.parquet",
+      "sha256": "211e08e9359b5efa71f01b83d34eb65cfd416e86dd55e4d6eaccf1194d35646c",
+      "bytes": 2217378
+    },
+    {
+      "path": "artifacts/research/expanded/candidate_predictions.parquet",
+      "name": "expanded-candidate-predictions.parquet",
+      "sha256": "aa988d32827bdc5d7d22d1e1671e4e3c531a924eee2213d617793ff303b50ade",
+      "bytes": 448707
+    },
+    {
+      "path": "artifacts/research/reference/candidate_predictions.parquet",
+      "name": "reference-candidate-predictions.parquet",
+      "sha256": "19739afd12f9641f4a9daf791fc1c12e8cef497603ed60c03e67b7b57fb6c990",
+      "bytes": 196423
+    }
+  ]
+}

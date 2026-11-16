@@ -10,6 +10,8 @@ services:
       dockerfile: Dockerfile
 
     container_name: health-fraud-api
+    mem_limit: 512m
+    memswap_limit: 512m
 
     ports:
       - "8000:8000"
@@ -45,6 +47,8 @@ services:
       dockerfile: frontend/Dockerfile
 
     container_name: health-fraud-frontend
+    mem_limit: 512m
+    memswap_limit: 512m
 
     ports:
       - "8501:8501"
@@ -52,8 +56,8 @@ services:
     environment:
       FRAUD_API_URL: "http://fraud-api:8000"
       ARTIFACTS_ROOT: "/app/artifacts"
-      APP_ENV: "development"
-      PYTHONPATH: "/app"
+      APP_ENV: "production"
+      PYTHONPATH: "/app:/app/src"
       PYTHONUNBUFFERED: "1"
 
     depends_on:

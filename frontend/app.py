@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import html
 import os
+import logging
+import uuid
 
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -11,7 +13,6 @@ import streamlit as st
 
 from frontend.api_client import (
     FraudAPIClient,
-    FraudAPIError,
 )
 
 from frontend.components import (
@@ -46,6 +47,8 @@ from frontend.views.portfolio_scoring import (
     render as render_portfolio_scoring,
 )
 
+from frontend.views.data_science import render as render_data_science
+
 from frontend.views.system_status import (
     render as render_system_status,
 )
@@ -75,7 +78,7 @@ APP_DESCRIPTION: Final[str] = (
 )
 
 APP_VERSION: Final[str] = (
-    "5.0"
+    "6.0"
 )
 
 DEFAULT_API_URL: Final[str] = (
@@ -152,23 +155,16 @@ initialize_state()
 # =============================================================================
 
 
-@st.cache_resource
-def get_api_client(
-    base_url: str,
-) -> FraudAPIClient:
-    """
-    Build one persistent HTTP client.
-
-    The client is reused across Streamlit reruns and keeps
-    HTTP connections alive for lower inference latency.
-    """
-
-    return FraudAPIClient(
-        base_url=base_url,
-        connect_timeout=3.0,
-        read_timeout=60.0,
-        retry_total=2,
-    )
+def get_api_client(base_url: str) -> FraudAPIClient:
+    """Reuse connections inside one session; never share mutable cookies globally."""
+    cached = st.session_state.get("_inference_client")
+    if cached is not None and cached.base_url != base_url:
+        cached.close()
+        cached = None
+    if cached is None:
+        cached = FraudAPIClient(base_url=base_url, connect_timeout=3., read_timeout=60., retry_total=2)
+        st.session_state["_inference_client"] = cached
+    return cached
 
 
 client = (
@@ -388,6 +384,13 @@ PAGES: Final[
         ),
         renderer=render_overview,
         category="MONITOR",
+    ),
+
+    PageDefinition(
+        name="Data Science Lab",
+        short_description="Explore data, experiments and scientific evidence",
+        renderer=render_data_science,
+        category="EXPLORE",
     ),
 
     PageDefinition(
@@ -837,44 +840,14 @@ def render_page(
             client
         )
 
-    except FraudAPIError as exc:
-
-        st.error(
-            (
-                "The inference service could not complete "
-                "the requested operation."
-            )
-        )
-
-        with st.expander(
-            "API details",
-            expanded=False,
-        ):
-
-            st.code(
-                str(
-                    exc
-                ),
-                language=None,
-            )
-
     except Exception as exc:
-
-        st.error(
-            (
-                "An unexpected application error occurred. "
-                "The remaining workspaces are still available."
-            )
-        )
-
-        with st.expander(
-            "Technical details",
-            expanded=False,
-        ):
-
-            st.exception(
-                exc
-            )
+        reference = uuid.uuid4().hex[:12]
+        logging.getLogger("health_fraud.frontend").exception("Workspace error reference=%s page=%s", reference, page_name)
+        st.error("This operation could not be completed. Check the input or try again shortly.")
+        st.caption(f"Diagnostic reference: {reference}. Other workspaces remain available.")
+        if ENVIRONMENT == "development":
+            with st.expander("Development diagnostics", expanded=False):
+                st.exception(exc)
 
 
 # =============================================================================

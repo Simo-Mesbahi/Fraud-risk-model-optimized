@@ -1,12 +1,7 @@
-from fastapi.testclient import TestClient
-
-from api.app.main import app
 
 
-client = TestClient(app)
 
-
-def test_model_info() -> None:
+def test_model_info(client) -> None:
     response = client.get("/model-info")
 
     assert response.status_code == 200

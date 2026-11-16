@@ -2,12 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from fastapi.testclient import TestClient
 
-from api.app.main import app
-
-
-client = TestClient(app)
 
 
 def _serialize_claim(
@@ -16,7 +11,6 @@ def _serialize_claim(
     record = {}
 
     for column, value in row.items():
-
         if pd.isna(value):
             record[column] = None
 
@@ -24,18 +18,14 @@ def _serialize_claim(
             value,
             pd.Timestamp,
         ):
-            record[column] = (
-                value.isoformat()
-            )
+            record[column] = value.isoformat()
 
         elif hasattr(
             value,
             "item",
         ):
             try:
-                record[column] = (
-                    value.item()
-                )
+                record[column] = value.item()
 
             except Exception:
                 record[column] = value
@@ -49,70 +39,40 @@ def _serialize_claim(
 def _load_claims(
     n: int = 10,
 ) -> list[dict]:
-    claims = pd.read_parquet(
-        "data/interim/claims.parquet"
-    ).head(n)
+    claims = pd.read_parquet("data/interim/claims.parquet").head(n)
 
-    return [
-        _serialize_claim(row)
-        for _, row in claims.iterrows()
-    ]
+    return [_serialize_claim(row) for _, row in claims.iterrows()]
 
 
-def test_single_score() -> None:
-    claim = _load_claims(
-        n=1
-    )[0]
+def test_single_score(client) -> None:
+    claim = _load_claims(n=1)[0]
 
     response = client.post(
         "/score",
-        json={
-            "claim": claim
-        },
+        json={"claim": claim},
     )
 
     assert response.status_code == 200
 
     payload = response.json()
 
-    prediction = payload[
-        "prediction"
-    ]
+    prediction = payload["prediction"]
 
-    assert (
-        prediction["claim_id"]
-        == claim["claim_id"]
-    )
+    assert prediction["claim_id"] == claim["claim_id"]
 
-    assert (
-        0
-        <= prediction[
-            "fraud_risk_score"
-        ]
-        <= 1
-    )
+    assert 0 <= prediction["fraud_risk_score"] <= 1
 
-    assert (
-        prediction["model_name"]
-        == "XGBoost"
-    )
+    assert prediction["model_name"] == "XGBoost"
 
-    assert (
-        prediction["model_version"]
-        == "1.0.0"
-    )
+    assert prediction["model_version"] == "1.0.0"
 
 
-def test_batch_score() -> None:
-    claims = _load_claims(
-        n=10
-    )
+def test_batch_score(client) -> None:
+    claims = _load_claims(n=10)
 
     response = client.post(
         "/score-batch",
-        json={
-            "claims": claims
-        },
+        json={"claims": claims},
     )
 
     assert response.status_code == 200
@@ -121,29 +81,14 @@ def test_batch_score() -> None:
 
     assert payload["count"] == 10
 
-    assert (
-        len(
-            payload["predictions"]
-        )
-        == 10
-    )
+    assert len(payload["predictions"]) == 10
 
-    for prediction in payload[
-        "predictions"
-    ]:
-        assert (
-            0
-            <= prediction[
-                "fraud_risk_score"
-            ]
-            <= 1
-        )
+    for prediction in payload["predictions"]:
+        assert 0 <= prediction["fraud_risk_score"] <= 1
 
 
-def test_top_review() -> None:
-    claims = _load_claims(
-        n=10
-    )
+def test_top_review(client) -> None:
+    claims = _load_claims(n=10)
 
     response = client.post(
         "/top-review",
@@ -157,33 +102,15 @@ def test_top_review() -> None:
 
     payload = response.json()
 
-    assert (
-        payload["total_claims"]
-        == 10
-    )
+    assert payload["total_claims"] == 10
 
-    assert (
-        payload[
-            "selected_claims"
-        ]
-        == 3
-    )
+    assert payload["selected_claims"] == 3
 
-    predictions = payload[
-        "predictions"
-    ]
+    predictions = payload["predictions"]
 
-    assert len(
-        predictions
-    ) == 3
+    assert len(predictions) == 3
 
-    scores = [
-        prediction[
-            "fraud_risk_score"
-        ]
-        for prediction
-        in predictions
-    ]
+    scores = [prediction["fraud_risk_score"] for prediction in predictions]
 
     assert scores == sorted(
         scores,
@@ -191,18 +118,11 @@ def test_top_review() -> None:
     )
 
     for prediction in predictions:
-        assert (
-            prediction[
-                "selected_for_review"
-            ]
-            is True
-        )
+        assert prediction["selected_for_review"] is True
 
 
-def test_invalid_review_fraction() -> None:
-    claims = _load_claims(
-        n=2
-    )
+def test_invalid_review_fraction(client) -> None:
+    claims = _load_claims(n=2)
 
     response = client.post(
         "/top-review",
@@ -215,14 +135,10 @@ def test_invalid_review_fraction() -> None:
     assert response.status_code == 422
 
 
-def test_missing_claim_features() -> None:
+def test_missing_claim_features(client) -> None:
     response = client.post(
         "/score",
-        json={
-            "claim": {
-                "claim_id": "INVALID_TEST"
-            }
-        },
+        json={"claim": {"claim_id": "INVALID_TEST"}},
     )
 
     assert response.status_code == 422

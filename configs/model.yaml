@@ -1,0 +1,24 @@
+schema_version: "1.0.0"
+seed: 42
+purpose: "Reproducible research; never silently replaces the live reference model"
+temporal:
+  train_end: "2025-06-30"
+  calibration_development_end: "2025-03-31"
+  validation_end: "2025-12-31"
+  reference_test_end: "2026-06-30"
+selection:
+  primary: average_precision
+  tie_breakers: [recall_at_capacity, lower_brier_score]
+  test_data_used_for_selection: false
+xgboost:
+  objective: "binary:logistic"
+  n_estimators: 350
+  learning_rate: 0.04
+  max_depth: 3
+  min_child_weight: 4
+  subsample: 0.85
+  colsample_bytree: 0.85
+  reg_lambda: 2.0
+  eval_metric: "aucpr"
+  tree_method: "hist"
+  n_jobs: 1

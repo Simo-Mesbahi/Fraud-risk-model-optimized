@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import (
     Any,
+    Annotated,
     Literal,
 )
 
@@ -9,7 +10,11 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    field_validator,
+    WithJsonSchema,
 )
+from health_fraud.config import MAX_BATCH_SIZE, DEFAULT_REVIEW_FRACTION
+from health_fraud.data.contracts import SourceClaim, validate_claim_record, validate_claim_records
 
 
 # =============================================================================
@@ -40,6 +45,9 @@ class APIModel(
 # =============================================================================
 # Type aliases
 # =============================================================================
+
+
+SourceRecord = Annotated[dict[str, Any], WithJsonSchema(SourceClaim.model_json_schema(), mode="validation")]
 
 
 SHAPDirection = Literal[
@@ -74,15 +82,14 @@ class SingleClaimRequest(
     frozen feature-engineering and inference pipeline.
     """
 
-    claim: dict[
-        str,
-        Any,
-    ] = Field(
+    claim: SourceRecord = Field(
         description=(
             "Complete source claim payload consumed by "
             "the frozen inference pipeline."
         ),
     )
+
+    _validate_claim = field_validator("claim")(validate_claim_record)
 
 
 class BatchClaimsRequest(
@@ -92,19 +99,16 @@ class BatchClaimsRequest(
     Request payload for batch fraud-risk scoring.
     """
 
-    claims: list[
-        dict[
-            str,
-            Any,
-        ]
-    ] = Field(
+    claims: list[SourceRecord] = Field(
         min_length=1,
-        max_length=10_000,
+        max_length=MAX_BATCH_SIZE,
         description=(
             "Claims to score. "
             "Maximum batch size: 10,000 claims."
         ),
     )
+
+    _validate_claims = field_validator("claims")(validate_claim_records)
 
 
 class TopReviewRequest(
@@ -117,21 +121,18 @@ class TopReviewRequest(
     not an individual fraud classification threshold.
     """
 
-    claims: list[
-        dict[
-            str,
-            Any,
-        ]
-    ] = Field(
+    claims: list[SourceRecord] = Field(
         min_length=1,
-        max_length=10_000,
+        max_length=MAX_BATCH_SIZE,
         description=(
             "Portfolio of claims to rank."
         ),
     )
 
+    _validate_claims = field_validator("claims")(validate_claim_records)
+
     review_fraction: float = Field(
-        default=0.03,
+        default=DEFAULT_REVIEW_FRACTION,
         gt=0,
         le=1,
         description=(
@@ -154,14 +155,13 @@ class ExplainClaimRequest(
     and preprocessed representation used by production scoring.
     """
 
-    claim: dict[
-        str,
-        Any,
-    ] = Field(
+    claim: SourceRecord = Field(
         description=(
             "Complete claim payload to explain."
         ),
     )
+
+    _validate_claim = field_validator("claim")(validate_claim_record)
 
     top_k: int = Field(
         default=8,

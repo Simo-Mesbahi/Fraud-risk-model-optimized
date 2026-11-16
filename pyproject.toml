@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools==84.2.1", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "health-fraud-intelligence"
+version = "1.2.0"
+description = "Reproducible synthetic insurance fraud prioritization and research"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements/core.in"]}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["browser: local browser end-to-end checks requiring Chromium"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = ["notebooks", ".venv", "venv"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.12"
+follow_imports = "silent"
+ignore_missing_imports = true
+files = ["src/health_fraud/config.py", "src/health_fraud/data/contracts.py", "api/app/middleware.py"]
+check_untyped_defs = true
+warn_unused_ignores = true

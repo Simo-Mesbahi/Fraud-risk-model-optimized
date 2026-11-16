@@ -208,6 +208,8 @@ showWidgetBorder = true
 
 [server]
 
+maxUploadSize = 16
+
 headless = true
 
 # Disable source-code watching in production.

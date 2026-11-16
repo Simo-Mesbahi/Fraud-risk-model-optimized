@@ -1,0 +1,35 @@
+# Describes existing Git-linked services. Review resource association before
+# importing into a Blueprint; a new Blueprint is unnecessary for auto-deployment.
+services:
+  - type: web
+    name: Mesbahi-Fraud-risk-model
+    runtime: docker
+    repo: https://github.com/Simo-Mesbahi/Fraud-risk-model-optimized
+    branch: main
+    region: frankfurt
+    plan: free
+    numInstances: 1
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: APP_ENV
+        value: production
+  - type: web
+    name: Mesbahi-Fraud-risk-model-app
+    runtime: docker
+    repo: https://github.com/Simo-Mesbahi/Fraud-risk-model-optimized
+    branch: main
+    region: frankfurt
+    plan: free
+    numInstances: 1
+    dockerContext: .
+    dockerfilePath: ./frontend/Dockerfile
+    healthCheckPath: /_stcore/health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: FRAUD_API_URL
+        value: https://mesbahi-fraud-risk-model.onrender.com

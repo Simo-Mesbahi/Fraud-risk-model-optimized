@@ -12,6 +12,11 @@ api/tests/
 data/raw/
 data/synthetic/
 data/interim/customers.parquet
-data/interim/policies.parquet
 data/interim/claims_rejected.parquet
-artifacts/predictions/
+artifacts/predictions/*
+!artifacts/predictions/claim_scores.parquet
+data/research/
+artifacts/research/**/*.parquet
+artifacts/research/**/*.joblib
+.venv/
+venv/
