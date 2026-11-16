@@ -96,8 +96,11 @@ def main():
         navigate("Investigation Queue")
         page.get_by_role("tab", name="Demo Portfolio", exact=True).click()
         page.get_by_role("button", name="Build Demo Queue", exact=True).click()
-        page.get_by_role("combobox", name="Human decision", exact=True).wait_for()
-        choose("Human decision", "Escalate")
+        decision_select = page.get_by_test_id("stSelectbox").filter(has_text="Human decision")
+        expect(decision_select).to_have_count(1)
+        decision_select.get_by_role("combobox", name="Human decision", exact=True).wait_for()
+        decision_select.get_by_role("combobox", name="Human decision", exact=True).click()
+        page.get_by_role("option", name="Escalate", exact=True).click()
         page.get_by_role("textbox", name="Investigation note", exact=True).fill("=1+1; synthetic browser verification")
         page.get_by_role("button", name="Save Human Decision", exact=True).click()
         page.get_by_text("Last saved decision:", exact=False).wait_for()
@@ -113,7 +116,8 @@ def main():
         snapshot = args.output / "decisions.json"
         downloaded.value.save_as(snapshot)
         assert json.loads(snapshot.read_text())["decisions"][0]["decision"] == "Escalate"
-        choose("Human decision", "Clear")
+        decision_select.get_by_role("combobox", name="Human decision", exact=True).click()
+        page.get_by_role("option", name="Clear", exact=True).click()
         page.get_by_role("button", name="Save Human Decision", exact=True).click()
         resume = page.get_by_test_id("stFileUploader").filter(has_text="Resume decisions JSON")
         resume.locator('input[type="file"]').set_input_files(snapshot)
