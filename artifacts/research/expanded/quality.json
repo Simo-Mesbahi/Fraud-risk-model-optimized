@@ -1,0 +1,1858 @@
+{
+  "raw": {
+    "rows": 150000,
+    "columns": 55,
+    "rows_with_missing_values": 149422,
+    "rules": {
+      "duplicate_claim_ids": 0,
+      "negative_claim_amount": 61,
+      "nonfinite_claim_amount": 0,
+      "negative_requested_reimbursement": 0,
+      "nonfinite_requested_reimbursement": 0,
+      "negative_coverage_limit": 0,
+      "nonfinite_coverage_limit": 0,
+      "negative_service_units": 0,
+      "nonfinite_service_units": 0,
+      "negative_document_count": 0,
+      "nonfinite_document_count": 0,
+      "invalid_dates": 0,
+      "service_after_submission": 49,
+      "reimbursement_above_limit": 0,
+      "reimbursement_above_claim": 61
+    },
+    "column_profile": [
+      {
+        "column": "claim_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 150000,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24602,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24602,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_id",
+        "dtype": "object",
+        "missing": 1451,
+        "missing_rate": 0.009673333333333334,
+        "distinct": 1500,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_category",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_code",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_units",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 16,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 1430,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 1400,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_timestamp",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 149868,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 48999,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "requested_reimbursement",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 38220,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_limit",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 14,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "submission_channel",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "document_count",
+        "dtype": "float64",
+        "missing": 771,
+        "missing_rate": 0.00514,
+        "distinct": 6,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_invoice",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_prescription",
+        "dtype": "object",
+        "missing": 4466,
+        "missing_rate": 0.029773333333333332,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_age",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 77,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 285,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_level",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 3,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 164,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "recent_policy_change",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_since_policy_change",
+        "dtype": "float64",
+        "missing": 91152,
+        "missing_rate": 0.60768,
+        "distinct": 58826,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "provider_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 9,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_region",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 285,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_service_to_submission",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 56,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "reimbursement_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 148524,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_7d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 10,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 12,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 17,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 19203,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 74721,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_avg_claim_amount_365d",
+        "dtype": "float64",
+        "missing": 40409,
+        "missing_rate": 0.2693933333333333,
+        "distinct": 77150,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_customer_previous_claim",
+        "dtype": "float64",
+        "missing": 24602,
+        "missing_rate": 0.16401333333333334,
+        "distinct": 125094,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_same_provider_claim",
+        "dtype": "float64",
+        "missing": 148626,
+        "missing_rate": 0.99084,
+        "distinct": 1373,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "customer_provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "same_service_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 9,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 27,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 40,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_avg_claim_amount_90d",
+        "dtype": "float64",
+        "missing": 2740,
+        "missing_rate": 0.018266666666666667,
+        "distinct": 136533,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "service_typical_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4513,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_service_median_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 149260,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_customer_avg_ratio",
+        "dtype": "float64",
+        "missing": 40409,
+        "missing_rate": 0.2693933333333333,
+        "distinct": 109585,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "claim_to_provider_avg_ratio",
+        "dtype": "float64",
+        "missing": 2740,
+        "missing_rate": 0.018266666666666667,
+        "distinct": 147250,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "latent_fraud_score",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 150000,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "synthetic_fraud_probability",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 150000,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_difficulty",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_mechanism",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 7,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "is_fraud",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      }
+    ]
+  },
+  "clean": {
+    "rows": 149841,
+    "columns": 55,
+    "rows_with_missing_values": 149263,
+    "rules": {
+      "duplicate_claim_ids": 0,
+      "negative_claim_amount": 0,
+      "nonfinite_claim_amount": 0,
+      "negative_requested_reimbursement": 0,
+      "nonfinite_requested_reimbursement": 0,
+      "negative_coverage_limit": 0,
+      "nonfinite_coverage_limit": 0,
+      "negative_service_units": 0,
+      "nonfinite_service_units": 0,
+      "negative_document_count": 0,
+      "nonfinite_document_count": 0,
+      "invalid_dates": 0,
+      "service_after_submission": 0,
+      "reimbursement_above_limit": 0,
+      "reimbursement_above_claim": 0
+    },
+    "column_profile": [
+      {
+        "column": "claim_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 149841,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24601,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24601,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_id",
+        "dtype": "object",
+        "missing": 1449,
+        "missing_rate": 0.009670250465493423,
+        "distinct": 1500,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_category",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_code",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_units",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 15,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 1429,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 1400,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_timestamp",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 149710,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 48931,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "requested_reimbursement",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 38208,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_limit",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 14,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "submission_channel",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "document_count",
+        "dtype": "float64",
+        "missing": 771,
+        "missing_rate": 0.005145454181432319,
+        "distinct": 6,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_invoice",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_prescription",
+        "dtype": "object",
+        "missing": 4461,
+        "missing_rate": 0.029771557851322402,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_age",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 77,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 285,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_level",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 3,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 164,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "recent_policy_change",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_since_policy_change",
+        "dtype": "float64",
+        "missing": 91056,
+        "missing_rate": 0.6076841451939056,
+        "distinct": 58763,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "provider_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 9,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_region",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 285,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_service_to_submission",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 56,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "reimbursement_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 148369,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_7d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 10,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 12,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 17,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 19188,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 74664,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_avg_claim_amount_365d",
+        "dtype": "float64",
+        "missing": 40361,
+        "missing_rate": 0.2693588537182747,
+        "distinct": 77081,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_customer_previous_claim",
+        "dtype": "float64",
+        "missing": 24580,
+        "missing_rate": 0.16404054964929493,
+        "distinct": 124958,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_same_provider_claim",
+        "dtype": "float64",
+        "missing": 148467,
+        "missing_rate": 0.9908302800969028,
+        "distinct": 1373,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "customer_provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "same_service_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 9,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 27,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 40,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_avg_claim_amount_90d",
+        "dtype": "float64",
+        "missing": 2739,
+        "missing_rate": 0.01827937613870703,
+        "distinct": 136400,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "service_typical_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4513,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_service_median_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 149102,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_customer_avg_ratio",
+        "dtype": "float64",
+        "missing": 40361,
+        "missing_rate": 0.2693588537182747,
+        "distinct": 109474,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "claim_to_provider_avg_ratio",
+        "dtype": "float64",
+        "missing": 2739,
+        "missing_rate": 0.01827937613870703,
+        "distinct": 147092,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "latent_fraud_score",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 149841,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "synthetic_fraud_probability",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 149841,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_difficulty",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_mechanism",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 7,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "is_fraud",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      }
+    ]
+  },
+  "rejected": {
+    "rows": 159,
+    "columns": 55,
+    "rows_with_missing_values": 159,
+    "rules": {
+      "duplicate_claim_ids": 0,
+      "negative_claim_amount": 61,
+      "nonfinite_claim_amount": 0,
+      "negative_requested_reimbursement": 0,
+      "nonfinite_requested_reimbursement": 0,
+      "negative_coverage_limit": 0,
+      "nonfinite_coverage_limit": 0,
+      "negative_service_units": 0,
+      "nonfinite_service_units": 0,
+      "negative_document_count": 0,
+      "nonfinite_document_count": 0,
+      "invalid_dates": 0,
+      "service_after_submission": 49,
+      "reimbursement_above_limit": 0,
+      "reimbursement_above_claim": 61
+    },
+    "column_profile": [
+      {
+        "column": "claim_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 159,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 158,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 158,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_id",
+        "dtype": "object",
+        "missing": 2,
+        "missing_rate": 0.012578616352201259,
+        "distinct": 149,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_category",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_code",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_units",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 14,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 148,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 153,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_timestamp",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 159,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 159,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "requested_reimbursement",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 151,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_limit",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 14,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "submission_channel",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "document_count",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 6,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_invoice",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_prescription",
+        "dtype": "object",
+        "missing": 5,
+        "missing_rate": 0.031446540880503145,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_age",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 55,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 118,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_level",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 3,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 92,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "recent_policy_change",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_since_policy_change",
+        "dtype": "float64",
+        "missing": 96,
+        "missing_rate": 0.6037735849056604,
+        "distinct": 63,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "provider_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 7,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_region",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 117,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_service_to_submission",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 23,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "reimbursement_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 159,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_7d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 3,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 3,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 9,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 112,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_avg_claim_amount_365d",
+        "dtype": "float64",
+        "missing": 48,
+        "missing_rate": 0.3018867924528302,
+        "distinct": 111,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_customer_previous_claim",
+        "dtype": "float64",
+        "missing": 22,
+        "missing_rate": 0.13836477987421383,
+        "distinct": 137,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_same_provider_claim",
+        "dtype": "float64",
+        "missing": 159,
+        "missing_rate": 1.0,
+        "distinct": 0,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "customer_provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "same_service_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 3,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 10,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 20,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_avg_claim_amount_90d",
+        "dtype": "float64",
+        "missing": 1,
+        "missing_rate": 0.006289308176100629,
+        "distinct": 158,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "service_typical_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 146,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_service_median_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 159,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_customer_avg_ratio",
+        "dtype": "float64",
+        "missing": 48,
+        "missing_rate": 0.3018867924528302,
+        "distinct": 111,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "claim_to_provider_avg_ratio",
+        "dtype": "float64",
+        "missing": 1,
+        "missing_rate": 0.006289308176100629,
+        "distinct": 158,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "latent_fraud_score",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 159,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "synthetic_fraud_probability",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 159,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_difficulty",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_mechanism",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "is_fraud",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      }
+    ]
+  },
+  "challenge": {
+    "rows": 600,
+    "columns": 55,
+    "rows_with_missing_values": 600,
+    "rules": {
+      "duplicate_claim_ids": 9,
+      "negative_claim_amount": 20,
+      "nonfinite_claim_amount": 0,
+      "negative_requested_reimbursement": 0,
+      "nonfinite_requested_reimbursement": 0,
+      "negative_coverage_limit": 0,
+      "nonfinite_coverage_limit": 0,
+      "negative_service_units": 0,
+      "nonfinite_service_units": 0,
+      "negative_document_count": 0,
+      "nonfinite_document_count": 0,
+      "invalid_dates": 0,
+      "service_after_submission": 20,
+      "reimbursement_above_limit": 0,
+      "reimbursement_above_claim": 20
+    },
+    "column_profile": [
+      {
+        "column": "claim_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 591,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 595,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_id",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 595,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_id",
+        "dtype": "object",
+        "missing": 4,
+        "missing_rate": 0.006666666666666667,
+        "distinct": 465,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_category",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_code",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 24,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_units",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 16,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "service_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 51,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_date",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_submission_timestamp",
+        "dtype": "datetime64[ns]",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 600,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 578,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "requested_reimbursement",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 576,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_limit",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 14,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "submission_channel",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "document_count",
+        "dtype": "float64",
+        "missing": 22,
+        "missing_rate": 0.03666666666666667,
+        "distinct": 6,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_invoice",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "has_prescription",
+        "dtype": "object",
+        "missing": 17,
+        "missing_rate": 0.028333333333333332,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_age",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 69,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 220,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "coverage_level",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 3,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "policy_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 116,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "recent_policy_change",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_since_policy_change",
+        "dtype": "float64",
+        "missing": 598,
+        "missing_rate": 0.9966666666666667,
+        "distinct": 2,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "provider_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 8,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_region",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_tenure_months",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 208,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_behavior_segment",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "days_service_to_submission",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 28,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "reimbursement_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 600,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly",
+        "dtype": "bool",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "legitimate_anomaly_type",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_7d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_claims_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 6,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_amount_365d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 6,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "customer_avg_claim_amount_365d",
+        "dtype": "float64",
+        "missing": 595,
+        "missing_rate": 0.9916666666666667,
+        "distinct": 5,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_customer_previous_claim",
+        "dtype": "float64",
+        "missing": 595,
+        "missing_rate": 0.9916666666666667,
+        "distinct": 5,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "days_since_same_provider_claim",
+        "dtype": "float64",
+        "missing": 600,
+        "missing_rate": 1.0,
+        "distinct": 0,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "customer_provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "same_service_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 4,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_30d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_claims_90d",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 5,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "provider_avg_claim_amount_90d",
+        "dtype": "float64",
+        "missing": 468,
+        "missing_rate": 0.78,
+        "distinct": 132,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "service_typical_amount",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 270,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_service_median_ratio",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 600,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "claim_to_customer_avg_ratio",
+        "dtype": "float64",
+        "missing": 595,
+        "missing_rate": 0.9916666666666667,
+        "distinct": 5,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "claim_to_provider_avg_ratio",
+        "dtype": "float64",
+        "missing": 468,
+        "missing_rate": 0.78,
+        "distinct": 132,
+        "missingness_context": "May represent absent historical evidence"
+      },
+      {
+        "column": "latent_fraud_score",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 600,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "synthetic_fraud_probability",
+        "dtype": "float64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 600,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_difficulty",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "fraud_mechanism",
+        "dtype": "object",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      },
+      {
+        "column": "is_fraud",
+        "dtype": "int64",
+        "missing": 0,
+        "missing_rate": 0.0,
+        "distinct": 2,
+        "missingness_context": "Inspect source and business rules"
+      }
+    ]
+  }
+}

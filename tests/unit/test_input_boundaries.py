@@ -1,7 +1,6 @@
 """Real parsing regressions: ambiguity, allocation bounds, and safe exports."""
 
 import io
-import json
 
 import pandas as pd
 import pytest

@@ -759,7 +759,7 @@ class FraudAPIClient:
             raise FraudAPIError(
                 (
                     "Unexpected HTTP communication "
-                    f"failure: {exc}"
+                    "failure. Retry the request shortly."
                 )
             ) from exc
 

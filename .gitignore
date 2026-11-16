@@ -15,7 +15,11 @@ venv/
 .ruff_cache/
 playwright-report/
 test-results/
+reports/browser/
 data/research/
 artifacts/research/**/*.joblib
 artifacts/research/**/candidate_predictions.parquet
 *.log
+
+# Immutable large research assets are distributed as checksum-pinned release assets
+artifacts/research/**/*.parquet

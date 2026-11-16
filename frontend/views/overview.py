@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from health_fraud.config import DEFAULT_REVIEW_FRACTION
+
 import json
 import os
 
@@ -31,7 +33,6 @@ from frontend.utils.formatting import (
 # =============================================================================
 
 
-DEFAULT_REVIEW_FRACTION = 0.03
 
 MAX_RISK_DRIVERS = 8
 

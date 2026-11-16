@@ -21,7 +21,7 @@ CUSTOM_CSS = """
 
     --text-primary: #F8FAFC;
     --text-secondary: #98A6BC;
-    --text-muted: #66758D;
+    --text-muted: #91A0B8;
     --text-disabled: #46546A;
 
     --primary: #4C8DFF;

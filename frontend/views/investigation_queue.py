@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from health_fraud.config import DEFAULT_REVIEW_FRACTION
+
 from health_fraud.data.io import spreadsheet_csv
+from frontend.utils.workspace import render_decision_workspace
 
 from health_fraud.config import RISK_LOW_THRESHOLD, RISK_MEDIUM_THRESHOLD, RISK_HIGH_THRESHOLD
 
@@ -48,7 +51,6 @@ from frontend.utils.formatting import (
 
 MAX_QUEUE_SOURCE_SIZE = SHARED_MAX_BATCH_SIZE
 
-DEFAULT_REVIEW_FRACTION = 0.03
 
 
 LEAKAGE_COLUMNS = {
@@ -3381,6 +3383,7 @@ def _render_claim_detail(
             investigation_note = (
                 st.text_area(
                     "Investigation note",
+                    max_chars=4000,
                     value=existing_note,
                     placeholder=(
                         "Document relevant review observations..."
@@ -3588,6 +3591,8 @@ def _render_export(
             "human decision, investigator note and audit timestamp."
         )
     )
+
+    render_decision_workspace(frame, metadata, st.session_state.queue_source_claims)
 
 
 # =============================================================================

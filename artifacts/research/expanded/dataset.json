@@ -1,0 +1,28 @@
+{
+  "dataset_version": "4.0.0",
+  "scenario": "expanded",
+  "seed": 1729,
+  "synthetic": true,
+  "requested_claims": 150000,
+  "accepted_claims": 149841,
+  "rejected_claims": 159,
+  "fraud_prevalence": 0.024946443229823614,
+  "config_sha256": "0e4f1bb58b0369794a326a7c1857c9a310cef1b1c1ccc4b3779e5e79d83fe760",
+  "files_sha256": {
+    "customers": "735c1e01d81cfd460c9a87522500e1ef3ecb98a5eb5c22cd7394623e07b89c02",
+    "providers": "a4c607ac6f76c3c1443e29c728eb981b040d13f43f6bda9f846b483a65a21c6e",
+    "policies": "2ed8e0d4f27e0504f63ef44ddbcf0ca089c7bda1229926bc9995dce74ddb01a6",
+    "claims": "3081f180938159c602ce8c5e76bfc40d83ba36f70cb2a8b3a2d959b0b77b5627",
+    "claims_rejected": "c9b29e1dd9fab7a5b614dbe26cbdaece33fc5156124b205f7986c6f675e5c3c1",
+    "quality_challenge": "616e00e5ce82f18f134823d8769e50a63a0b6f52fb7966831555c959d5a34f91"
+  },
+  "source_revision": "60eb7f4abc293eb18ed88d80a31acb81c49a2cc2",
+  "reference_data_unchanged": true,
+  "quality_challenge_used_for_training": false,
+  "limitations": [
+    "Programmatic simulation; not real insurance performance.",
+    "One simulated policy event per affected policy; unobserved real-world mechanisms remain outside this model."
+  ],
+  "execution_local_revision": "79e82b054287e8aba9c31107ef5a1887c34db979",
+  "source_identity_note": "Canonical GitHub commit has the identical Git tree to the local numerical experiment checkpoint; publication changes commit identity only."
+}

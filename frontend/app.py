@@ -13,7 +13,6 @@ import streamlit as st
 
 from frontend.api_client import (
     FraudAPIClient,
-    FraudAPIError,
 )
 
 from frontend.components import (
@@ -48,6 +47,8 @@ from frontend.views.portfolio_scoring import (
     render as render_portfolio_scoring,
 )
 
+from frontend.views.data_science import render as render_data_science
+
 from frontend.views.system_status import (
     render as render_system_status,
 )
@@ -77,7 +78,7 @@ APP_DESCRIPTION: Final[str] = (
 )
 
 APP_VERSION: Final[str] = (
-    "5.0"
+    "6.0"
 )
 
 DEFAULT_API_URL: Final[str] = (
@@ -383,6 +384,13 @@ PAGES: Final[
         ),
         renderer=render_overview,
         category="MONITOR",
+    ),
+
+    PageDefinition(
+        name="Data Science Lab",
+        short_description="Explore data, experiments and scientific evidence",
+        renderer=render_data_science,
+        category="EXPLORE",
     ),
 
     PageDefinition(

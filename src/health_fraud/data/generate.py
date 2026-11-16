@@ -1254,7 +1254,6 @@ def inject_fraud_behaviors(
                     )
                     _set_provider(df, indices, anchor_provider, provider_lookup)
 
-                    allowed_services = PROVIDER_TYPE_SERVICES[provider_type]
                     for idx in indices:
                         service = _sample_service_for_provider_type(
                             provider_type,

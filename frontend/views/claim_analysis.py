@@ -3,10 +3,8 @@ from __future__ import annotations
 from health_fraud.config import RISK_LOW_THRESHOLD, RISK_MEDIUM_THRESHOLD, RISK_HIGH_THRESHOLD
 
 import json
-import uuid
 
 from datetime import (
-    date,
     datetime,
     time,
     timedelta,
@@ -38,7 +36,7 @@ from frontend.utils.formatting import (
 )
 from health_fraud.config import MAX_ADVANCED_JSON_CHARS
 from health_fraud.features.history import (
-    _amount_mean, _amount_median, _amount_sum, _amount_values, _build_smart_claim, _days_since_last, _history_before, _json_safe, _latest_row, _new_claim_id, _safe_bool, _safe_float, _safe_int, _safe_optional_float, _strip_leakage, _window
+    _amount_median, _build_smart_claim, _history_before, _json_safe, _safe_float, _safe_int, _strip_leakage
 )
 from health_fraud.data.io import strict_json_loads
 

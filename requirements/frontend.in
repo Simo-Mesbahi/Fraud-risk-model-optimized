@@ -1,0 +1,7 @@
+numpy==2.3.5
+pandas==2.2.3
+PyYAML==6.0.3
+pyarrow==23.0.1
+altair==5.5.0
+streamlit==1.67.0
+requests==2.34.2

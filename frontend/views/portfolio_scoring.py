@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from health_fraud.config import DEFAULT_REVIEW_FRACTION, RISK_MEDIUM_THRESHOLD, RISK_HIGH_THRESHOLD
+
 from health_fraud.data.io import spreadsheet_csv
 
 from health_fraud.config import MAX_BATCH_SIZE as SHARED_MAX_BATCH_SIZE
@@ -41,7 +43,6 @@ from frontend.utils.formatting import (
 
 MAX_BATCH_SIZE = SHARED_MAX_BATCH_SIZE
 
-DEFAULT_REVIEW_FRACTION = 0.03
 
 
 LEAKAGE_COLUMNS = {
@@ -1453,7 +1454,7 @@ def _render_kpis(
     high_critical = int(
         (
             frame["fraud_risk_score"]
-            >= 0.20
+            >= RISK_MEDIUM_THRESHOLD
         )
         .sum()
     )
@@ -1517,9 +1518,9 @@ def _render_kpis(
             "Highest individual score",
             tone=(
                 "danger"
-                if max_risk >= 0.50
+                if max_risk >= RISK_HIGH_THRESHOLD
                 else "warning"
-                if max_risk >= 0.20
+                if max_risk >= RISK_MEDIUM_THRESHOLD
                 else "info"
             ),
         )
@@ -2632,9 +2633,9 @@ def _render_claim_detail(
                     "Individual model score",
                     tone=(
                         "danger"
-                        if score >= 0.50
+                        if score >= RISK_HIGH_THRESHOLD
                         else "warning"
-                        if score >= 0.20
+                        if score >= RISK_MEDIUM_THRESHOLD
                         else "info"
                     ),
                 )

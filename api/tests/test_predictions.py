@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from fastapi.testclient import TestClient
 
-from api.app.main import app
 
 
 def _serialize_claim(

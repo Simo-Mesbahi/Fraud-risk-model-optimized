@@ -91,7 +91,16 @@ def read_csv_bounded(raw: bytes) -> pd.DataFrame:
         count += 1
         if count > MAX_BATCH_SIZE:
             raise ValueError(f"CSV exceeds the {MAX_BATCH_SIZE:,}-row limit.")
-    return pd.read_csv(io.StringIO(text), nrows=MAX_BATCH_SIZE + 1)
+    return pd.read_csv(
+        io.StringIO(text),
+        nrows=MAX_BATCH_SIZE + 1,
+        dtype={
+            name: "string"
+            for name in header
+            if name
+            in {"claim_id", "customer_id", "provider_id", "policy_id", "service_code"}
+        },
+    )
 
 
 def read_parquet_bounded(raw: bytes) -> pd.DataFrame:
@@ -130,9 +139,11 @@ def spreadsheet_csv(frame: pd.DataFrame) -> bytes:
         return value
 
     for column in safe.columns:
-        if pd.api.types.is_object_dtype(safe[column]) or pd.api.types.is_string_dtype(
-            safe[column]
+        if (
+            pd.api.types.is_object_dtype(safe[column])
+            or pd.api.types.is_string_dtype(safe[column])
+            or isinstance(safe[column].dtype, pd.CategoricalDtype)
         ):
-            safe[column] = safe[column].map(neutralize)
+            safe[column] = safe[column].astype(object).map(neutralize)
     safe.columns = [neutralize(str(column)) for column in safe.columns]
     return safe.to_csv(index=False).encode("utf-8-sig")
