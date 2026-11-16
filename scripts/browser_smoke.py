@@ -68,7 +68,14 @@ def main():
         page.screenshot(path=str(args.output / "science-desktop.png"), full_page=True)
 
         navigate("Claim Analysis")
-        page.get_by_role("radio", name="Quick Demo", exact=True).check()
+        # Streamlit overlays its native radio input with a styled option label.
+        # Exercise the visible control, then assert the actual checked state.
+        demo_option = page.get_by_test_id("stRadioOption").filter(
+            has=page.get_by_text("Quick Demo", exact=True)
+        )
+        expect(demo_option).to_have_count(1)
+        demo_option.click()
+        expect(page.get_by_role("radio", name="Quick Demo", exact=True)).to_be_checked()
         page.get_by_role("button", name="Analyze Demo Claim", exact=True).click()
         page.get_by_text("Demo claim scored and explained successfully.", exact=True).wait_for()
         clean()
