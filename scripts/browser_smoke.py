@@ -30,7 +30,7 @@ def main():
         if os.environ.get("CHROMIUM_PATH"):
             options["executable_path"] = os.environ["CHROMIUM_PATH"]
         browser = playwright.chromium.launch(**options)
-        page = browser.new_page(viewport={"width": 1440, "height": 1000}, accept_downloads=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 1000}, accept_downloads=True, color_scheme="light")
         page.set_default_timeout(30000)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(args.url)
@@ -42,6 +42,37 @@ def main():
             )
             expect(target.get_by_test_id("stException")).to_have_count(0)
             assert "Diagnostic reference:" not in target.locator("body").inner_text()
+
+        def appearance(name, target=page):
+            option = target.get_by_role("menuitemradio", name=name, exact=True)
+            if not option.is_visible():
+                target.get_by_role("button", name="Main menu", exact=True).click()
+            try:
+                option.click()
+            except Exception:
+                target.screenshot(path=str(args.output / "appearance-failure.png"))
+                raise
+            if name != "System":
+                expect(target.locator("html")).to_have_attribute("data-fraud-theme", name.lower())
+            # Streamlit deliberately keeps the menu open while comparing themes.
+            target.keyboard.press("Escape")
+            expect(target.get_by_role("menu", name="Main menu", exact=True)).not_to_be_visible()
+
+        # Exercise the public native selector, including persistence and OS changes.
+        expect(page.locator("html")).to_have_attribute("data-fraud-theme", "light")
+        appearance("Dark")
+        page.reload()
+        page.get_by_role("heading", name="Executive Overview", exact=True).wait_for()
+        expect(page.locator("html")).to_have_attribute("data-fraud-theme", "dark")
+        appearance("System")
+        expect(page.locator("html")).to_have_attribute("data-fraud-theme", "light")
+        page.emulate_media(color_scheme="dark")
+        expect(page.locator("html")).to_have_attribute("data-fraud-theme", "dark")
+        page.emulate_media(color_scheme="light")
+        expect(page.locator("html")).to_have_attribute("data-fraud-theme", "light")
+        appearance("Dark")
+        passed.extend(["appearance:native-selector", "appearance:reload-persistence",
+                       "appearance:system-light", "appearance:system-dark", "appearance:system-live-update"])
 
         def navigate(name):
             page.get_by_test_id("stSidebar").get_by_role("link", name=name, exact=True).click()
@@ -55,6 +86,18 @@ def main():
             assert target.locator(".app-topbar").evaluate(
                 "e => e.getBoundingClientRect().top >= document.querySelector('[data-testid=stHeader]').getBoundingClientRect().bottom - 1"
             ), "Product context is hidden under the fixed header"
+
+        def assert_chart_text(chart):
+            assert chart.evaluate("""e => {
+                const labels = [...e.querySelectorAll('.role-axis-label text, .role-axis-title text, .role-legend-label text, .role-legend-title text')];
+                const rgb = color => color.startsWith('#') ? [1,3,5].map(i => parseInt(color.slice(i,i+2),16)) : color.match(/[\\d.]+/g).slice(0,3).map(Number);
+                const luminance = color => rgb(color).map(v => v/255).map(v => v <= .04045 ? v/12.92 : ((v+.055)/1.055)**2.4).reduce((s,v,i) => s+v*[.2126,.7152,.0722][i],0);
+                const bg = luminance(getComputedStyle(document.documentElement).getPropertyValue('--bg-main').trim());
+                return labels.length > 0 && labels.every(label => {
+                    const fg = luminance(getComputedStyle(label).fill);
+                    return (Math.max(bg,fg)+.05)/(Math.min(bg,fg)+.05) >= 4.5;
+                });
+            }"""), "Rendered chart labels do not meet the text contrast target"
 
         def choose(label, option):
             if label == "Analysis workspace":
@@ -142,6 +185,11 @@ def main():
         expect(page.locator(".metric-card-pro").filter(
             has=page.get_by_text("Feature Space", exact=True)
         ).locator(".metric-value")).to_have_text("107")
+        appearance("Light")
+        expect(page.get_by_role("heading", name="Model Explanation", exact=True)).to_be_visible()
+        appearance("Dark")
+        expect(page.get_by_role("heading", name="Model Explanation", exact=True)).to_be_visible()
+        passed.append("appearance:preserves-scored-claim")
         page.screenshot(path=str(args.output / "claim-desktop.png"), full_page=True)
         passed.extend(["score-and-explain:quick-demo", "explanation:107-features-and-additivity"])
 
@@ -211,53 +259,74 @@ def main():
         passed.extend(["queue:score-and-rank", "queue:human-decision", "export:formula-safe-csv", "workspace:save-and-resume"])
         page.screenshot(path=str(args.output / "queue-desktop.png"), full_page=True)
 
+        appearance("Light")
+        for name in PAGES:
+            navigate(name)
+            page.screenshot(path=str(args.output / f"light-{name.lower().replace(' ', '-')}-desktop.png"), full_page=False)
+            if name == "Data Science Lab":
+                for workspace, title in workspaces.items():
+                    choose("Analysis workspace", workspace)
+                    page.get_by_text(title, exact=True).wait_for()
+                    clean()
+                    if page.get_by_test_id("stVegaLiteChart").count():
+                        page.get_by_test_id("stVegaLiteChart").first.scroll_into_view_if_needed()
+                    page.screenshot(path=str(args.output / f"light-science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-desktop.png"), full_page=False)
+                    passed.append("light-desktop:lab:" + workspace)
+            passed.append("light-desktop:" + name)
+
         for width in [390, 768]:
-            mobile = browser.new_page(viewport={"width": width, "height": 844}, is_mobile=True, has_touch=True)
+            mobile = browser.new_page(viewport={"width": width, "height": 844}, is_mobile=True, has_touch=True, color_scheme="light")
+            mobile.on("pageerror", lambda error: errors.append(str(error)))
             mobile.goto(args.url)
             mobile.get_by_role("heading", name="Executive Overview", level=1).wait_for(timeout=90000)
-            for name in PAGES:
-                nav = mobile.get_by_test_id("stSidebar").get_by_role("link", name=name, exact=True)
-                sidebar_control(mobile, True)
-                nav.click()
-                mobile.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
-                sidebar_control(mobile, False)
-                if width == 390:
-                    expect(mobile.get_by_test_id("stSidebar")).not_to_be_in_viewport()
-                clean(mobile)
-                expect(mobile.get_by_test_id("stMain").locator("h1")).to_have_count(1)
-                expect(mobile.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
-                assert_header_clear(mobile)
-                assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4"), f"Document overflow: {width}px {name}"
-                mobile.screenshot(path=str(args.output / f"{name.lower().replace(' ', '-')}-{width}.png"), full_page=False)
-                if name == "Claim Analysis":
-                    mobile.get_by_role("button", name="Analyze Demo Claim", exact=True).click()
-                    mobile.get_by_text("Model Explanation", exact=True).wait_for()
+            for mode in ["Dark", "Light"]:
+                appearance(mode, mobile)
+                for name in PAGES:
+                    nav = mobile.get_by_test_id("stSidebar").get_by_role("link", name=name, exact=True)
+                    sidebar_control(mobile, True)
+                    nav.click()
+                    mobile.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
+                    sidebar_control(mobile, False)
+                    if width == 390:
+                        expect(mobile.get_by_test_id("stSidebar")).not_to_be_in_viewport()
                     clean(mobile)
-                    mobile.screenshot(path=str(args.output / f"claim-result-{width}.png"), full_page=False)
-                    smart = mobile.get_by_test_id("stRadioOption").filter(has=mobile.get_by_text("Smart Analysis", exact=True))
-                    smart.click()
-                    mobile.get_by_role("combobox", name="Customer", exact=True).wait_for()
-                    clean(mobile)
-                    mobile.screenshot(path=str(args.output / f"claim-intake-{width}.png"), full_page=False)
-                if name == "Data Science Lab":
-                    for workspace, title in workspaces.items():
-                        mobile.get_by_test_id("stButtonGroup").get_by_text(WORKSPACE_LABELS[workspace], exact=True).click()
-                        mobile.get_by_text(title, exact=True).wait_for()
+                    expect(mobile.get_by_test_id("stMain").locator("h1")).to_have_count(1)
+                    expect(mobile.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
+                    assert_header_clear(mobile)
+                    assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4"), f"Document overflow: {width}px {name}"
+                    mobile.screenshot(path=str(args.output / f"{mode.lower()}-{name.lower().replace(' ', '-')}-{width}.png"), full_page=False)
+                    if name == "Claim Analysis":
+                        mobile.get_by_test_id("stRadioOption").filter(has=mobile.get_by_text("Quick Demo", exact=True)).click()
+                        mobile.get_by_role("button", name="Analyze Demo Claim", exact=True).wait_for()
+                        mobile.get_by_role("button", name="Analyze Demo Claim", exact=True).click()
+                        mobile.get_by_text("Model Explanation", exact=True).wait_for()
                         clean(mobile)
-                        charts = mobile.get_by_test_id("stVegaLiteChart")
-                        if charts.count():
-                            for chart_index in range(charts.count()):
-                                chart = charts.nth(chart_index)
-                                chart.scroll_into_view_if_needed()
-                                assert chart.evaluate("e => e.scrollWidth <= e.clientWidth + 2"), f"Chart overflow: {width}px {workspace} chart {chart_index}"
-                                assert chart.evaluate("e => [...e.querySelectorAll('canvas, svg')].every(c => c.getBoundingClientRect().right <= innerWidth + 2)"), f"Cropped chart canvas: {width}px {workspace} chart {chart_index}"
-                                mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}-{chart_index}.png"), full_page=False)
-                        else:
-                            mobile.get_by_test_id("stDataFrame").first.scroll_into_view_if_needed()
-                            mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}.png"), full_page=False)
-                        assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4")
-                        passed.append(f"responsive:{width}px:lab:{workspace}")
-                passed.append(f"responsive:{width}px:{name}")
+                        mobile.screenshot(path=str(args.output / f"{mode.lower()}-claim-result-{width}.png"), full_page=False)
+                        smart = mobile.get_by_test_id("stRadioOption").filter(has=mobile.get_by_text("Smart Analysis", exact=True))
+                        smart.click()
+                        mobile.get_by_role("combobox", name="Customer", exact=True).wait_for()
+                        clean(mobile)
+                        mobile.screenshot(path=str(args.output / f"{mode.lower()}-claim-intake-{width}.png"), full_page=False)
+                    if name == "Data Science Lab":
+                        for workspace, title in workspaces.items():
+                            mobile.get_by_test_id("stButtonGroup").get_by_text(WORKSPACE_LABELS[workspace], exact=True).click()
+                            mobile.get_by_text(title, exact=True).wait_for()
+                            clean(mobile)
+                            charts = mobile.get_by_test_id("stVegaLiteChart")
+                            if charts.count():
+                                for chart_index in range(charts.count()):
+                                    chart = charts.nth(chart_index)
+                                    chart.scroll_into_view_if_needed()
+                                    assert_chart_text(chart)
+                                    assert chart.evaluate("e => e.scrollWidth <= e.clientWidth + 2"), f"Chart overflow: {width}px {workspace} chart {chart_index}"
+                                    assert chart.evaluate("e => [...e.querySelectorAll('canvas, svg')].every(c => c.getBoundingClientRect().right <= innerWidth + 2)"), f"Cropped chart canvas: {width}px {workspace} chart {chart_index}"
+                                    mobile.screenshot(path=str(args.output / f"{mode.lower()}-science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}-{chart_index}.png"), full_page=False)
+                            else:
+                                mobile.get_by_test_id("stDataFrame").first.scroll_into_view_if_needed()
+                                mobile.screenshot(path=str(args.output / f"{mode.lower()}-science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}.png"), full_page=False)
+                            assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4")
+                            passed.append(f"responsive:{mode.lower()}:{width}px:lab:{workspace}")
+                    passed.append(f"responsive:{mode.lower()}:{width}px:{name}")
             mobile.close()
         assert not errors, errors
         browser.close()

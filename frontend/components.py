@@ -11,7 +11,6 @@ from typing import (
 import streamlit as st
 
 from frontend.utils.formatting import (
-    risk_color,
     risk_tier,
 )
 
@@ -40,19 +39,19 @@ TONE_COLORS: dict[
     str,
 ] = {
     "neutral":
-        "#A6B2C7",
+        "var(--text-secondary)",
 
     "info":
-        "#63A7FF",
+        "var(--primary-text)",
 
     "success":
-        "#61E7A6",
+        "var(--success)",
 
     "warning":
-        "#FFD166",
+        "var(--warning)",
 
     "danger":
-        "#FF5C7A",
+        "var(--critical)",
 }
 
 
@@ -547,9 +546,8 @@ def risk_badge(
         score
     )
 
-    color = risk_color(
-        score
-    )
+    color = {"LOW": "var(--success)", "MEDIUM": "var(--warning)",
+             "HIGH": "var(--high)", "CRITICAL": "var(--critical)"}[tier]
 
     markup = (
         '<div class="risk-badge-wrapper">'
@@ -588,9 +586,8 @@ def risk_gauge(
         score
     )
 
-    color = risk_color(
-        score
-    )
+    color = {"LOW": "var(--success)", "MEDIUM": "var(--warning)",
+             "HIGH": "var(--high)", "CRITICAL": "var(--critical)"}[tier]
 
     degrees = (
         score

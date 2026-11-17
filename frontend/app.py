@@ -23,6 +23,7 @@ from frontend.components import (
 from frontend.styles import (
     CUSTOM_CSS,
 )
+from frontend.theme import apply_theme
 
 from frontend.utils.state import (
     initialize_state,
@@ -141,6 +142,7 @@ st.markdown(
     CUSTOM_CSS,
     unsafe_allow_html=True,
 )
+apply_theme()
 
 
 # =============================================================================

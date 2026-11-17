@@ -6,10 +6,10 @@ import pandas as pd
 import streamlit as st
 from frontend.utils.presentation import present_table, readable_label, wrapped_label
 
-BLUE = "#6CA6FF"
-AMBER = "#FFD166"
-GREEN = "#61E7A6"
-PURPLE = "#B79BFF"
+BLUE = "#326BC7"
+AMBER = "#B87812"
+GREEN = "#238568"
+PURPLE = "#8B5CF6"
 
 
 def show_chart(chart, *, height=300):
@@ -18,14 +18,11 @@ def show_chart(chart, *, height=300):
                          autosize=alt.AutoSizeParams(type="fit-x", contains="padding"))
         .configure_view(strokeOpacity=0)
         .configure_axis(
-            labelColor="#ABB8CE",
-            titleColor="#E5EDF9",
-            gridColor="#243047",
             labelFontSize=12,
             titleFontSize=12,
             labelLimit=210,
         )
-        .configure_legend(labelColor="#C5D1E5", titleColor="#E5EDF9", labelLimit=260,
+        .configure_legend(labelLimit=260,
                           orient="bottom", direction="vertical", columns=1)
     )
     st.altair_chart(chart, width="stretch")
@@ -66,7 +63,7 @@ def histogram(frame, field="claim_amount", by_label=False):
             data,
             description=f"Distribution of {field}; logarithmic monetary axis and explicit bin counts.",
         )
-        .mark_bar(opacity=0.6, orient="vertical")
+        .mark_bar(opacity=0.85 if by_label else 1, orient="vertical")
         .encode(
             x=alt.X(
                 "from:Q",
