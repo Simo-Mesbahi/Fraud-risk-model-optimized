@@ -196,7 +196,7 @@ footer {
 
 
 header[data-testid="stHeader"] {
-    background: transparent;
+    background: #0B1020;
 }
 
 

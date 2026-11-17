@@ -76,6 +76,10 @@ def main():
 
         for name in PAGES:
             navigate(name)
+            if name == "System Status":
+                expect(page.locator(".metric-card-pro").filter(
+                    has=page.get_by_text("System Status", exact=True)
+                ).locator(".metric-value")).to_have_text("READY")
             passed.append("navigation:" + name)
         navigate("Data Science Lab")
         choose("Research corpus", "Expanded longitudinal research · 149,841 claims")
@@ -239,6 +243,7 @@ def main():
                                 chart = charts.nth(chart_index)
                                 chart.scroll_into_view_if_needed()
                                 assert chart.evaluate("e => e.scrollWidth <= e.clientWidth + 2"), f"Chart overflow: {width}px {workspace} chart {chart_index}"
+                                assert chart.evaluate("e => [...e.querySelectorAll('canvas, svg')].every(c => c.getBoundingClientRect().right <= innerWidth + 2)"), f"Cropped chart canvas: {width}px {workspace} chart {chart_index}"
                                 mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}-{chart_index}.png"), full_page=False)
                         else:
                             mobile.get_by_test_id("stDataFrame").first.scroll_into_view_if_needed()

@@ -14,7 +14,8 @@ PURPLE = "#B79BFF"
 
 def show_chart(chart, *, height=300):
     chart = (
-        chart.properties(height=height, autosize=alt.AutoSizeParams(type="fit-x", contains="padding"))
+        chart.properties(height=height, padding={"left": 5, "right": 20, "top": 5, "bottom": 5},
+                         autosize=alt.AutoSizeParams(type="fit-x", contains="padding"))
         .configure_view(strokeOpacity=0)
         .configure_axis(
             labelColor="#ABB8CE",
@@ -110,7 +111,7 @@ def bar(frame, x, y, *, color=BLUE, percentage=False, title=None):
             x=alt.X(
                 y + ":Q",
                 title=title or y.replace("_", " ").title(),
-                axis=alt.Axis(format=".0%") if percentage else alt.Axis(),
+                axis=alt.Axis(format=".0%", tickCount=5) if percentage else alt.Axis(tickCount=5),
             ),
             tooltip=tooltip,
         ), height=max(230, min(720, len(frame) * 42 + 40)),

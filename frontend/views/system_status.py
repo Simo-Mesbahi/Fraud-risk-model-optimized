@@ -1015,6 +1015,24 @@ def _contract_comparison(
             key
         )
 
+        # Older frozen metadata records source features only. The archived
+        # global SHAP table independently enumerates the transformed space.
+        if key == "transformed_feature_count" and local is None:
+            try:
+                features = pd.read_csv(
+                    EXPLAINABILITY_DIR / "global_feature_importance.csv",
+                    usecols=["feature"],
+                )["feature"]
+                if not features.empty and features.notna().all() and features.is_unique:
+                    local = len(features)
+            except (OSError, ValueError, pd.errors.ParserError):
+                pass
+
+        # The frozen artifact's "raw" means uncalibrated predict_proba.
+        # Other values remain distinct so genuine scoring drift still fails.
+        if key == "probability_method" and local == "raw":
+            local = "predict_proba"
+
         live = runtime.get(
             key
         )
