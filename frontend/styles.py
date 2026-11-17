@@ -5,63 +5,89 @@ CUSTOM_CSS = """
    DESIGN TOKENS
    ========================================================================== */
 
+/* The native appearance menu is the only preference store. The small v2
+   adapter mirrors its resolved theme; CSS never changes Streamlit's preference. */
 :root {
-    --bg-main: #060A12;
-    --bg-secondary: #080D18;
-    --bg-tertiary: #0B1220;
-
-    --surface-01: rgba(255, 255, 255, 0.020);
-    --surface-02: rgba(255, 255, 255, 0.032);
-    --surface-03: rgba(255, 255, 255, 0.050);
-    --surface-hover: rgba(255, 255, 255, 0.065);
-
-    --border-soft: rgba(255, 255, 255, 0.060);
-    --border: rgba(255, 255, 255, 0.085);
-    --border-strong: rgba(255, 255, 255, 0.140);
-
-    --text-primary: #F8FAFC;
-    --text-secondary: #98A6BC;
-    --text-muted: #91A0B8;
-    --text-disabled: #46546A;
-
-    --primary: #4C8DFF;
-    --primary-soft: rgba(76, 141, 255, 0.12);
-
-    --secondary: #8B5CF6;
-    --secondary-soft: rgba(139, 92, 246, 0.12);
-
-    --success: #61E7A6;
-    --success-soft: rgba(97, 231, 166, 0.10);
-
-    --warning: #FFD166;
-    --warning-soft: rgba(255, 209, 102, 0.10);
-
-    --high: #FF8A5B;
-    --high-soft: rgba(255, 138, 91, 0.10);
-
-    --critical: #FF5C7A;
-    --critical-soft: rgba(255, 92, 122, 0.10);
-
+    --bg-main: #080E1A;
+    --bg-secondary: #0C1423;
+    --bg-tertiary: #111B2C;
+    --card-bg: #111B2C;
+    --input-bg: #152034;
+    --input-hover: #1A2941;
+    --header-bg: #080E1A;
+    --surface-01: rgba(255,255,255,.02);
+    --surface-02: rgba(255,255,255,.035);
+    --surface-03: rgba(255,255,255,.05);
+    --surface-hover: rgba(255,255,255,.07);
+    --border-soft: #233149;
+    --border: #30415C;
+    --border-strong: #587297;
+    --text-primary: #EAF0F9;
+    --text-secondary: #B0BED2;
+    --text-muted: #9CACC4;
+    --text-disabled: #8190A8;
+    --primary: #659CFF;
+    --primary-text: #93BAFF;
+    --primary-soft: rgba(76,141,255,.12);
+    --secondary: #B39BFF;
+    --secondary-soft: rgba(139,92,246,.12);
+    --success: #61DFA7;
+    --success-soft: rgba(97,223,167,.10);
+    --warning: #F1C364;
+    --warning-soft: rgba(241,195,100,.10);
+    --high: #FFA679;
+    --high-soft: rgba(255,166,121,.10);
+    --critical: #FF829A;
+    --critical-soft: rgba(255,130,154,.10);
+    --on-accent: #FFFFFF;
     --radius-xs: 8px;
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 18px;
     --radius-xl: 22px;
-
-    --shadow-sm:
-        0 8px 24px rgba(0, 0, 0, 0.14);
-
-    --shadow-md:
-        0 18px 45px rgba(0, 0, 0, 0.22);
-
-    --shadow-lg:
-        0 24px 70px rgba(0, 0, 0, 0.28);
-
-    --transition-fast:
-        150ms cubic-bezier(.2,.8,.2,1);
-
-    --transition:
-        200ms cubic-bezier(.2,.8,.2,1);
+    --shadow-sm: 0 6px 18px rgba(0,0,0,.13);
+    --shadow-md: 0 12px 30px rgba(0,0,0,.18);
+    --shadow-lg: 0 20px 48px rgba(0,0,0,.24);
+    --transition-fast: 150ms cubic-bezier(.2,.8,.2,1);
+    --transition: 200ms cubic-bezier(.2,.8,.2,1);
+    --color-scheme: dark;
+}
+:root[data-fraud-theme="light"] {
+    --bg-main: #F3F6FC;
+    --bg-secondary: #EAF0F8;
+    --bg-tertiary: #FFFFFF;
+    --card-bg: #FFFFFF;
+    --input-bg: #FFFFFF;
+    --input-hover: #F5F8FD;
+    --header-bg: #F3F6FC;
+    --surface-01: rgba(24,45,78,.02);
+    --surface-02: rgba(24,45,78,.035);
+    --surface-03: rgba(24,45,78,.05);
+    --surface-hover: rgba(24,45,78,.07);
+    --border-soft: #D9E2EF;
+    --border: #B8C7DC;
+    --border-strong: #7C93B2;
+    --text-primary: #15243B;
+    --text-secondary: #405570;
+    --text-muted: #50617B;
+    --text-disabled: #687B95;
+    --primary: #2458D3;
+    --primary-text: #234FAF;
+    --primary-soft: rgba(36,88,211,.08);
+    --secondary: #6848C6;
+    --secondary-soft: rgba(104,72,198,.08);
+    --success: #06734D;
+    --success-soft: rgba(6,115,77,.08);
+    --warning: #895605;
+    --warning-soft: rgba(137,86,5,.08);
+    --high: #B5470B;
+    --high-soft: rgba(181,71,11,.08);
+    --critical: #BF2340;
+    --critical-soft: rgba(191,35,64,.08);
+    --shadow-sm: 0 3px 12px rgba(24,45,78,.05);
+    --shadow-md: 0 8px 24px rgba(24,45,78,.07);
+    --shadow-lg: 0 16px 40px rgba(24,45,78,.12);
+    --color-scheme: light;
 }
 
 
@@ -128,33 +154,8 @@ body {
 .stApp {
     min-height: 100vh;
 
-    /* Keep the investigation console visually deterministic across
-       Streamlit/browser theme changes. Native form controls inherit
-       a dark color-scheme and are fully styled below. */
-    color-scheme: dark;
-
-    background:
-        radial-gradient(
-            circle at 88% -5%,
-            rgba(139, 92, 246, 0.13),
-            transparent 31%
-        ),
-        radial-gradient(
-            circle at 12% 0%,
-            rgba(76, 141, 255, 0.11),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at 60% 100%,
-            rgba(34, 197, 235, 0.035),
-            transparent 34%
-        ),
-        linear-gradient(
-            180deg,
-            #070B14 0%,
-            #080D18 48%,
-            #060A12 100%
-        );
+    color-scheme: var(--color-scheme);
+    background: var(--bg-main);
 
     color: var(--text-primary);
 }
@@ -181,12 +182,12 @@ body {
     padding: .55rem .8rem;
 }
 [data-testid="stSidebarNav"] a[aria-current="page"] {
-    background: rgba(76,141,255,.15);
-    box-shadow: inset 3px 0 0 #70A6FF;
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    box-shadow: inset 3px 0 0 var(--primary-text);
 }
 
 #MainMenu {
-    visibility: hidden;
+    visibility: visible;
 }
 
 
@@ -196,7 +197,7 @@ footer {
 
 
 header[data-testid="stHeader"] {
-    background: #0B1020;
+    background: var(--header-bg);
 }
 
 
@@ -237,13 +238,13 @@ header[data-testid="stHeader"] {
     background:
         radial-gradient(
             circle at 0% 0%,
-            rgba(76, 141, 255, 0.055),
+            color-mix(in srgb, var(--primary) 5.5%, transparent),
             transparent 28%
         ),
         linear-gradient(
             180deg,
-            #080D18 0%,
-            #070B14 100%
+            var(--bg-secondary) 0%,
+            var(--bg-main) 100%
         );
 
     border-right:
@@ -257,7 +258,7 @@ header[data-testid="stHeader"] {
 
 
 [data-testid="stSidebar"] * {
-    color: #E8EEF8;
+    color: var(--text-primary);
 }
 
 
@@ -279,7 +280,7 @@ header[data-testid="stHeader"] {
 
 
 .sidebar-product-meta {
-    color: #59677E;
+    color: var(--text-disabled);
 
     font-size: .66rem;
     line-height: 1.65;
@@ -322,10 +323,10 @@ header[data-testid="stHeader"] {
     transform: translateX(2px);
 
     background:
-        rgba(255,255,255,.038);
+        color-mix(in srgb, var(--text-primary) 3.8%, transparent);
 
     border-color:
-        rgba(255,255,255,.045);
+        color-mix(in srgb, var(--text-primary) 4.5%, transparent);
 }
 
 
@@ -364,10 +365,10 @@ header[data-testid="stHeader"] {
     background:
         linear-gradient(
             92deg,
-            #FFFFFF 0%,
-            #E6F0FF 40%,
-            #BBD9FF 72%,
-            #C4B5FD 100%
+            var(--text-primary) 0%,
+            var(--primary-text) 40%,
+            var(--primary-text) 72%,
+            var(--secondary) 100%
         );
 
     -webkit-background-clip: text;
@@ -415,9 +416,9 @@ header[data-testid="stHeader"] {
     border-radius: 999px;
 
     background:
-        rgba(255,255,255,.022);
+        color-mix(in srgb, var(--text-primary) 2.2%, transparent);
 
-    color: #7F8DA4;
+    color: var(--text-secondary);
 
     font-size: .73rem;
 
@@ -428,7 +429,7 @@ header[data-testid="stHeader"] {
 
 
 .page-context-strip strong {
-    color: #DCE7F7;
+    color: var(--text-primary);
     font-weight: 750;
 }
 
@@ -510,7 +511,7 @@ small {
 .section-eyebrow {
     margin-bottom: .28rem;
 
-    color: #70A6FF;
+    color: var(--primary-text);
 
     font-size: .66rem;
     font-weight: 800;
@@ -524,7 +525,7 @@ small {
 .section-title {
     max-width: 100%;
 
-    color: #F5F8FD;
+    color: var(--text-primary);
 
     font-size:
         clamp(
@@ -550,7 +551,7 @@ small {
 
     margin-top: .34rem;
 
-    color: #8593A9;
+    color: var(--text-secondary);
 
     font-size: .83rem;
     line-height: 1.55;
@@ -577,7 +578,7 @@ small {
 
     margin-bottom: .32rem;
 
-    color: #70A6FF;
+    color: var(--primary-text);
 
     font-size: .67rem;
 
@@ -596,7 +597,7 @@ small {
 .page-intro-title {
     max-width: 100%;
 
-    color: #F8FAFC;
+    color: var(--text-primary);
 
     font-size:
         clamp(
@@ -620,7 +621,7 @@ small {
 
     margin-top: .35rem;
 
-    color: #8996AA;
+    color: var(--text-secondary);
 
     font-size: .90rem;
     line-height: 1.6;
@@ -653,8 +654,8 @@ small {
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.058),
-            rgba(255,255,255,.020)
+            color-mix(in srgb, var(--text-primary) 5.8%, transparent),
+            color-mix(in srgb, var(--text-primary) 2%, transparent)
         );
 
     border:
@@ -694,7 +695,7 @@ small {
     background:
         linear-gradient(
             120deg,
-            rgba(255,255,255,.035),
+            color-mix(in srgb, var(--text-primary) 3.5%, transparent),
             transparent 35%
         );
 }
@@ -708,8 +709,8 @@ small {
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.071),
-            rgba(255,255,255,.026)
+            color-mix(in srgb, var(--text-primary) 7.1%, transparent),
+            color-mix(in srgb, var(--text-primary) 2.6%, transparent)
         );
 
     box-shadow:
@@ -751,7 +752,7 @@ small {
 
     max-width: 100%;
 
-    color: #8997AE;
+    color: var(--text-secondary);
 
     font-size: .72rem;
 
@@ -775,7 +776,7 @@ small {
 
     margin-top: .52rem;
 
-    color: #FFFFFF;
+    color: var(--text-primary);
 
     font-size:
         clamp(
@@ -808,7 +809,7 @@ small {
 
     margin-top: .52rem;
 
-    color: #748299;
+    color: var(--text-secondary);
 
     font-size: .76rem;
 
@@ -825,7 +826,7 @@ small {
    ========================================================================== */
 
 .mini-metric {
-    --mini-accent: #A6B2C7;
+    --mini-accent: var(--text-secondary);
 
     position: relative;
 
@@ -849,8 +850,8 @@ small {
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.032),
-            rgba(255,255,255,.014)
+            color-mix(in srgb, var(--text-primary) 3.2%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.4%, transparent)
         );
 
     box-shadow:
@@ -890,8 +891,8 @@ small {
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.042),
-            rgba(255,255,255,.018)
+            color-mix(in srgb, var(--text-primary) 4.2%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.8%, transparent)
         );
 }
 
@@ -899,7 +900,7 @@ small {
 .mini-metric-label {
     max-width: 100%;
 
-    color: #7F8DA3;
+    color: var(--text-secondary);
 
     font-size: .67rem;
 
@@ -920,7 +921,7 @@ small {
 
     margin-top: .34rem;
 
-    color: #F7FAFF;
+    color: var(--text-primary);
 
     font-size:
         clamp(
@@ -950,7 +951,7 @@ small {
 
     margin-top: .32rem;
 
-    color: #69788F;
+    color: var(--text-secondary);
 
     font-size: .70rem;
 
@@ -967,7 +968,7 @@ small {
    ========================================================================== */
 
 .surface-card-heading {
-    --surface-accent: #A6B2C7;
+    --surface-accent: var(--text-secondary);
 
     position: relative;
 
@@ -996,8 +997,8 @@ small {
     background:
         linear-gradient(
             135deg,
-            rgba(255,255,255,.028),
-            rgba(255,255,255,.012)
+            color-mix(in srgb, var(--text-primary) 2.8%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.2%, transparent)
         );
 }
 
@@ -1023,7 +1024,7 @@ small {
 .surface-card-title {
     max-width: 100%;
 
-    color: #EDF3FC;
+    color: var(--text-primary);
 
     font-size: .92rem;
 
@@ -1044,7 +1045,7 @@ small {
 
     margin-top: .25rem;
 
-    color: #7E8CA2;
+    color: var(--text-secondary);
 
     font-size: .78rem;
 
@@ -1083,8 +1084,8 @@ div[data-testid="stMetric"] {
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.040),
-            rgba(255,255,255,.018)
+            color-mix(in srgb, var(--text-primary) 4%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.8%, transparent)
         );
 
     box-shadow:
@@ -1101,7 +1102,7 @@ div[data-testid="stMetric"] > div {
 div[data-testid="stMetric"] label {
     max-width: 100%;
 
-    color: #8492A8 !important;
+    color: var(--text-secondary) !important;
 
     white-space: normal !important;
 
@@ -1116,7 +1117,7 @@ div[data-testid="stMetric"] label {
 div[data-testid="stMetricValue"] {
     max-width: 100%;
 
-    color: #FFFFFF;
+    color: var(--text-primary);
 
     font-size:
         clamp(
@@ -1168,7 +1169,7 @@ div[data-testid="stMetricDelta"] {
    ========================================================================== */
 
 .app-badge {
-    --badge-color: #A6B2C7;
+    --badge-color: var(--text-secondary);
 
     display: inline-flex;
 
@@ -1191,7 +1192,7 @@ div[data-testid="stMetricDelta"] {
         999px;
 
     background:
-        rgba(255,255,255,.025);
+        color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 
     color:
         var(--badge-color);
@@ -1216,7 +1217,7 @@ div[data-testid="stMetricDelta"] {
 
     box-shadow:
         inset 0 0 0 1px
-        rgba(255,255,255,.015);
+        color-mix(in srgb, var(--text-primary) 1.5%, transparent);
 }
 
 
@@ -1255,7 +1256,7 @@ div[data-testid="stMetricDelta"] {
 .status-ok {
     border:
         1px solid
-        rgba(97,231,166,.34);
+        color-mix(in srgb, var(--success) 34%, transparent);
 
     background:
         var(--success-soft);
@@ -1268,7 +1269,7 @@ div[data-testid="stMetricDelta"] {
 .status-offline {
     border:
         1px solid
-        rgba(255,92,122,.34);
+        color-mix(in srgb, var(--critical) 34%, transparent);
 
     background:
         var(--critical-soft);
@@ -1295,7 +1296,7 @@ div[data-testid="stMetricDelta"] {
 
 
 .risk-badge {
-    --risk-color: #61E7A6;
+    --risk-color: var(--success);
 
     display: inline-flex;
 
@@ -1319,7 +1320,7 @@ div[data-testid="stMetricDelta"] {
         999px;
 
     background:
-        rgba(255,255,255,.025);
+        color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 
     color:
         var(--risk-color);
@@ -1344,7 +1345,7 @@ div[data-testid="stMetricDelta"] {
 
     box-shadow:
         0 8px 24px
-        rgba(0,0,0,.14);
+        color-mix(in srgb, var(--bg-main) 14%, transparent);
 }
 
 
@@ -1367,7 +1368,7 @@ div[data-testid="stMetricDelta"] {
 
 
 .risk-gauge-ring {
-    --risk-color: #61E7A6;
+    --risk-color: var(--success);
     --risk-degrees: 0deg;
 
     position: relative;
@@ -1396,14 +1397,14 @@ div[data-testid="stMetricDelta"] {
             from 0deg,
             var(--risk-color) 0deg,
             var(--risk-color) var(--risk-degrees),
-            rgba(255,255,255,.065) var(--risk-degrees),
-            rgba(255,255,255,.065) 360deg
+            color-mix(in srgb, var(--text-primary) 6.5%, transparent) var(--risk-degrees),
+            color-mix(in srgb, var(--text-primary) 6.5%, transparent) 360deg
         );
 
     box-shadow:
-        0 0 58px rgba(76,141,255,.10),
-        0 18px 50px rgba(0,0,0,.22),
-        inset 0 0 22px rgba(255,255,255,.025);
+        0 0 58px color-mix(in srgb, var(--primary) 10%, transparent),
+        0 18px 50px color-mix(in srgb, var(--bg-main) 22%, transparent),
+        inset 0 0 22px color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 
     transition:
         transform var(--transition),
@@ -1420,7 +1421,7 @@ div[data-testid="stMetricDelta"] {
 
     border:
         1px solid
-        rgba(255,255,255,.075);
+        color-mix(in srgb, var(--text-primary) 7.5%, transparent);
 
     border-radius:
         inherit;
@@ -1442,7 +1443,7 @@ div[data-testid="stMetricDelta"] {
     background:
         radial-gradient(
             circle at 50% 0%,
-            rgba(255,255,255,.08),
+            color-mix(in srgb, var(--text-primary) 8%, transparent),
             transparent 34%
         );
 
@@ -1456,9 +1457,9 @@ div[data-testid="stMetricDelta"] {
         scale(1.015);
 
     box-shadow:
-        0 0 65px rgba(76,141,255,.13),
-        0 22px 55px rgba(0,0,0,.28),
-        inset 0 0 24px rgba(255,255,255,.03);
+        0 0 65px color-mix(in srgb, var(--primary) 13%, transparent),
+        0 22px 55px color-mix(in srgb, var(--bg-main) 28%, transparent),
+        inset 0 0 24px color-mix(in srgb, var(--text-primary) 3%, transparent);
 }
 
 
@@ -1479,7 +1480,7 @@ div[data-testid="stMetricDelta"] {
 
     border:
         1px solid
-        rgba(255,255,255,.09);
+        color-mix(in srgb, var(--text-primary) 9%, transparent);
 
     border-radius:
         50%;
@@ -1487,18 +1488,18 @@ div[data-testid="stMetricDelta"] {
     background:
         radial-gradient(
             circle at 50% 35%,
-            rgba(255,255,255,.035),
+            color-mix(in srgb, var(--text-primary) 3.5%, transparent),
             transparent 48%
         ),
         linear-gradient(
             145deg,
-            #0B1220,
-            #070B14
+            var(--bg-tertiary),
+            var(--bg-main)
         );
 
     box-shadow:
         inset 0 0 35px
-        rgba(0,0,0,.20);
+        color-mix(in srgb, var(--bg-main) 20%, transparent);
 }
 
 
@@ -1506,7 +1507,7 @@ div[data-testid="stMetricDelta"] {
     max-width: 90%;
 
     color:
-        #8794AA;
+        var(--text-secondary);
 
     font-size:
         .68rem;
@@ -1533,7 +1534,7 @@ div[data-testid="stMetricDelta"] {
         .16rem;
 
     color:
-        #FFFFFF;
+        var(--text-primary);
 
     font-size:
         clamp(
@@ -1590,7 +1591,7 @@ div[data-testid="stMetricDelta"] {
    ========================================================================== */
 
 .info-panel {
-    --panel-color: #63A7FF;
+    --panel-color: var(--primary-text);
 
     position: relative;
 
@@ -1605,7 +1606,7 @@ div[data-testid="stMetricDelta"] {
 
     border:
         1px solid
-        rgba(255,255,255,.08);
+        color-mix(in srgb, var(--text-primary) 8%, transparent);
 
     border-left:
         3px solid
@@ -1617,8 +1618,8 @@ div[data-testid="stMetricDelta"] {
     background:
         linear-gradient(
             135deg,
-            rgba(255,255,255,.035),
-            rgba(255,255,255,.015)
+            color-mix(in srgb, var(--text-primary) 3.5%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.5%, transparent)
         );
 
     box-shadow:
@@ -1686,7 +1687,7 @@ div[data-testid="stMetricDelta"] {
         .38rem;
 
     color:
-        #A9B5C8;
+        var(--text-secondary);
 
     font-size:
         .86rem;
@@ -1705,7 +1706,7 @@ div[data-testid="stMetricDelta"] {
    ========================================================================== */
 
 .decision-panel {
-    --decision-color: #63A7FF;
+    --decision-color: var(--primary-text);
 
     position: relative;
 
@@ -1727,8 +1728,8 @@ div[data-testid="stMetricDelta"] {
     background:
         linear-gradient(
             135deg,
-            rgba(255,255,255,.040),
-            rgba(255,255,255,.014)
+            color-mix(in srgb, var(--text-primary) 4%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.4%, transparent)
         );
 
     box-shadow:
@@ -1821,7 +1822,7 @@ div[data-testid="stMetricDelta"] {
     margin-top: .48rem;
 
     color:
-        #B2BED0;
+        var(--text-secondary);
 
     font-size: .88rem;
 
@@ -1841,7 +1842,7 @@ div[data-testid="stMetricDelta"] {
     margin-top: .55rem;
 
     color:
-        #718096;
+        var(--text-secondary);
 
     font-size: .72rem;
 
@@ -1858,7 +1859,7 @@ div[data-testid="stMetricDelta"] {
    ========================================================================== */
 
 .driver-card {
-    --driver-color: #A6B2C7;
+    --driver-color: var(--text-secondary);
 
     position: relative;
 
@@ -1886,13 +1887,13 @@ div[data-testid="stMetricDelta"] {
     background:
         linear-gradient(
             135deg,
-            rgba(255,255,255,.032),
-            rgba(255,255,255,.012)
+            color-mix(in srgb, var(--text-primary) 3.2%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.2%, transparent)
         );
 
     box-shadow:
         0 8px 26px
-        rgba(0,0,0,.10);
+        color-mix(in srgb, var(--bg-main) 10%, transparent);
 
     transition:
         transform var(--transition-fast),
@@ -1940,13 +1941,13 @@ div[data-testid="stMetricDelta"] {
     background:
         linear-gradient(
             135deg,
-            rgba(255,255,255,.043),
-            rgba(255,255,255,.017)
+            color-mix(in srgb, var(--text-primary) 4.3%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.7%, transparent)
         );
 
     box-shadow:
         0 12px 32px
-        rgba(0,0,0,.14);
+        color-mix(in srgb, var(--bg-main) 14%, transparent);
 }
 
 
@@ -1986,7 +1987,7 @@ div[data-testid="stMetricDelta"] {
     margin-top: .28rem;
 
     color:
-        #EEF4FC;
+        var(--text-primary);
 
     font-size:
         .90rem;
@@ -2036,7 +2037,7 @@ div[data-testid="stMetricDelta"] {
 .driver-value span,
 .driver-contribution span {
     color:
-        #69778D;
+        var(--text-secondary);
 
     font-size:
         .64rem;
@@ -2057,7 +2058,7 @@ div[data-testid="stMetricDelta"] {
     max-width: 100%;
 
     color:
-        #C9D4E3;
+        var(--text-secondary);
 
     font-size:
         .77rem;
@@ -2106,7 +2107,7 @@ div[data-testid="stMetricDelta"] {
 
     border-bottom:
         1px solid
-        rgba(255,255,255,.045);
+        color-mix(in srgb, var(--text-primary) 4.5%, transparent);
 }
 
 
@@ -2119,7 +2120,7 @@ div[data-testid="stMetricDelta"] {
     min-width: 0;
 
     color:
-        #77869C;
+        var(--text-secondary);
 
     font-size:
         .72rem;
@@ -2144,7 +2145,7 @@ div[data-testid="stMetricDelta"] {
     max-width: 100%;
 
     color:
-        #DCE5F1;
+        var(--text-primary);
 
     font-size:
         .78rem;
@@ -2225,7 +2226,7 @@ div[data-testid="stMetricDelta"] {
     max-width: 70%;
 
     color:
-        #64738A;
+        var(--text-secondary);
 
     font-size:
         .64rem;
@@ -2268,7 +2269,7 @@ div[data-testid="stMetricDelta"] {
 
     border:
         1px solid
-        rgba(111,158,255,.32);
+        color-mix(in srgb, var(--primary) 32%, transparent);
 
     border-radius:
         12px;
@@ -2281,7 +2282,7 @@ div[data-testid="stMetricDelta"] {
         );
 
     color:
-        #FFFFFF;
+        var(--text-primary);
 
     font-weight:
         750;
@@ -2295,7 +2296,7 @@ div[data-testid="stMetricDelta"] {
 
     box-shadow:
         0 8px 25px
-        rgba(50,100,240,.14);
+        color-mix(in srgb, var(--primary) 14%, transparent);
 
     transition:
         transform var(--transition-fast),
@@ -2312,11 +2313,11 @@ div[data-testid="stMetricDelta"] {
         translateY(-1px);
 
     border-color:
-        rgba(255,255,255,.40);
+        color-mix(in srgb, var(--text-primary) 40%, transparent);
 
     box-shadow:
         0 12px 32px
-        rgba(70,100,255,.22);
+        color-mix(in srgb, var(--primary) 22%, transparent);
 
     filter:
         brightness(1.06);
@@ -2344,13 +2345,13 @@ div[data-testid="stMetricDelta"] {
 
 button[kind="secondary"] {
     background:
-        rgba(255,255,255,.035) !important;
+        color-mix(in srgb, var(--text-primary) 3.5%, transparent) !important;
 
     border:
         1px solid var(--border) !important;
 
     color:
-        #D8E1EE !important;
+        var(--text-secondary) !important;
 
     box-shadow:
         none !important;
@@ -2359,7 +2360,7 @@ button[kind="secondary"] {
 
 button[kind="secondary"]:hover {
     background:
-        rgba(255,255,255,.065) !important;
+        color-mix(in srgb, var(--text-primary) 6.5%, transparent) !important;
 
     border-color:
         var(--border-strong) !important;
@@ -2391,7 +2392,7 @@ button[kind="secondary"]:hover {
     max-width: 100%;
 
     color:
-        #C4CDDA;
+        var(--text-secondary);
 
     font-size:
         .81rem;
@@ -2408,25 +2409,20 @@ button[kind="secondary"]:hover {
 [data-testid="stWidgetLabel"] *,
 [data-testid="stTooltipIcon"],
 [data-testid="stTooltipIcon"] * {
-    color: #C4CDDA !important;
+    color: var(--text-secondary) !important;
 }
 
 [data-testid="stTooltipIcon"] svg {
-    color: #7F8DA4 !important;
+    color: var(--text-secondary) !important;
     fill: currentColor !important;
 }
 
 
 /* ==========================================================================
-   INPUTS — CONTROLLED DARK THEME
+   INPUTS — ADAPTIVE THEME
    ========================================================================== */
 
-/*
-   Streamlit/BaseWeb can restyle native controls when the user switches the
-   application theme. The console itself is intentionally dark, therefore the
-   controls below define both foreground and background explicitly so values
-   never become white-on-white or dark-on-dark.
-*/
+/* Controls and portal menus share the active semantic palette. */
 
 div[data-baseweb="input"],
 div[data-baseweb="textarea"],
@@ -2436,18 +2432,18 @@ div[data-baseweb="select"],
 [data-testid="stTextInput"],
 [data-testid="stTextArea"] {
     min-width: 0;
-    color: #EEF4FC !important;
-    color-scheme: dark !important;
+    color: var(--text-primary) !important;
+    color-scheme: var(--color-scheme) !important;
 }
 
 div[data-baseweb="input"] > div,
 div[data-baseweb="textarea"] > div,
 div[data-baseweb="select"] > div {
     min-width: 0;
-    background: #111827 !important;
-    border-color: rgba(255,255,255,.10) !important;
+    background: var(--input-bg) !important;
+    border-color: color-mix(in srgb, var(--text-primary) 10%, transparent) !important;
     border-radius: 11px !important;
-    color: #EEF4FC !important;
+    color: var(--text-primary) !important;
     box-shadow: none;
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
@@ -2455,16 +2451,16 @@ div[data-baseweb="select"] > div {
 div[data-baseweb="input"] > div:hover,
 div[data-baseweb="textarea"] > div:hover,
 div[data-baseweb="select"] > div:hover {
-    background: #151E2E !important;
-    border-color: rgba(255,255,255,.18) !important;
+    background: var(--input-hover) !important;
+    border-color: color-mix(in srgb, var(--text-primary) 18%, transparent) !important;
 }
 
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="textarea"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within {
-    background: #111827 !important;
-    border-color: rgba(76,141,255,.72) !important;
-    box-shadow: 0 0 0 3px rgba(76,141,255,.12) !important;
+    background: var(--input-bg) !important;
+    border-color: color-mix(in srgb, var(--primary) 72%, transparent) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent) !important;
 }
 
 input,
@@ -2477,8 +2473,8 @@ div[data-baseweb="textarea"] textarea,
 [data-testid="stTextArea"] textarea {
     min-width: 0;
     background: transparent !important;
-    color: #EEF4FC !important;
-    -webkit-text-fill-color: #EEF4FC !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
     caret-color: var(--primary) !important;
     opacity: 1 !important;
 }
@@ -2489,9 +2485,9 @@ input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus {
-    -webkit-text-fill-color: #EEF4FC !important;
-    -webkit-box-shadow: 0 0 0 1000px #111827 inset !important;
-    box-shadow: 0 0 0 1000px #111827 inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
+    box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
     caret-color: var(--primary) !important;
 }
 
@@ -2499,8 +2495,8 @@ input::placeholder,
 textarea::placeholder,
 div[data-baseweb="input"] input::placeholder,
 div[data-baseweb="textarea"] textarea::placeholder {
-    color: #66758D !important;
-    -webkit-text-fill-color: #66758D !important;
+    color: var(--text-disabled) !important;
+    -webkit-text-fill-color: var(--text-disabled) !important;
     opacity: 1 !important;
 }
 
@@ -2508,8 +2504,8 @@ div[data-baseweb="select"] span,
 div[data-baseweb="select"] p,
 div[data-baseweb="select"] [role="combobox"],
 div[data-baseweb="select"] [aria-selected="true"] {
-    color: #EEF4FC !important;
-    -webkit-text-fill-color: #EEF4FC !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
     opacity: 1 !important;
 }
 
@@ -2517,19 +2513,19 @@ div[data-baseweb="select"] svg,
 div[data-baseweb="input"] svg,
 [data-testid="stDateInput"] svg,
 [data-testid="stNumberInput"] svg {
-    color: #AAB6C8 !important;
+    color: var(--text-secondary) !important;
     fill: currentColor !important;
 }
 
 [data-testid="stNumberInput"] button {
-    color: #DCE5F1 !important;
+    color: var(--text-primary) !important;
     background: transparent !important;
     border-color: transparent !important;
 }
 
 [data-testid="stNumberInput"] button:hover {
-    color: #FFFFFF !important;
-    background: rgba(255,255,255,.055) !important;
+    color: var(--text-primary) !important;
+    background: color-mix(in srgb, var(--text-primary) 5.5%, transparent) !important;
 }
 
 input:disabled,
@@ -2537,8 +2533,8 @@ textarea:disabled,
 input[readonly],
 textarea[readonly],
 [data-baseweb="select"] [aria-disabled="true"] {
-    color: #8391A5 !important;
-    -webkit-text-fill-color: #8391A5 !important;
+    color: var(--text-secondary) !important;
+    -webkit-text-fill-color: var(--text-secondary) !important;
     opacity: .78 !important;
 }
 
@@ -2548,17 +2544,17 @@ input::-webkit-calendar-picker-indicator {
 }
 
 input[type="number"] {
-    color-scheme: dark;
+    color-scheme: var(--color-scheme);
 }
 
 /* ==========================================================================
-   SELECTBOX / MULTISELECT — CONTROLLED DARK THEME
+   SELECTBOX / MULTISELECT — ADAPTIVE THEME
    ========================================================================== */
 
 [data-baseweb="select"] {
     min-width: 0;
     border-radius: 11px;
-    color: #EEF4FC !important;
+    color: var(--text-primary) !important;
 }
 
 [data-baseweb="select"] * {
@@ -2569,8 +2565,8 @@ input[type="number"] {
 [data-baseweb="select"] span,
 [data-baseweb="select"] div,
 [data-baseweb="select"] p {
-    color: #EEF4FC !important;
-    -webkit-text-fill-color: #EEF4FC !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
 }
 
 [data-baseweb="select"] p {
@@ -2583,22 +2579,22 @@ input[type="number"] {
 [data-baseweb="popover"] {
     border-radius: var(--radius-md);
     max-width: min(92vw, 760px) !important;
-    color-scheme: dark !important;
+    color-scheme: var(--color-scheme) !important;
 }
 
 [data-baseweb="popover"] > div {
     max-width: min(92vw, 760px) !important;
-    background: #0C1321 !important;
-    color: #EEF4FC !important;
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
 }
 
 [data-baseweb="menu"],
 div[role="listbox"] {
     max-width: min(92vw, 760px) !important;
     overflow-x: hidden;
-    background: #0C1321 !important;
-    color: #EEF4FC !important;
-    border: 1px solid rgba(255,255,255,.10);
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid color-mix(in srgb, var(--text-primary) 10%, transparent);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
 }
@@ -2613,8 +2609,8 @@ div[role="listbox"] [role="option"] {
     padding-top: .52rem;
     padding-bottom: .52rem;
     background: transparent !important;
-    color: #EEF4FC !important;
-    -webkit-text-fill-color: #EEF4FC !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
     white-space: normal !important;
     overflow: visible !important;
     text-overflow: clip !important;
@@ -2632,39 +2628,39 @@ div[role="listbox"] [role="option"] * {
 [data-baseweb="menu"] li:hover,
 [data-baseweb="menu"] [role="option"]:hover,
 div[role="listbox"] [role="option"]:hover {
-    background: rgba(76,141,255,.105) !important;
-    color: #FFFFFF !important;
+    background: color-mix(in srgb, var(--primary) 10.5%, transparent) !important;
+    color: var(--text-primary) !important;
 }
 
 [data-baseweb="menu"] [aria-selected="true"],
 [data-baseweb="menu"] [role="option"][aria-selected="true"],
 div[role="listbox"] [role="option"][aria-selected="true"] {
-    background: rgba(76,141,255,.17) !important;
-    color: #FFFFFF !important;
+    background: color-mix(in srgb, var(--primary) 17%, transparent) !important;
+    color: var(--text-primary) !important;
     font-weight: 700;
 }
 
 [data-baseweb="menu"] [aria-disabled="true"],
 div[role="listbox"] [role="option"][aria-disabled="true"] {
-    color: #5F6D82 !important;
-    -webkit-text-fill-color: #5F6D82 !important;
+    color: var(--text-disabled) !important;
+    -webkit-text-fill-color: var(--text-disabled) !important;
     opacity: .72;
 }
 
 [data-baseweb="tag"] {
-    background: rgba(76,141,255,.15) !important;
-    border: 1px solid rgba(76,141,255,.24) !important;
-    color: #DDEBFF !important;
+    background: color-mix(in srgb, var(--primary) 15%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--primary) 24%, transparent) !important;
+    color: var(--primary-text) !important;
 }
 
 [data-baseweb="tag"] * {
-    color: #DDEBFF !important;
-    -webkit-text-fill-color: #DDEBFF !important;
+    color: var(--primary-text) !important;
+    -webkit-text-fill-color: var(--primary-text) !important;
 }
 
 [data-baseweb="select"] button,
 [data-baseweb="tag"] svg {
-    color: #AAB6C8 !important;
+    color: var(--text-secondary) !important;
     fill: currentColor !important;
 }
 
@@ -2675,7 +2671,7 @@ div[role="listbox"] [role="option"][aria-disabled="true"] {
 [data-testid="stCheckbox"] label,
 [data-testid="stToggle"] label {
     color:
-        #C6D0DE;
+        var(--text-secondary);
 
     white-space:
         normal;
@@ -2695,7 +2691,7 @@ div[role="listbox"] [role="option"][aria-disabled="true"] {
 [data-testid="stSlider"] [role="slider"] {
     box-shadow:
         0 0 0 4px
-        rgba(76,141,255,.10);
+        color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 
@@ -2713,13 +2709,13 @@ div[role="listbox"] [role="option"][aria-disabled="true"] {
     background:
         linear-gradient(
             145deg,
-            rgba(76,141,255,.035),
-            rgba(255,255,255,.018)
+            color-mix(in srgb, var(--primary) 3.5%, transparent),
+            color-mix(in srgb, var(--text-primary) 1.8%, transparent)
         );
 
     border:
         1px dashed
-        rgba(139,169,220,.22);
+        color-mix(in srgb, var(--primary) 22%, transparent);
 
     border-radius:
         var(--radius-xl);
@@ -2734,12 +2730,12 @@ div[role="listbox"] [role="option"][aria-disabled="true"] {
     background:
         linear-gradient(
             145deg,
-            rgba(76,141,255,.060),
-            rgba(255,255,255,.026)
+            color-mix(in srgb, var(--primary) 6%, transparent),
+            color-mix(in srgb, var(--text-primary) 2.6%, transparent)
         );
 
     border-color:
-        rgba(76,141,255,.42);
+        color-mix(in srgb, var(--primary) 42%, transparent);
 }
 
 
@@ -2772,7 +2768,7 @@ div[role="listbox"] [role="option"][aria-disabled="true"] {
         var(--radius-lg);
 
     background:
-        rgba(255,255,255,.014);
+        color-mix(in srgb, var(--text-primary) 1.4%, transparent);
 }
 
 
@@ -2817,7 +2813,7 @@ button[data-baseweb="tab"] {
         .8rem;
 
     color:
-        #8491A7;
+        var(--text-secondary);
 
     font-weight:
         650;
@@ -2836,27 +2832,27 @@ button[data-baseweb="tab"] {
 
 button[data-baseweb="tab"]:hover {
     color:
-        #D6DFEC;
+        var(--text-secondary);
 
     background:
-        rgba(255,255,255,.025);
+        color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 }
 
 
 button[data-baseweb="tab"][aria-selected="true"] {
     color:
-        #FFFFFF;
+        var(--text-primary);
 
     background:
         linear-gradient(
             180deg,
-            rgba(76,141,255,.075),
+            color-mix(in srgb, var(--primary) 7.5%, transparent),
             transparent
         );
 }
 
 button[data-baseweb="tab"][aria-disabled="true"] {
-    color: #536176 !important;
+    color: var(--text-disabled) !important;
     opacity: .78;
 }
 
@@ -2892,7 +2888,7 @@ button[data-baseweb="tab"] *,
         var(--radius-md);
 
     background:
-        rgba(255,255,255,.018);
+        color-mix(in srgb, var(--text-primary) 1.8%, transparent);
 }
 
 
@@ -2907,7 +2903,7 @@ button[data-baseweb="tab"] *,
 
 [data-testid="stExpander"] summary:hover {
     background:
-        rgba(255,255,255,.025);
+        color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 }
 
 
@@ -2943,7 +2939,7 @@ button[data-baseweb="tab"] *,
 
     box-shadow:
         0 8px 28px
-        rgba(0,0,0,.10);
+        color-mix(in srgb, var(--bg-main) 10%, transparent);
 }
 
 
@@ -2973,7 +2969,7 @@ button[data-baseweb="tab"] *,
         var(--radius-lg);
 
     background:
-        rgba(255,255,255,.018);
+        color-mix(in srgb, var(--text-primary) 1.8%, transparent);
 
     box-shadow:
         var(--shadow-sm);
@@ -3023,7 +3019,7 @@ button[data-baseweb="tab"] *,
         var(--radius-md);
 
     background:
-        rgba(4,8,16,.52);
+        color-mix(in srgb, var(--bg-main) 52%, transparent);
 }
 
 
@@ -3077,7 +3073,7 @@ pre {
         var(--radius-lg);
 
     background:
-        rgba(255,255,255,.010);
+        color-mix(in srgb, var(--text-primary) 1%, transparent);
 }
 
 
@@ -3121,7 +3117,7 @@ pre {
 
     border:
         1px dashed
-        rgba(150,170,205,.18);
+        color-mix(in srgb, var(--primary) 18%, transparent);
 
     border-radius:
         var(--radius-xl);
@@ -3129,8 +3125,8 @@ pre {
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.020),
-            rgba(255,255,255,.010)
+            color-mix(in srgb, var(--text-primary) 2%, transparent),
+            color-mix(in srgb, var(--text-primary) 1%, transparent)
         );
 }
 
@@ -3153,7 +3149,7 @@ pre {
         50%;
 
     background:
-        rgba(76,141,255,.06);
+        color-mix(in srgb, var(--primary) 6%, transparent);
 
     filter:
         blur(30px);
@@ -3166,7 +3162,7 @@ pre {
     max-width: 100%;
 
     color:
-        #F5F8FC;
+        var(--text-primary);
 
     font-size:
         1.08rem;
@@ -3217,7 +3213,7 @@ pre {
         .9rem;
 
     color:
-        #66758D;
+        var(--text-disabled);
 
     font-size:
         .74rem;
@@ -3258,7 +3254,7 @@ pre {
         var(--radius-md);
 
     background:
-        rgba(10,16,30,.94);
+        color-mix(in srgb, var(--bg-main) 94%, transparent);
 
     backdrop-filter:
         blur(16px);
@@ -3295,7 +3291,7 @@ pre {
         var(--radius-xl);
 
     background:
-        #0A101D;
+        var(--bg-tertiary);
 }
 
 
@@ -3358,7 +3354,7 @@ summary:focus-visible,
 [tabindex]:focus-visible {
     outline:
         2px solid
-        rgba(76,141,255,.75);
+        color-mix(in srgb, var(--primary) 75%, transparent);
 
     outline-offset:
         2px;
@@ -3384,7 +3380,7 @@ summary:focus-visible,
     border: 1px solid var(--border-soft);
     border-radius: 10px;
 
-    background: rgba(255,255,255,.018);
+    background: color-mix(in srgb, var(--text-primary) 1.8%, transparent);
 
     transition:
         transform var(--transition-fast),
@@ -3397,29 +3393,29 @@ summary:focus-visible,
 [data-testid="stMain"] [data-testid="stRadio"] label:hover {
     transform: translateY(-1px);
 
-    border-color: rgba(76,141,255,.34);
+    border-color: color-mix(in srgb, var(--primary) 34%, transparent);
 
-    background: rgba(76,141,255,.065);
+    background: color-mix(in srgb, var(--primary) 6.5%, transparent);
 }
 
 
 [data-testid="stMain"] [data-testid="stRadio"] label:has(input:checked) {
-    border-color: rgba(76,141,255,.58);
+    border-color: color-mix(in srgb, var(--primary) 58%, transparent);
 
     background:
         linear-gradient(
             135deg,
-            rgba(76,141,255,.16),
-            rgba(139,92,246,.10)
+            color-mix(in srgb, var(--primary) 16%, transparent),
+            color-mix(in srgb, var(--primary) 10%, transparent)
         );
 
     box-shadow:
-        0 8px 22px rgba(31,90,220,.13);
+        0 8px 22px color-mix(in srgb, var(--primary) 13%, transparent);
 }
 
 
 [data-testid="stMain"] [data-testid="stRadio"] label p {
-    color: #C9D5E5;
+    color: var(--text-secondary);
 
     font-size: .82rem;
     font-weight: 700;
@@ -3452,10 +3448,10 @@ summary:focus-visible,
 @media (prefers-contrast: more) {
 
     :root {
-        --border-soft: rgba(255,255,255,.18);
-        --border: rgba(255,255,255,.28);
-        --text-secondary: #C7D2E2;
-        --text-muted: #A9B6C8;
+        --border-soft: color-mix(in srgb, var(--text-primary) 18%, transparent);
+        --border: color-mix(in srgb, var(--text-primary) 28%, transparent);
+        --text-secondary: var(--text-secondary);
+        --text-muted: var(--text-secondary);
     }
 
 }
@@ -3467,10 +3463,10 @@ summary:focus-visible,
 
 ::selection {
     color:
-        #FFFFFF;
+        var(--text-primary);
 
     background:
-        rgba(76,141,255,.38);
+        color-mix(in srgb, var(--primary) 38%, transparent);
 }
 
 
@@ -3495,7 +3491,7 @@ summary:focus-visible,
 
 ::-webkit-scrollbar-thumb {
     background:
-        rgba(255,255,255,.115);
+        color-mix(in srgb, var(--text-primary) 11.5%, transparent);
 
     border-radius:
         999px;
@@ -3504,7 +3500,7 @@ summary:focus-visible,
 
 ::-webkit-scrollbar-thumb:hover {
     background:
-        rgba(255,255,255,.20);
+        color-mix(in srgb, var(--text-primary) 20%, transparent);
 }
 
 
@@ -4042,19 +4038,19 @@ summary:focus-visible,
     padding-bottom: .9rem;
     border-bottom: 1px solid var(--border-soft);
 }
-.app-wordmark { color: #B9C9E1; font-size: .9rem; font-weight: 700; }
+.app-wordmark { color: var(--text-secondary); font-size: .9rem; font-weight: 700; }
 .app-topbar .page-context-strip { margin: 0; border-radius: 9px; font-size: .77rem; }
 h1.section-title { font-size: clamp(1.55rem, 2.5vw, 1.95rem); line-height: 1.2; }
 h2.section-title { font-size: 1.22rem; line-height: 1.3; }
 h3.section-title { font-size: 1.08rem; line-height: 1.35; }
 .section-heading .section-title { margin: 0; padding: 0; }
 .section-heading { margin-top: .65rem; margin-bottom: .85rem; }
-.section-subtitle { font-size: .9rem; color: #A6B4C9; }
+.section-subtitle { font-size: .9rem; color: var(--text-secondary); }
 .section-eyebrow { font-size: .74rem; letter-spacing: .09em; }
 .sidebar-brand { margin-bottom: .7rem; }
 .sidebar-brand-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -.02em; }
-.sidebar-brand-subtitle { font-size: .78rem; color: #A6B4C9 !important; margin-top: .35rem; }
-.nav-group-label { font-size: .75rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; margin: .9rem 0 .15rem; color: #A6B4C9 !important; }
+.sidebar-brand-subtitle { font-size: .78rem; color: var(--text-secondary) !important; margin-top: .35rem; }
+.nav-group-label { font-size: .75rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; margin: .9rem 0 .15rem; color: var(--text-secondary) !important; }
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .4rem; }
 [data-testid="stSidebar"] .stButton > button {
     min-height: 44px;
@@ -4090,40 +4086,40 @@ h3.section-title { font-size: 1.08rem; line-height: 1.35; }
     border-radius: 10px;
 }
 [data-testid="stSidebar"] .stButton > button[kind="primary"] {
-    background: rgba(76,141,255,.15);
-    border-color: rgba(76,141,255,.35);
-    box-shadow: inset 3px 0 0 #70A6FF;
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+    box-shadow: inset 3px 0 0 var(--primary-text);
 }
 [data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] {
-    background: rgba(76,141,255,.15);
-    border-color: rgba(76,141,255,.35);
-    box-shadow: inset 3px 0 0 #70A6FF;
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+    box-shadow: inset 3px 0 0 var(--primary-text);
 }
 .stButton button, [data-testid="stButton"] button,
 .stDownloadButton button { min-height: 44px; }
 button[kind="primary"], button[kind="secondary"] { min-height: 44px; }
 [data-testid="stMain"] button:focus-visible,
 [data-testid="stSidebar"] button:focus-visible {
-    outline: 2px solid #8DB8FF;
+    outline: 2px solid var(--primary-text);
     outline-offset: 3px;
 }
-[data-testid="stSidebar"] .stButton > button:hover { background: rgba(76,141,255,.08); transform: none; }
-.sidebar-page-context { margin-top: .6rem; padding: .7rem .8rem; border-left: 2px solid #354E75; }
-.sidebar-page-category { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .08em; color: #8DB8FF !important; }
-.sidebar-page-description { display: block; margin-top: .3rem; font-size: .82rem; line-height: 1.5; color: #A6B4C9 !important; }
-.sidebar-product-meta { color: #A6B4C9; font-size: .76rem; }
+[data-testid="stSidebar"] .stButton > button:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); transform: none; }
+.sidebar-page-context { margin-top: .6rem; padding: .7rem .8rem; border-left: 2px solid var(--border-strong); }
+.sidebar-page-category { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .08em; color: var(--primary-text) !important; }
+.sidebar-page-description { display: block; margin-top: .3rem; font-size: .82rem; line-height: 1.5; color: var(--text-secondary) !important; }
+.sidebar-product-meta { color: var(--text-secondary); font-size: .76rem; }
 .metric-card-pro { min-height: 118px; border-radius: 16px; }
 .metric-label { font-size: .78rem; letter-spacing: .06em; line-height: 1.4; min-height: 1.4em; }
-.metric-helper { font-size: .81rem; line-height: 1.5; color: #A6B4C9; }
-.mini-metric-label { font-size: .77rem; color: #A6B4C9; }
-.mini-metric-helper { font-size: .77rem; color: #A6B4C9; }
+.metric-helper { font-size: .81rem; line-height: 1.5; color: var(--text-secondary); }
+.mini-metric-label { font-size: .77rem; color: var(--text-secondary); }
+.mini-metric-helper { font-size: .77rem; color: var(--text-secondary); }
 input::placeholder, textarea::placeholder,
 div[data-baseweb="input"] input::placeholder,
 div[data-baseweb="textarea"] textarea::placeholder {
-    color: #A0AEC4 !important;
-    -webkit-text-fill-color: #A0AEC4 !important;
+    color: var(--text-secondary) !important;
+    -webkit-text-fill-color: var(--text-secondary) !important;
 }
-.empty-hint { color: #A0AEC4; font-size: .81rem; }
+.empty-hint { color: var(--text-secondary); font-size: .81rem; }
 [data-testid="stSegmentedControl"] button { min-height: 44px; }
 [data-testid="stButtonGroup"] button { min-height: 44px; }
 [data-testid="stTabs"] [role="tab"] { min-height: 44px; font-size: .88rem; }
@@ -4172,6 +4168,36 @@ div[data-baseweb="textarea"] textarea::placeholder {
     .st-key-science_kpis [data-testid="stMetric"] { padding: .8rem; }
     .st-key-overview_kpis .metric-card-pro { padding: .8rem; }
 }
+
+
+/* Appearance remains available in the native menu, including on small screens. */
+[data-testid="stMainMenuButton"] {
+    visibility: visible;
+    min-height: 44px;
+    min-width: 108px;
+    margin-right: .5rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+[data-testid="stMainMenuButton"]::before { content: "Appearance"; font-size: .81rem; font-weight: 650; }
+.st-key-theme_adapter { height: 0 !important; min-height: 0 !important; margin: 0 !important; }
+.metric-card-pro, .mini-metric, .glass-card, .info-panel,
+.decision-panel, [data-testid="stMetric"] { background-color: var(--card-bg); }
+button[kind="primary"], [data-testid="stBaseButton-primary"],
+[data-testid="stBaseButton-primaryFormSubmit"] {
+    color: var(--on-accent) !important;
+    background: linear-gradient(135deg, #2458D3, #6848C6) !important;
+    border-color: transparent !important;
+}
+button[kind="primary"] *, [data-testid="stBaseButton-primary"] *,
+[data-testid="stBaseButton-primaryFormSubmit"] * { color: var(--on-accent) !important; }
+:root[data-fraud-theme="light"] [data-testid="stSidebar"] img[alt="Logo"] { filter: brightness(.25); }
+:root[data-fraud-theme="light"] input::-webkit-calendar-picker-indicator { filter: none; }
+:root[data-fraud-theme="light"] .glass-card,
+:root[data-fraud-theme="light"] .metric-card-pro { background: var(--card-bg); }
+/* Native tables, alerts, charts and tooltips are themed by config.toml. */
 
 </style>
 """

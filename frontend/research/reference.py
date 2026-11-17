@@ -43,7 +43,7 @@ def validation_chart(kind: str, review_fraction: float = .03) -> bool:
                 domain=["Fraud recall", "Review precision", "Fraud amount captured"], range=[BLUE, AMBER, GREEN])),
             tooltip=["Outcome:N", alt.Tooltip("review_fraction:Q", title="Capacity", format=".1%"),
                      alt.Tooltip("value:Q", title="Outcome", format=".1%")])
-        rule = alt.Chart(pd.DataFrame({"capacity": [review_fraction]})).mark_rule(strokeDash=[5, 5], color="#ABB8CE").encode(x="capacity:Q")
+        rule = alt.Chart(pd.DataFrame({"capacity": [review_fraction]})).mark_rule(strokeDash=[5, 5], color="#7E8CA5").encode(x="capacity:Q")
         chart = chart + rule
     elif kind in {"precision_recall", "roc"}:
         data = pd.DataFrame(evidence[kind])
@@ -58,7 +58,7 @@ def validation_chart(kind: str, review_fraction: float = .03) -> bool:
             x=alt.X("mean_score:Q", title="Mean model risk", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format=".0%")),
             y=alt.Y("observed_rate:Q", title="Observed synthetic fraud", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format=".0%")),
             tooltip=["claims:Q", alt.Tooltip("mean_score:Q", format=".1%"), alt.Tooltip("observed_rate:Q", format=".1%")])
-        baseline = alt.Chart(pd.DataFrame({"x": [0, 1], "y": [0, 1]})).mark_line(color="#ABB8CE", strokeDash=[4, 4]).encode(x="x:Q", y="y:Q")
+        baseline = alt.Chart(pd.DataFrame({"x": [0, 1], "y": [0, 1]})).mark_line(color="#7E8CA5", strokeDash=[4, 4]).encode(x="x:Q", y="y:Q")
         chart = chart + baseline
     elif kind == "confusion":
         data = pd.DataFrame(evidence["confusion"])

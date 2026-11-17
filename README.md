@@ -8,6 +8,11 @@ The platform ranks claims within an investigation budget and explains the publis
 
 ## Explore the evidence
 
+Use **Appearance** in the upper-right menu to choose **System**, **Light** or
+**Dark**. The native preference is remembered by your browser; System follows
+operating-system changes. Both palettes cover custom cards, forms, menus, native
+tables and interactive charts. Changing appearance keeps the current analysis.
+
 Seven application pages connect the data-science work to its practical use:
 
 | Page | What a reviewer can inspect |

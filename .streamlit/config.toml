@@ -1,210 +1,67 @@
-# =============================================================================
-# FRAUD INTELLIGENCE — STREAMLIT PRODUCTION CONFIGURATION
-# =============================================================================
-
-
-# -----------------------------------------------------------------------------
-# Global theme defaults
-# -----------------------------------------------------------------------------
-
+# Dual native palettes. Appearance follows System until the viewer chooses Light or Dark.
 [theme]
-
-base = "dark"
-
-primaryColor = "#4C8DFF"
-backgroundColor = "#060A12"
-secondaryBackgroundColor = "#111827"
-textColor = "#F8FAFC"
-
+base = "light"
 font = "sans-serif"
 baseFontSize = 16
-
 baseRadius = "medium"
 buttonRadius = "medium"
-
-borderColor = "#253044"
-dataframeBorderColor = "#253044"
-dataframeHeaderBackgroundColor = "#0B1220"
-
 showWidgetBorder = true
 showSidebarBorder = true
-
-linkColor = "#70A6FF"
 linkUnderline = false
-
-codeTextColor = "#DDEBFF"
-codeBackgroundColor = "#0B1220"
-
-redColor = "#FF5C7A"
-orangeColor = "#FF8A5B"
-yellowColor = "#FFD166"
-greenColor = "#61E7A6"
-blueColor = "#4C8DFF"
-violetColor = "#8B5CF6"
-grayColor = "#98A6BC"
-
-
-# -----------------------------------------------------------------------------
-# DARK THEME
-# -----------------------------------------------------------------------------
-
-[theme.dark]
-
-primaryColor = "#4C8DFF"
-
-backgroundColor = "#060A12"
-secondaryBackgroundColor = "#111827"
-
-textColor = "#F8FAFC"
-
-borderColor = "#253044"
-
-dataframeBorderColor = "#253044"
-dataframeHeaderBackgroundColor = "#0B1220"
-
-linkColor = "#70A6FF"
-linkUnderline = false
-
-codeTextColor = "#DDEBFF"
-codeBackgroundColor = "#0B1220"
-
-redColor = "#FF5C7A"
-orangeColor = "#FF8A5B"
-yellowColor = "#FFD166"
-greenColor = "#61E7A6"
-blueColor = "#4C8DFF"
-violetColor = "#8B5CF6"
-grayColor = "#98A6BC"
-
-showWidgetBorder = true
-
-
-# -----------------------------------------------------------------------------
-# LIGHT THEME
-#
-# Intentionally uses the same controlled dark palette.
-#
-# This prevents Streamlit/browser theme switching from producing light widget
-# surfaces inside an application whose design system is intentionally dark.
-# -----------------------------------------------------------------------------
 
 [theme.light]
-
-primaryColor = "#4C8DFF"
-
-backgroundColor = "#060A12"
-secondaryBackgroundColor = "#111827"
-
-textColor = "#F8FAFC"
-
-borderColor = "#253044"
-
-dataframeBorderColor = "#253044"
-dataframeHeaderBackgroundColor = "#0B1220"
-
-linkColor = "#70A6FF"
-linkUnderline = false
-
-codeTextColor = "#DDEBFF"
-codeBackgroundColor = "#0B1220"
-
-redColor = "#FF5C7A"
-orangeColor = "#FF8A5B"
-yellowColor = "#FFD166"
-greenColor = "#61E7A6"
-blueColor = "#4C8DFF"
-violetColor = "#8B5CF6"
-grayColor = "#98A6BC"
-
-showWidgetBorder = true
-
-
-# -----------------------------------------------------------------------------
-# SIDEBAR — DEFAULT
-# -----------------------------------------------------------------------------
-
-[theme.sidebar]
-
-primaryColor = "#4C8DFF"
-
-backgroundColor = "#080D18"
-secondaryBackgroundColor = "#0B1220"
-
-textColor = "#E8EEF8"
-
-borderColor = "#1C2636"
-
-dataframeBorderColor = "#1C2636"
-dataframeHeaderBackgroundColor = "#0B1220"
-
-linkColor = "#70A6FF"
-linkUnderline = false
-
-codeTextColor = "#DDEBFF"
-codeBackgroundColor = "#0B1220"
-
-showWidgetBorder = true
-
-
-# -----------------------------------------------------------------------------
-# SIDEBAR — DARK
-# -----------------------------------------------------------------------------
-
-[theme.dark.sidebar]
-
-primaryColor = "#4C8DFF"
-
-backgroundColor = "#080D18"
-secondaryBackgroundColor = "#0B1220"
-
-textColor = "#E8EEF8"
-
-borderColor = "#1C2636"
-
-dataframeBorderColor = "#1C2636"
-dataframeHeaderBackgroundColor = "#0B1220"
-
-linkColor = "#70A6FF"
-linkUnderline = false
-
-codeTextColor = "#DDEBFF"
-codeBackgroundColor = "#0B1220"
-
-showWidgetBorder = true
-
-
-# -----------------------------------------------------------------------------
-# SIDEBAR — LIGHT
-#
-# Deliberately identical to the dark sidebar.
-# -----------------------------------------------------------------------------
+primaryColor = "#2458D3"
+backgroundColor = "#F3F6FC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#15243B"
+borderColor = "#B8C7DC"
+dataframeBorderColor = "#D9E2EF"
+dataframeHeaderBackgroundColor = "#EAF0F8"
+dataframeHeaderTextColor = "#15243B"
+linkColor = "#234FAF"
+codeTextColor = "#243A5B"
+codeBackgroundColor = "#EAF0F8"
+redColor = "#BF2340"
+orangeColor = "#B5470B"
+yellowColor = "#895605"
+greenColor = "#06734D"
+blueColor = "#2458D3"
+violetColor = "#6848C6"
+grayColor = "#50617B"
+chartCategoricalColors = ["#3977D5", "#B87812", "#238568", "#8B5CF6", "#D34E69", "#238CA1"]
 
 [theme.light.sidebar]
+backgroundColor = "#EAF0F8"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#15243B"
+borderColor = "#B8C7DC"
 
-primaryColor = "#4C8DFF"
+[theme.dark]
+primaryColor = "#326FE5"
+backgroundColor = "#080E1A"
+secondaryBackgroundColor = "#111B2C"
+textColor = "#EAF0F9"
+borderColor = "#30415C"
+dataframeBorderColor = "#30415C"
+dataframeHeaderBackgroundColor = "#152034"
+dataframeHeaderTextColor = "#EAF0F9"
+linkColor = "#93BAFF"
+codeTextColor = "#D5E4FB"
+codeBackgroundColor = "#111B2C"
+redColor = "#FF829A"
+orangeColor = "#FFA679"
+yellowColor = "#F1C364"
+greenColor = "#61DFA7"
+blueColor = "#659CFF"
+violetColor = "#B39BFF"
+grayColor = "#9CACC4"
+chartCategoricalColors = ["#3977D5", "#B87812", "#238568", "#8B5CF6", "#D34E69", "#238CA1"]
 
-backgroundColor = "#080D18"
-secondaryBackgroundColor = "#0B1220"
-
-textColor = "#E8EEF8"
-
-borderColor = "#1C2636"
-
-dataframeBorderColor = "#1C2636"
-dataframeHeaderBackgroundColor = "#0B1220"
-
-linkColor = "#70A6FF"
-linkUnderline = false
-
-codeTextColor = "#DDEBFF"
-codeBackgroundColor = "#0B1220"
-
-showWidgetBorder = true
-
-
-# -----------------------------------------------------------------------------
-# SERVER — PRODUCTION
-# -----------------------------------------------------------------------------
+[theme.dark.sidebar]
+backgroundColor = "#0C1423"
+secondaryBackgroundColor = "#152034"
+textColor = "#EAF0F9"
+borderColor = "#30415C"
 
 [server]
 
