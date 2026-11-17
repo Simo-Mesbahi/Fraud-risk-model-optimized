@@ -1521,11 +1521,9 @@ def _render_queue_builder(client) -> None:
     capacity = capacity_percent / 100
     with control_right:
         metric_card('Review Capacity', f'{capacity:.0%}', 'Portfolio selection rate', tone='info')
-    st.write('')
     info_panel('Operational Policy', f'The backend ranks the complete portfolio and returns the highest-risk claims at {capacity:.0%} review capacity. Queue inclusion supports prioritization only and does not establish that fraud occurred.', tone='info')
     if abs(capacity - default_capacity) > 1e-12:
         st.caption(f'Current queue capacity differs from the deployed default policy ({default_capacity:.1%}).')
-    st.write('')
     current = st.session_state.get("batch_input")
     if current:
         with st.container(border=True):
@@ -1558,7 +1556,6 @@ def _render_queue_builder(client) -> None:
                 with p4:
                     metric_card('Input Columns', f'{len(preview.columns):,}', 'Available source fields')
                 if leakage_present:
-                    st.write('')
                     info_panel('Protected Evaluation Fields Detected', f'{len(leakage_present)} synthetic/evaluation field(s) were found and will be removed automatically before inference.', tone='info')
                 with st.expander('Portfolio preview', expanded=False):
                     st.dataframe(preview.head(20), width='stretch', hide_index=True)
@@ -1700,8 +1697,6 @@ def _render_queue_contract(
     Render the model/policy contract used to generate the queue.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Queue Contract",
@@ -1775,7 +1770,6 @@ def _render_queue_contract(
             tone="neutral",
         )
 
-    st.write("")
 
     with st.expander(
         "Runtime contract details",
@@ -1847,8 +1841,6 @@ def _render_priority_distribution(
     Render model-driven queue-priority composition.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Priority Distribution",
@@ -1928,8 +1920,6 @@ def _render_filters(
     Filter the queue without mutating model or human-review state.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Investigation Worklist",
@@ -2454,8 +2444,6 @@ def _render_claim_detail(
     if frame.empty:
         return
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Claim Review",
@@ -2624,7 +2612,6 @@ def _render_claim_detail(
                     tone=tone,
                 )
 
-            st.write("")
             st.divider()
 
             st.caption(
@@ -2730,7 +2717,6 @@ def _render_claim_detail(
                         )
                     )
 
-            st.write("")
 
             if st.button(
                 "Open Full Claim Analysis",
@@ -2916,7 +2902,6 @@ def _render_claim_detail(
 
                 st.rerun()
 
-            st.write("")
 
             info_panel(
                 "Human-in-the-Loop",
@@ -2943,8 +2928,6 @@ def _render_export(
     Export the full prioritized worklist including human-review fields.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Export",
@@ -3068,8 +3051,6 @@ def render(client) -> None:
     prediction_frame = frame[prediction_columns].copy()
     frame = _enrich_queue(prediction_frame, source_claims)
     st.session_state.queue_results = frame
-    st.write('')
-    st.write('')
     _render_summary(frame, metadata)
     _render_decision_progress(frame)
     render_decision_workspace(frame, metadata, source_claims)
@@ -3082,5 +3063,4 @@ def render(client) -> None:
         _render_priority_distribution(frame)
         _render_queue_contract(metadata)
     _render_export(st.session_state.queue_results, metadata)
-    st.write('')
     human_review_notice()

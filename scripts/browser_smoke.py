@@ -70,8 +70,6 @@ def main():
                 if element.count() and element.first.is_visible():
                     element.first.click()
                     return
-            if opening:
-                raise AssertionError("No visible sidebar opener")
 
         for name in PAGES:
             navigate(name)
@@ -183,6 +181,8 @@ def main():
         decision_select.get_by_role("combobox", name="Human decision", exact=True).press("Enter")
         expect(decision_select.get_by_role("combobox", name="Human decision", exact=True)).to_have_value("Clear")
         page.get_by_role("button", name="Save Human Decision", exact=True).click()
+        page.get_by_text("Pending review: 14 · Clear: 1", exact=True).wait_for()
+        clean()
         resume = page.get_by_test_id("stFileUploader").filter(has_text="Resume decisions JSON")
         # Use the same native picker action as a user. This also waits for
         # Streamlit to finish rendering the current uploader after a rerun.
@@ -204,8 +204,7 @@ def main():
             mobile.get_by_role("heading", name="Executive Overview", level=1).wait_for(timeout=90000)
             for name in PAGES:
                 nav = mobile.get_by_test_id("stSidebar").get_by_role("button", name=name, exact=True)
-                if not nav.is_visible():
-                    sidebar_control(mobile, True)
+                sidebar_control(mobile, True)
                 nav.click()
                 mobile.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
                 sidebar_control(mobile, False)

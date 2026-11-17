@@ -1112,8 +1112,6 @@ def _render_explainability() -> None:
     explanation = st.session_state.get('single_explanation')
     if not isinstance(explanation, dict):
         return
-    st.write('')
-    st.write('')
     section_header('Model Explanation', "Local TreeSHAP attribution showing which model features moved this claim's prediction upward or downward relative to the model baseline.")
     explanation_error = explanation.get('_frontend_explanation_error')
     if explanation_error:
@@ -1140,9 +1138,7 @@ def _render_explainability() -> None:
             metric_card('SHAP Additivity', 'Verified' if shap_ok is True else 'Failed' if shap_ok is False else 'Unavailable', 'Raw-margin reconstruction', tone='success' if shap_ok is True else 'danger' if shap_ok is False else 'neutral')
         with c4:
             metric_card('Probability Check', 'Verified' if probability_ok is True else 'Failed' if probability_ok is False else 'Unavailable', 'Probability reconstruction', tone='success' if probability_ok is True else 'danger' if probability_ok is False else 'neutral')
-    st.write('')
     info_panel('How to interpret this explanation', 'Positive SHAP values push the model prediction toward higher fraud risk; negative values push it toward lower fraud risk. These are predictive contributions, not causal findings and not evidence of fraud by themselves.', tone='info')
-    st.write('')
     positive, negative = _explanation_drivers(explanation)
     left, right = st.columns(2, gap='large')
     with left:
@@ -1163,7 +1159,6 @@ def _render_explainability() -> None:
         else:
             for driver in visible_negative:
                 _render_driver(driver, direction='decrease')
-    st.write('')
     with st.expander('Technical SHAP diagnostics', expanded=False):
         st.markdown('##### Explanation contract')
         technical = {'method': method, 'output_space': output_space, 'transformed_feature_count': transformed_feature_count, 'base_value': explanation.get('base_value'), 'model_raw_margin': explanation.get('model_raw_margin'), 'shap_reconstructed_margin': explanation.get('shap_reconstructed_margin'), 'fraud_probability': explanation.get('fraud_probability'), 'shap_reconstructed_probability': explanation.get('shap_reconstructed_probability'), 'consistency': consistency}
@@ -1251,7 +1246,6 @@ def _render_claim_snapshot(
             tone="neutral",
         )
 
-    st.write("")
 
     with st.container(
         border=True
@@ -1329,8 +1323,6 @@ def _render_assessment() -> None:
     if prediction is None or score is None or claim is None:
         return
     score = float(score)
-    st.write('')
-    st.write('')
     section_header('Risk Assessment', 'Individual prediction produced by the deployed fraud-risk pipeline.')
     left, right = st.columns([0.85, 1.75], gap='large')
     with left:
@@ -1346,7 +1338,6 @@ def _render_assessment() -> None:
                 metric_card('Risk Tier', risk_tier(score), 'Individual risk level', tone=recommendation_tone)
             with c3:
                 metric_card('Recommended Action', recommendation, 'Decision-support recommendation', tone=recommendation_tone)
-            st.write('')
             st.divider()
             c1, c2 = st.columns(2)
             with c1:
@@ -1369,14 +1360,10 @@ def _render_assessment() -> None:
             else:
                 st.success(explanation)
             st.caption('This recommendation is generated from model risk and does not constitute a fraud determination.')
-    st.write('')
-    st.write('')
     _render_explainability()
     with st.expander("Claim details"):
         _render_claim_snapshot(claim)
-    st.write('')
     human_review_notice()
-    st.write('')
     with st.expander('Technical model input', expanded=False):
         st.json(_strip_leakage(claim))
 
@@ -1496,7 +1483,6 @@ def _render_smart_form(
             ),
         )
 
-    st.write("")
 
     st.markdown(
         "#### Service"
@@ -1543,7 +1529,6 @@ def _render_smart_form(
             key="smart_service_code",
         )
 
-    st.write("")
 
     st.markdown(
         "#### Timing"
@@ -1609,7 +1594,6 @@ def _render_smart_form(
         service_code,
     )
 
-    st.write("")
 
     info_panel(
         "Historical Service Reference",
@@ -1621,7 +1605,6 @@ def _render_smart_form(
         tone="info",
     )
 
-    st.write("")
 
     st.markdown(
         "#### Financial information"
@@ -1699,7 +1682,6 @@ def _render_smart_form(
                 )
             )
 
-    st.write("")
 
     with st.expander(
         "Optional claim details",
@@ -1763,7 +1745,6 @@ def _render_smart_form(
                 key="smart_submission_hour",
             )
 
-    st.write("")
 
     analyze = st.button(
         "Analyze Claim",
@@ -1969,7 +1950,6 @@ def _render_advanced_json(
         tone="info",
     )
 
-    st.write("")
 
     raw = st.text_area(
         "Complete claim JSON",

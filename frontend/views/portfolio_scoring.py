@@ -1170,7 +1170,6 @@ def _render_portfolio_input(client) -> None:
                     metric_card('Missing Values', f'{missing_values:,}', 'Across source dataset', tone='warning' if missing_values else 'success')
                 with c4:
                     metric_card('Duplicate IDs', f'{duplicate_ids:,}', 'claim_id uniqueness', tone='danger' if duplicate_ids else 'success')
-                st.write('')
                 if valid:
                     info_panel('Portfolio Validation Passed', 'The portfolio passed frontend structural validation and is ready for model scoring.', tone='success')
                 else:
@@ -1231,8 +1230,6 @@ def _render_distribution(
     Render continuous and categorical portfolio-risk distributions.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Risk Distribution",
@@ -1369,8 +1366,6 @@ def _render_review_concentration(
     Compare the operational review population with the remaining portfolio.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Review-Set Concentration",
@@ -1487,8 +1482,6 @@ def _render_quantiles(
     Display score concentration thresholds.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Risk Concentration",
@@ -1544,8 +1537,6 @@ def _render_top_risk(
     Render the highest-scoring portfolio claims.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Highest-Risk Claims",
@@ -1672,8 +1663,6 @@ def _render_filters(
     Search and filter scored claims without modifying model predictions.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Portfolio Explorer",
@@ -2107,8 +2096,6 @@ def _render_claim_detail(
     if frame.empty:
         return
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Claim Drill-Down",
@@ -2246,7 +2233,6 @@ def _render_claim_detail(
                     tone="info",
                 )
 
-            st.write("")
 
             c1, c2 = st.columns(2)
 
@@ -2271,7 +2257,6 @@ def _render_claim_detail(
                     "Relative portfolio position",
                 )
 
-            st.write("")
 
             selected_for_review = bool(
                 row.get(
@@ -2386,7 +2371,6 @@ def _render_claim_detail(
                         )
                     )
 
-            st.write("")
 
             if st.button(
                 "Open Full Claim Analysis",
@@ -2427,8 +2411,6 @@ def _render_exports(
     Export the complete portfolio and operational review population.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Export Results",

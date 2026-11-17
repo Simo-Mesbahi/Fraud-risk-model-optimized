@@ -4044,7 +4044,7 @@ summary:focus-visible,
 h1.section-title { font-size: clamp(1.55rem, 2.5vw, 1.95rem); line-height: 1.2; }
 h2.section-title { font-size: 1.22rem; line-height: 1.3; }
 h3.section-title { font-size: 1.08rem; line-height: 1.35; }
-.section-title { margin: 0; padding: 0; }
+.section-heading .section-title { margin: 0; padding: 0; }
 .section-heading { margin-top: .65rem; margin-bottom: .85rem; }
 .section-subtitle { font-size: .9rem; color: #A6B4C9; }
 .section-eyebrow { font-size: .74rem; letter-spacing: .09em; }
@@ -4063,11 +4063,29 @@ h3.section-title { font-size: 1.08rem; line-height: 1.35; }
     padding: .6rem .8rem;
     border-radius: 10px;
 }
+[data-testid="stSidebar"] [data-testid="stButton"] button,
+[data-testid="stSidebar"] .stButton button {
+    min-height: 44px;
+    text-align: left;
+    justify-content: flex-start;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+    padding: .6rem .8rem;
+    border-radius: 10px;
+}
 [data-testid="stSidebar"] .stButton > button[kind="primary"] {
     background: rgba(76,141,255,.15);
     border-color: rgba(76,141,255,.35);
     box-shadow: inset 3px 0 0 #70A6FF;
 }
+[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] {
+    background: rgba(76,141,255,.15);
+    border-color: rgba(76,141,255,.35);
+    box-shadow: inset 3px 0 0 #70A6FF;
+}
+.stButton button, [data-testid="stButton"] button,
+.stDownloadButton button { min-height: 44px; }
 [data-testid="stSidebar"] .stButton > button:hover { background: rgba(76,141,255,.08); transform: none; }
 .sidebar-page-context { margin-top: .6rem; padding: .7rem .8rem; border-left: 2px solid #354E75; }
 .sidebar-page-category { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .08em; color: #8DB8FF !important; }

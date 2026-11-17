@@ -1306,7 +1306,6 @@ def _render_live_system(
             )
         )
 
-        st.write("")
 
         c1, c2 = (
             st.columns(
@@ -1342,7 +1341,6 @@ def _render_live_system(
                 tone="neutral",
             )
 
-        st.write("")
 
         c1, c2 = (
             st.columns(
@@ -1386,7 +1384,6 @@ def _render_live_system(
                 ),
             )
 
-        st.write("")
 
         st.markdown(
             "##### Inference Contract"
@@ -1532,8 +1529,6 @@ def _render_contract_consistency(
     Missing metadata therefore never becomes a false deployment mismatch.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Deployment Consistency",
@@ -1819,8 +1814,6 @@ def _render_risk_drivers() -> None:
     """
     Render global business-level SHAP importance.
     """
-    st.write('')
-    st.write('')
     section_header('Main Risk Drivers', 'Highest-impact business variables identified by global SHAP analysis.', eyebrow='GLOBAL EXPLAINABILITY')
     importance = _load_artifact_csv('explainability', 'business_feature_importance.csv')
     if importance.empty:
@@ -1859,8 +1852,6 @@ def _render_model_observations() -> None:
     Render high-level model behavior from frozen analytical artifacts.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Risk Intelligence",
@@ -2168,8 +2159,6 @@ def _render_artifact_coverage() -> None:
     Render traceability of analytical evidence used by the overview.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Evidence Coverage",
@@ -2398,8 +2387,6 @@ def _render_governance() -> None:
     Render human-in-the-loop operating boundary.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Decision Governance",

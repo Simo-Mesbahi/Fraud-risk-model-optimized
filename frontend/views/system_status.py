@@ -1429,7 +1429,6 @@ def _render_service_health(
             ),
         )
 
-    st.write("")
 
     model = _nonempty_dict(
         diagnostics.get(
@@ -1497,7 +1496,6 @@ def _render_service_health(
             helper="Health + contract",
         )
 
-    st.write("")
 
     if model_ready:
 
@@ -1586,8 +1584,6 @@ def _render_model_contract(
     Render deployment identity and inference contract.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Deployed Model Contract",
@@ -1690,7 +1686,6 @@ def _render_model_contract(
                     "Frozen deployment version",
                 )
 
-            st.write("")
 
             c1, c2, c3 = st.columns(3)
 
@@ -1734,7 +1729,6 @@ def _render_model_contract(
                     helper="Prediction target",
                 )
 
-            st.write("")
             st.divider()
 
             key_value_row(
@@ -1785,7 +1779,6 @@ def _render_model_contract(
                 tone="info",
             )
 
-            st.write("")
 
             key_value_row(
                 "Policy",
@@ -1842,7 +1835,6 @@ def _render_model_contract(
                 ),
             )
 
-            st.write("")
 
             st.caption(
                 (
@@ -1866,8 +1858,6 @@ def _render_contract_consistency(
     Verify frozen analytical metadata against runtime deployment.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Contract Consistency",
@@ -1960,7 +1950,6 @@ def _render_contract_consistency(
             ),
         )
 
-    st.write("")
 
     if (
         comparisons > 0
@@ -2051,8 +2040,6 @@ def _render_artifacts() -> None:
     Render inference and analytical artifact readiness.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Model Artifact Registry",
@@ -2210,7 +2197,6 @@ def _render_artifacts() -> None:
             }
         )
 
-    st.write("")
 
     with st.expander(
         "Artifact inventory",
@@ -2276,8 +2262,6 @@ def _render_architecture(
     Render readiness of principal application layers.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "System Architecture",
@@ -2382,7 +2366,6 @@ def _render_architecture(
                 )
             )
 
-    st.write("")
 
     (
         status,
@@ -2412,8 +2395,6 @@ def _render_runtime(
     Render technical frontend runtime information.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Runtime Environment",
@@ -2474,7 +2455,6 @@ def _render_runtime(
             tone="info",
         )
 
-    st.write("")
 
     c1, c2, c3 = (
         st.columns(3)
@@ -2518,7 +2498,6 @@ def _render_runtime(
             helper="Sequential diagnostic",
         )
 
-    st.write("")
 
     with st.container(
         border=True
@@ -2570,7 +2549,6 @@ def _render_runtime(
             monospace=True,
         )
 
-        st.write("")
 
         st.caption(
             (
@@ -2593,8 +2571,6 @@ def _render_diagnostics(
     Render low-level contracts and diagnostic state.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Technical Diagnostics",

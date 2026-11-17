@@ -6,6 +6,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+from frontend.components import section_header
 
 from frontend.research.charts import (
     AMBER,
@@ -31,7 +32,7 @@ from health_fraud.evaluation.quality import distribution_shift, quality_profile
 
 
 def exploration(frame, corpus, score):
-    st.subheader("What does this portfolio contain?")
+    section_header("What does this portfolio contain?")
     st.write(
         f"The median claim is **€{frame.claim_amount.median():,.0f}**; the 95th percentile is **€{frame.claim_amount.quantile(0.95):,.0f}**. The distribution below uses every filtered claim."
     )
@@ -111,7 +112,7 @@ def exploration(frame, corpus, score):
 
 
 def quality(frame, corpus, score):
-    st.subheader("Which data issues are visible and how are they handled?")
+    section_header("Which data issues are visible and how are they handled?")
     profile = quality_profile(frame)
     st.write(f"**{sum(profile["rules"].values()):,} rule violations** in this cohort. A claim can trigger multiple rules; structural missingness is assessed separately.")
     fields = pd.DataFrame(profile["column_profile"])
@@ -138,7 +139,7 @@ def quality(frame, corpus, score):
         width="stretch",
     )
     if corpus.quality:
-        st.markdown("#### Whole-corpus cleaning audit")
+        st.markdown("### Whole-corpus cleaning audit")
         audit = pd.DataFrame(
             [
                 {
@@ -168,7 +169,7 @@ def quality(frame, corpus, score):
 
 
 def temporal(frame, corpus, score):
-    st.subheader("How do volume and outcomes change over time?")
+    section_header("How do volume and outcomes change over time?")
     monthly = (
         frame.assign(
             month=frame.claim_submission_timestamp.dt.to_period("M").dt.to_timestamp()
@@ -238,7 +239,7 @@ def temporal(frame, corpus, score):
 
 
 def fraud(frame, corpus, score):
-    st.subheader("Which patterns distinguish the simulated labels?")
+    section_header("Which patterns distinguish the simulated labels?")
     st.write(f"**{int(frame.is_fraud.sum()):,} of {len(frame):,} claims** carry a simulated fraud label. Compare rates alongside group sizes, rather than treating a pattern as a verdict.")
     histogram(frame, by_label=True)
     group = (
@@ -283,7 +284,7 @@ def fraud(frame, corpus, score):
 
 
 def models(frame, corpus, score):
-    st.subheader("What evidence supports the model and preprocessing choices?")
+    section_header("What evidence supports the model and preprocessing choices?")
     report = corpus.report
     if not report:
         st.info(
@@ -397,7 +398,7 @@ def models(frame, corpus, score):
         evidence_table(learning, "Learning-curve measurements")
     calibration = report.get("calibration_trial", {})
     if calibration:
-        st.markdown("#### Separate-period calibration experiment")
+        st.markdown("### Separate-period calibration experiment")
         present_table(
             pd.DataFrame(
                 [
@@ -421,7 +422,7 @@ def models(frame, corpus, score):
 
 
 def capacity(frame, corpus, score):
-    st.subheader("What can investigators capture with limited capacity?")
+    section_header("What can investigators capture with limited capacity?")
     evaluated = evaluation_frame(frame, score)
     if evaluated.empty:
         st.info(
@@ -517,7 +518,7 @@ def capacity(frame, corpus, score):
 
 
 def errors(frame, corpus, score):
-    st.subheader("Where does the top-risk review policy make mistakes?")
+    section_header("Where does the top-risk review policy make mistakes?")
     evaluated = evaluation_frame(frame, score)
     if evaluated.empty:
         st.info("Select a scored out-of-time cohort first.")
@@ -585,7 +586,7 @@ def errors(frame, corpus, score):
     )
     importance = pd.DataFrame(corpus.report.get("candidate_importance", [])).head(15)
     if not importance.empty:
-        st.markdown("#### Research candidate feature importance")
+        st.markdown("### Research candidate feature importance")
         bar(
             importance,
             "feature",
@@ -599,7 +600,7 @@ def errors(frame, corpus, score):
 
 
 def robustness(frame, corpus, score):
-    st.subheader("How stable are results across populations and time?")
+    section_header("How stable are results across populations and time?")
     evaluated = evaluation_frame(frame, score)
     if evaluated.empty:
         st.info("Select scored out-of-time cases for robustness analysis.")
@@ -640,7 +641,7 @@ def robustness(frame, corpus, score):
             ]
         ]
     )
-    st.markdown("#### Reference-quantile distribution shift")
+    st.markdown("### Reference-quantile distribution shift")
     present_table(drift, hide_index=True, width="stretch")
     st.caption(
         "PSI compares the full training-era reference with the filtered test cohort. It indicates distribution change, not a demonstrated accuracy failure."
@@ -668,7 +669,7 @@ def robustness(frame, corpus, score):
         )
     scenarios = corpus.report.get("robustness_scenarios", [])
     if scenarios:
-        st.markdown("#### Independent simulated worlds")
+        st.markdown("### Independent simulated worlds")
         present_table(pd.DataFrame(scenarios), hide_index=True, width="stretch")
         for limitation in corpus.report.get("robustness_limitations", []):
             st.caption(limitation)

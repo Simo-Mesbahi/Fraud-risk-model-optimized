@@ -970,7 +970,6 @@ def _render_runtime_status(
 
     if runtime_error:
 
-        st.write("")
 
         info_panel(
             "Runtime Verification Failed",
@@ -984,7 +983,6 @@ def _render_runtime_status(
 
     if mismatches:
 
-        st.write("")
 
         info_panel(
             "Model Contract Mismatch",
@@ -1021,8 +1019,6 @@ def _render_model_summary(
     Render frozen out-of-time model performance.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Model Performance",
@@ -1121,7 +1117,6 @@ def _render_model_summary(
             tone="success",
         )
 
-    st.write("")
 
     c1, c2, c3, c4 = (
         st.columns(4)
@@ -1180,7 +1175,6 @@ def _render_model_summary(
             "Probability quality • lower is better",
         )
 
-    st.write("")
 
     info_panel(
         "Operational Interpretation",
@@ -1210,8 +1204,6 @@ def _render_model_contract(
     Render model identity, feature-space contract and review policy.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Frozen Model Contract",
@@ -1342,7 +1334,6 @@ def _render_model_contract(
                     "Frozen deployment version",
                 )
 
-            st.write("")
 
             m1, m2, m3 = st.columns(3)
 
@@ -1379,7 +1370,6 @@ def _render_model_contract(
                     helper="Prediction target",
                 )
 
-            st.write("")
             st.divider()
 
             key_value_row(
@@ -1451,7 +1441,6 @@ def _render_model_contract(
                 tone="info",
             )
 
-            st.write("")
 
             key_value_row(
                 "Review policy",
@@ -1508,7 +1497,6 @@ def _render_model_contract(
                 ),
             )
 
-            st.write("")
 
             st.caption(
                 (
@@ -1532,8 +1520,6 @@ def _render_inference_pipeline(
     Explain the production inference and explanation spaces.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Inference Architecture",
@@ -1640,7 +1626,6 @@ def _render_inference_pipeline(
             ),
         )
 
-    st.write("")
 
     info_panel(
         "Feature-Space Interpretation",
@@ -1805,8 +1790,6 @@ def _render_global_explainability(runtime_model: dict[str, Any]) -> dict[str, An
     """
     Render global business-level SHAP diagnostics.
     """
-    st.write('')
-    st.write('')
     section_header('Global Explainability', 'Business features with the strongest average influence on model output across the analyzed population.', eyebrow='GLOBAL SHAP')
     runtime_explainability = _runtime_explainability(runtime_model)
     importance = _load_csv(BUSINESS_IMPORTANCE_FILE)
@@ -1823,7 +1806,6 @@ def _render_global_explainability(runtime_model: dict[str, Any]) -> dict[str, An
         metric_card('Top Driver', str(top_feature['display_feature']) if top_feature is not None else '—', f"Mean |SHAP| {top_feature['mean_abs_shap']:.4f}" if top_feature is not None else 'Unavailable', tone='info')
     with c3:
         metric_card('SHAP Method', str(runtime_explainability.get('method') or 'TreeSHAP'), str(runtime_explainability.get('output_space') or 'Global artifact'), tone='success')
-    st.write('')
     tooltip = [alt.Tooltip('display_feature:N', title='Feature'), alt.Tooltip('mean_abs_shap:Q', title='Mean |SHAP|', format='.5f')]
     if 'signed_mean_shap' in top.columns:
         tooltip.append(alt.Tooltip('signed_mean_shap:Q', title='Signed Mean SHAP', format='.5f'))
@@ -1832,7 +1814,6 @@ def _render_global_explainability(runtime_model: dict[str, Any]) -> dict[str, An
     table_columns = [column for column in ['display_feature', 'mean_abs_shap', 'signed_mean_shap'] if column in top.columns]
     with st.expander('Global SHAP ranking', expanded=False):
         st.dataframe(top[table_columns], width='stretch', hide_index=True, column_config={'display_feature': st.column_config.TextColumn('Business Feature', width='large'), 'mean_abs_shap': st.column_config.NumberColumn('Mean |SHAP|', format='%.5f'), 'signed_mean_shap': st.column_config.NumberColumn('Signed Mean SHAP', format='%.5f')})
-    st.write('')
     with st.expander('Original SHAP figures'):
         st.caption('Unmodified reference figures. Use fullscreen to inspect the distribution in detail.')
         for filename, title in [('01_shap_global_bar.png', 'Global importance'), ('02_shap_beeswarm.png', 'SHAP distribution')]:
@@ -1854,8 +1835,6 @@ def _render_mechanism_analysis() -> dict[str, Any]:
     Analyze model behavior across synthetic fraud mechanisms.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Fraud Mechanism Analysis",
@@ -2126,7 +2105,6 @@ def _render_mechanism_analysis() -> dict[str, Any]:
     strongest = ordered.iloc[0]
     weakest = ordered.iloc[-1]
 
-    st.write("")
 
     c1, c2 = st.columns(2)
 
@@ -2203,8 +2181,6 @@ def _render_difficulty_analysis() -> dict[str, Any]:
     Analyze score behavior across synthetic fraud difficulty.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Fraud Difficulty",
@@ -2464,7 +2440,6 @@ def _render_difficulty_analysis() -> dict[str, Any]:
             "easy_hard_gap"
         ] = gap
 
-        st.write("")
 
         info_panel(
             "Difficulty Sensitivity",
@@ -2515,8 +2490,6 @@ def _render_error_analysis() -> None:
     Render representative case-level model failures.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Observed Failure Modes",
@@ -2692,8 +2665,6 @@ def _render_artifact_coverage() -> None:
     Surface analytical evidence availability.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Analytical Artifact Coverage",
@@ -2824,7 +2795,6 @@ def _render_artifact_coverage() -> None:
         ]
     )
 
-    st.write("")
 
     with st.expander(
         "Artifact inventory",
@@ -2853,8 +2823,6 @@ def _render_conclusions(
     Generate evidence-grounded model-governance conclusions.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Model Interpretation Summary",
@@ -3064,7 +3032,6 @@ def _render_conclusions(
                     f"• {limitation}"
                 )
 
-    st.write("")
 
     human_review_notice()
 
