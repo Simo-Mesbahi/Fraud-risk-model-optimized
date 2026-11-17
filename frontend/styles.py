@@ -164,7 +164,7 @@ body {
     width: 100%;
     max-width: 1540px;
 
-    padding-top: 1.7rem;
+    padding-top: 3.5rem;
     padding-bottom: 4rem;
     padding-left: 3rem;
     padding-right: 3rem;
@@ -3739,7 +3739,7 @@ summary:focus-visible,
 
     .block-container {
         padding-top:
-            1rem;
+            3.5rem;
 
         padding-left:
             1rem;

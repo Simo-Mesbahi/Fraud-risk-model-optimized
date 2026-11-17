@@ -49,6 +49,12 @@ def main():
             clean()
             expect(page.get_by_test_id("stMain").locator("h1")).to_have_count(1)
             expect(page.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
+            assert_header_clear(page)
+
+        def assert_header_clear(target):
+            assert target.locator(".app-topbar").evaluate(
+                "e => e.getBoundingClientRect().top >= document.querySelector('[data-testid=stHeader]').getBoundingClientRect().bottom - 1"
+            ), "Product context is hidden under the fixed header"
 
         def choose(label, option):
             if label == "Analysis workspace":
@@ -220,6 +226,7 @@ def main():
                 clean(mobile)
                 expect(mobile.get_by_test_id("stMain").locator("h1")).to_have_count(1)
                 expect(mobile.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
+                assert_header_clear(mobile)
                 assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4"), f"Document overflow: {width}px {name}"
                 mobile.screenshot(path=str(args.output / f"{name.lower().replace(' ', '-')}-{width}.png"), full_page=False)
                 if name == "Claim Analysis":
