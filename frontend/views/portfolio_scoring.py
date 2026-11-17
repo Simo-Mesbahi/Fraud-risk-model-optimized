@@ -1143,273 +1143,60 @@ def _score_portfolio(
 # =============================================================================
 
 
-def _render_portfolio_input(
-    client,
-) -> None:
+def _render_portfolio_input(client) -> None:
     """
     Render uploaded and bundled-demo portfolio entry points.
     """
-
-    section_header(
-        "Portfolio Input",
-        (
-            "Upload a claims portfolio or use the bundled "
-            "synthetic dataset to run true batch inference."
-        ),
-    )
-
-    upload_tab, demo_tab = st.tabs(
-        [
-            "Upload Portfolio",
-            "Demo Portfolio",
-        ]
-    )
-
-    # -------------------------------------------------------------------------
-    # Uploaded portfolio
-    # -------------------------------------------------------------------------
-
+    section_header('Portfolio Input', 'Upload a claims portfolio or use the bundled synthetic dataset to run true batch inference.')
+    upload_tab, demo_tab = st.tabs(['Upload Portfolio', 'Demo Portfolio'], default='Demo Portfolio')
     with upload_tab:
-
-        uploaded = st.file_uploader(
-            "Portfolio file",
-            type=[
-                "json",
-                "csv",
-                "parquet",
-            ],
-            key="portfolio_upload",
-            help=(
-                "Supported formats: JSON, CSV and Parquet. "
-                f"Maximum {MAX_BATCH_SIZE:,} claims."
-            ),
-        )
-
+        uploaded = st.file_uploader('Portfolio file', type=['json', 'csv', 'parquet'], key='portfolio_upload', help=f'Supported formats: JSON, CSV and Parquet. Maximum {MAX_BATCH_SIZE:,} claims.')
         if uploaded is None:
-
-            st.caption(
-                (
-                    "Upload a portfolio to validate "
-                    "and score it."
-                )
-            )
-
+            st.caption('Upload a portfolio to validate and score it.')
         else:
-
             try:
-                claims = read_uploaded_file(
-                    uploaded
-                )
-
-                raw_frame = _claims_to_frame(
-                    claims
-                )
-
-                valid, validation_errors = (
-                    _validate_portfolio(
-                        claims
-                    )
-                )
-
-                missing_values = int(
-                    raw_frame
-                    .isna()
-                    .sum()
-                    .sum()
-                )
-
-                duplicate_ids = int(
-                    raw_frame["claim_id"]
-                    .duplicated()
-                    .sum()
-                )
-
-                leakage_present = [
-                    column
-                    for column in LEAKAGE_COLUMNS
-                    if column in raw_frame.columns
-                ]
-
-                c1, c2, c3, c4 = st.columns(
-                    4
-                )
-
+                claims = read_uploaded_file(uploaded)
+                raw_frame = _claims_to_frame(claims)
+                valid, validation_errors = _validate_portfolio(claims)
+                missing_values = int(raw_frame.isna().sum().sum())
+                duplicate_ids = int(raw_frame['claim_id'].duplicated().sum())
+                leakage_present = [column for column in LEAKAGE_COLUMNS if column in raw_frame.columns]
+                c1, c2, c3, c4 = st.columns(4)
                 with c1:
-                    metric_card(
-                        "Claims",
-                        f"{len(raw_frame):,}",
-                        "Portfolio records",
-                    )
-
+                    metric_card('Claims', f'{len(raw_frame):,}', 'Portfolio records')
                 with c2:
-                    metric_card(
-                        "Columns",
-                        f"{len(raw_frame.columns):,}",
-                        "Input fields",
-                    )
-
+                    metric_card('Columns', f'{len(raw_frame.columns):,}', 'Input fields')
                 with c3:
-                    metric_card(
-                        "Missing Values",
-                        f"{missing_values:,}",
-                        "Across source dataset",
-                        tone=(
-                            "warning"
-                            if missing_values
-                            else "success"
-                        ),
-                    )
-
+                    metric_card('Missing Values', f'{missing_values:,}', 'Across source dataset', tone='warning' if missing_values else 'success')
                 with c4:
-                    metric_card(
-                        "Duplicate IDs",
-                        f"{duplicate_ids:,}",
-                        "claim_id uniqueness",
-                        tone=(
-                            "danger"
-                            if duplicate_ids
-                            else "success"
-                        ),
-                    )
-
-                st.write("")
-
+                    metric_card('Duplicate IDs', f'{duplicate_ids:,}', 'claim_id uniqueness', tone='danger' if duplicate_ids else 'success')
                 if valid:
-                    info_panel(
-                        "Portfolio Validation Passed",
-                        (
-                            "The portfolio passed frontend "
-                            "structural validation and is ready "
-                            "for model scoring."
-                        ),
-                        tone="success",
-                    )
-
+                    info_panel('Portfolio Validation Passed', 'The portfolio passed frontend structural validation and is ready for model scoring.', tone='success')
                 else:
                     for message in validation_errors:
                         st.error(message)
-
                 if leakage_present:
-                    info_panel(
-                        "Protected Evaluation Fields Detected",
-                        (
-                            f"{len(leakage_present)} evaluation or "
-                            "synthetic-generation field(s) were found. "
-                            "They will be removed automatically before "
-                            "the portfolio is sent to the model."
-                        ),
-                        tone="info",
-                    )
-
-                with st.expander(
-                    "Preview portfolio",
-                    expanded=False,
-                ):
-                    st.dataframe(
-                        raw_frame.head(25),
-                        width="stretch",
-                        hide_index=True,
-                    )
-
-                if st.button(
-                    "Score Portfolio",
-                    type="primary",
-                    width="stretch",
-                    disabled=not valid,
-                    key="score_uploaded_portfolio",
-                ):
-                    _score_portfolio(
-                        client=client,
-                        claims=claims,
-                        source_name=uploaded.name,
-                        source_type="uploaded",
-                    )
-
-                    st.success(
-                        (
-                            f"{len(claims):,} claims "
-                            "scored successfully."
-                        )
-                    )
-
+                    info_panel('Protected Evaluation Fields Detected', f'{len(leakage_present)} evaluation or synthetic-generation field(s) were found. They will be removed automatically before the portfolio is sent to the model.', tone='info')
+                with st.expander('Preview portfolio', expanded=False):
+                    st.dataframe(raw_frame.head(25), width='stretch', hide_index=True)
+                if st.button('Score Portfolio', type='primary', width='stretch', disabled=not valid, key='score_uploaded_portfolio'):
+                    _score_portfolio(client=client, claims=claims, source_name=uploaded.name, source_type='uploaded')
+                    st.success(f'{len(claims):,} claims scored successfully.')
                     st.rerun()
-
             except Exception as exc:
-                st.error(
-                    (
-                        "Unable to process portfolio. "
-                        f"{exc}"
-                    )
-                )
-
-    # -------------------------------------------------------------------------
-    # Demo portfolio
-    # -------------------------------------------------------------------------
-
+                st.error(f'Unable to process portfolio. {exc}')
     with demo_tab:
-
-        st.caption(
-            (
-                "Run the complete batch-scoring workflow "
-                "with synthetic claims bundled with the project."
-            )
-        )
-
-        demo_size = st.select_slider(
-            "Demo portfolio size",
-            options=[
-                100,
-                250,
-                500,
-                1_000,
-                2_500,
-                5_000,
-                10_000,
-            ],
-            value=500,
-            key="portfolio_demo_size",
-        )
-
-        if st.button(
-            "Score Demo Portfolio",
-            type="primary",
-            width="stretch",
-            key="score_demo_portfolio",
-        ):
-
+        st.caption('Run the complete batch-scoring workflow with synthetic claims bundled with the project.')
+        demo_size = st.select_slider('Demo portfolio size', options=[100, 250, 500, 1000, 2500, 5000, 10000], value=500, key='portfolio_demo_size')
+        if st.button('Score Demo Portfolio', type='primary', width='stretch', key='score_demo_portfolio'):
             try:
-                demo = load_demo_claims(
-                    limit=int(
-                        demo_size
-                    )
-                )
-
-                claims = demo.to_dict(
-                    orient="records"
-                )
-
-                _score_portfolio(
-                    client=client,
-                    claims=claims,
-                    source_name=(
-                        "Synthetic demo portfolio"
-                    ),
-                    source_type="demo",
-                )
-
-                st.success(
-                    (
-                        f"{len(claims):,} demo claims "
-                        "scored successfully."
-                    )
-                )
-
+                demo = load_demo_claims(limit=int(demo_size))
+                claims = demo.to_dict(orient='records')
+                _score_portfolio(client=client, claims=claims, source_name='Synthetic demo portfolio', source_type='demo')
+                st.success(f'{len(claims):,} demo claims scored successfully.')
                 st.rerun()
-
             except Exception as exc:
-                st.error(
-                    str(exc)
-                )
+                st.error(str(exc))
 
 
 # =============================================================================
@@ -1417,210 +1204,18 @@ def _render_portfolio_input(
 # =============================================================================
 
 
-def _render_kpis(
-    frame: pd.DataFrame,
-    metadata: dict[str, Any],
-) -> None:
-    """
-    Render portfolio-level operational risk summary.
-    """
-
-    section_header(
-        "Portfolio Risk Overview",
-        (
-            "Executive summary of model risk "
-            "across the scored population."
-        ),
-        eyebrow="BATCH INFERENCE",
-    )
-
-    count = len(frame)
-
-    mean_risk = float(
-        frame["fraud_risk_score"]
-        .mean()
-    )
-
-    median_risk = float(
-        frame["fraud_risk_score"]
-        .median()
-    )
-
-    max_risk = float(
-        frame["fraud_risk_score"]
-        .max()
-    )
-
-    high_critical = int(
-        (
-            frame["fraud_risk_score"]
-            >= RISK_MEDIUM_THRESHOLD
-        )
-        .sum()
-    )
-
-    critical = int(
-        (
-            frame["risk_tier"]
-            == "CRITICAL"
-        )
-        .sum()
-    )
-
-    review_count = int(
-        frame["selected_for_review"]
-        .sum()
-    )
-
-    review_fraction = _safe_float(
-        metadata.get(
-            "review_fraction"
-        ),
-        DEFAULT_REVIEW_FRACTION,
-    )
-
-    selected_mean = (
-        frame.loc[
-            frame["selected_for_review"],
-            "fraud_risk_score",
-        ]
-        .mean()
-    )
-
-    c1, c2, c3, c4 = st.columns(
-        4
-    )
-
-    with c1:
-        metric_card(
-            "Claims Scored",
-            f"{count:,}",
-            str(
-                metadata.get(
-                    "source",
-                    "Portfolio",
-                )
-            ),
-        )
-
-    with c2:
-        metric_card(
-            "Mean Risk",
-            f"{mean_risk:.2%}",
-            f"Median {median_risk:.2%}",
-            tone="info",
-        )
-
-    with c3:
-        metric_card(
-            "Maximum Risk",
-            f"{max_risk:.2%}",
-            "Highest individual score",
-            tone=(
-                "danger"
-                if max_risk >= RISK_HIGH_THRESHOLD
-                else "warning"
-                if max_risk >= RISK_MEDIUM_THRESHOLD
-                else "info"
-            ),
-        )
-
-    with c4:
-        metric_card(
-            "High / Critical",
-            f"{high_critical:,}",
-            (
-                f"{high_critical / count:.1%} "
-                "of portfolio"
-                if count
-                else "—"
-            ),
-            tone=(
-                "warning"
-                if high_critical
-                else "success"
-            ),
-        )
-
-    st.write("")
-
-    c1, c2, c3, c4 = st.columns(
-        4
-    )
-
-    with c1:
-        metric_card(
-            "Critical Claims",
-            f"{critical:,}",
-            "≥ 50% individual model risk",
-            tone=(
-                "danger"
-                if critical
-                else "success"
-            ),
-        )
-
-    with c2:
-        metric_card(
-            (
-                f"Review Population "
-                f"@ {review_fraction:.0%}"
-            ),
-            f"{review_count:,}",
-            "Operational capacity policy",
-            tone="info",
-        )
-
-    with c3:
-        metric_card(
-            "Selected Mean Risk",
-            (
-                f"{selected_mean:.2%}"
-                if pd.notna(selected_mean)
-                else "—"
-            ),
-            "Highest-ranked review population",
-            tone="warning",
-        )
-
-    scoring_seconds = _safe_float(
-        metadata.get(
-            "scoring_seconds"
-        ),
-        default=-1.0,
-    )
-
-    throughput = _safe_float(
-        metadata.get(
-            "throughput_claims_per_second"
-        ),
-        default=-1.0,
-    )
-
-    with c4:
-        metric_card(
-            "Scoring Runtime",
-            (
-                f"{scoring_seconds:.2f}s"
-                if scoring_seconds >= 0
-                else "—"
-            ),
-            (
-                f"{throughput:,.0f} claims/sec"
-                if throughput >= 0
-                else "Runtime telemetry"
-            ),
-            tone="info",
-        )
-
-    st.caption(
-        (
-            f"Scored: {metadata.get('generated_at', '—')} • "
-            f"Model: {_safe_model_label(metadata)} • "
-            f"Source type: "
-            f"{metadata.get('source_type', '—')}"
-        )
-    )
+def _render_kpis(frame, metadata):
+    section_header("Portfolio Risk Overview", "Prioritize attention within the scored portfolio.")
+    selected = frame.loc[frame.selected_for_review]
+    with st.container(key="portfolio_kpis"):
+        columns = st.columns(4)
+        for col, label, value, helper in zip(columns,
+            ["Claims Scored", "Selected for Review", "Mean Risk", "Maximum Risk"],
+            [f"{len(frame):,}", f"{len(selected):,}", f"{frame.fraud_risk_score.mean():.1%}", f"{frame.fraud_risk_score.max():.1%}"],
+            ["Validated model outputs", f"Top {metadata.get('review_fraction', .03):.0%} by risk", "Across the portfolio", "Highest individual score"]):
+            with col:
+                metric_card(label, value, helper, tone="info")
+    st.caption(f"Source: {metadata.get('source', '—')} · Model: {metadata.get('model_name', '—')} v{metadata.get('model_version', '—')} · Generated: {metadata.get('generated_at', '—')}")
 
 
 # =============================================================================
@@ -1635,8 +1230,6 @@ def _render_distribution(
     Render continuous and categorical portfolio-risk distributions.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Risk Distribution",
@@ -1773,8 +1366,6 @@ def _render_review_concentration(
     Compare the operational review population with the remaining portfolio.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Review-Set Concentration",
@@ -1891,8 +1482,6 @@ def _render_quantiles(
     Display score concentration thresholds.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Risk Concentration",
@@ -1948,8 +1537,6 @@ def _render_top_risk(
     Render the highest-scoring portfolio claims.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Highest-Risk Claims",
@@ -2076,8 +1663,6 @@ def _render_filters(
     Search and filter scored claims without modifying model predictions.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Portfolio Explorer",
@@ -2491,9 +2076,8 @@ def _open_claim_analysis(
         "Portfolio Scoring"
     )
 
-    st.session_state.main_navigation = (
-        "Claim Analysis"
-    )
+    from frontend.utils.presentation import go_to
+    go_to("Claim Analysis")
 
 
 # =============================================================================
@@ -2511,8 +2095,6 @@ def _render_claim_detail(
     if frame.empty:
         return
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Claim Drill-Down",
@@ -2650,7 +2232,6 @@ def _render_claim_detail(
                     tone="info",
                 )
 
-            st.write("")
 
             c1, c2 = st.columns(2)
 
@@ -2675,7 +2256,6 @@ def _render_claim_detail(
                     "Relative portfolio position",
                 )
 
-            st.write("")
 
             selected_for_review = bool(
                 row.get(
@@ -2790,7 +2370,6 @@ def _render_claim_detail(
                         )
                     )
 
-            st.write("")
 
             if st.button(
                 "Open Full Claim Analysis",
@@ -2831,8 +2410,6 @@ def _render_exports(
     Export the complete portfolio and operational review population.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Export Results",
@@ -3028,180 +2605,40 @@ def _validate_stored_results(
 # =============================================================================
 
 
-def render(
-    client,
-) -> None:
-    """
-    Render the complete portfolio-scoring workspace.
-    """
-
+def render(client):
+    from frontend.utils.presentation import go_to, section_links
     _initialize_state()
-
-    section_header(
-        "Portfolio Scoring",
-        (
-            "Score an entire claims portfolio, analyze "
-            "risk concentration and identify the highest-risk "
-            "cases using the deployed fraud-risk model."
-        ),
-    )
-
-    # -------------------------------------------------------------------------
-    # Header controls
-    # -------------------------------------------------------------------------
-
-    left, right = st.columns(
-        [
-            4,
-            1,
-        ]
-    )
-
-    with left:
-        st.caption(
-            (
-                "Portfolio Scoring evaluates every claim independently "
-                "and ranks the resulting scores across the current "
-                "population. Investigation Queue converts those scores "
-                "into an operational human-review workflow."
-            )
-        )
-
-    with right:
-
-        if st.button(
-            "Reset Portfolio",
-            width="stretch",
-            key="reset_portfolio_scoring",
-        ):
-            _reset_portfolio()
-
-            st.rerun()
-
-    st.write("")
-
-    # -------------------------------------------------------------------------
-    # Portfolio input
-    # -------------------------------------------------------------------------
-
-    _render_portfolio_input(
-        client
-    )
-
-    frame = st.session_state.get(
-        "batch_results"
-    )
-
-    metadata = (
-        st.session_state.get(
-            "batch_metadata"
-        )
-        or {}
-    )
-
-    if (
-        frame is None
-        or not isinstance(
-            frame,
-            pd.DataFrame,
-        )
-        or frame.empty
-    ):
-
-        st.write("")
-        st.write("")
-
-        empty_state(
-            "No Portfolio Scored",
-            (
-                "Upload a JSON, CSV or Parquet portfolio, "
-                "or use the synthetic demo portfolio to "
-                "generate fraud-risk scores."
-            ),
-            hint=(
-                "No portfolio analytics are generated "
-                "until model inference has completed."
-            ),
-        )
-
+    section_header("Portfolio Scoring", "Score a portfolio, inspect priority cases and continue to human investigation.", level=1)
+    if st.button("Reset Portfolio", key="reset_portfolio_scoring"):
+        _reset_portfolio()
+        st.rerun()
+    existing = st.session_state.get("batch_results")
+    if isinstance(existing, pd.DataFrame) and not existing.empty:
+        with st.expander("Change portfolio or run another example"):
+            _render_portfolio_input(client)
+    else:
+        _render_portfolio_input(client)
+    frame = st.session_state.get("batch_results")
+    metadata = st.session_state.get("batch_metadata") or {}
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        st.caption("Start with the demo above, or choose Upload Portfolio to use a JSON, CSV or Parquet file.")
         return
-
-    # -------------------------------------------------------------------------
-    # Stored-result integrity
-    # -------------------------------------------------------------------------
-
-    integrity_errors = (
-        _validate_stored_results(
-            frame
-        )
-    )
-
-    if integrity_errors:
-
-        for message in integrity_errors:
-            st.error(message)
-
-        info_panel(
-            "Portfolio Snapshot Invalid",
-            (
-                "Reset the current portfolio and run scoring again "
-                "before continuing with analytics or investigation."
-            ),
-            tone="danger",
-        )
-
+    errors = _validate_stored_results(frame)
+    if errors:
+        for error in errors:
+            st.error(error)
         return
-
-    # -------------------------------------------------------------------------
-    # Analytics
-    # -------------------------------------------------------------------------
-
-    st.write("")
-    st.write("")
-
-    _render_kpis(
-        frame,
-        metadata,
-    )
-
-    _render_distribution(
-        frame
-    )
-
-    _render_review_concentration(
-        frame,
-        metadata,
-    )
-
-    _render_quantiles(
-        frame
-    )
-
-    _render_top_risk(
-        frame
-    )
-
-    filtered = _render_filters(
-        frame
-    )
-
-    _render_table(
-        filtered
-    )
-
-    _render_claim_detail(
-        (
-            filtered
-            if not filtered.empty
-            else frame
-        )
-    )
-
-    _render_exports(
-        frame,
-        metadata,
-    )
-
-    st.write("")
-
+    _render_kpis(frame, metadata)
+    st.button("Continue to investigation", type="primary", width="stretch",
+              on_click=go_to, args=("Investigation Queue",))
+    section_links({"Worklist": "portfolio-explorer", "Selected claim": "claim-drill-down", "Export": "export-results"})
+    filtered = _render_filters(frame)
+    _render_table(filtered)
+    _render_claim_detail(filtered if not filtered.empty else frame)
+    with st.expander("Risk distribution and concentration"):
+        _render_distribution(frame)
+        _render_review_concentration(frame, metadata)
+        _render_quantiles(frame)
+        _render_top_risk(frame)
+    _render_exports(frame, metadata)
     human_review_notice()

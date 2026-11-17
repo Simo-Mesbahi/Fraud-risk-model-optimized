@@ -574,6 +574,31 @@ def test_frontend_model_info_contract(
 # =============================================================================
 
 
+def test_status_reconciles_frozen_metadata_with_real_runtime(frontend_client):
+    from frontend.views import system_status as status
+
+    metadata = status._read_metadata(str(status.METADATA_PATH))
+    diagnostics = {"online": True, "health_ok": True, "model_info_ok": True,
+                   "health": frontend_client.health(), "model": frontend_client.model_info()}
+    rows, checks, mismatches = status._contract_comparison(diagnostics, metadata)
+    assert checks == 8 and mismatches == 0
+    assert next(row for row in rows if row["Field"] == "Transformed Feature Count")["Local Artifact"] == "107"
+    assert status._system_status(diagnostics, metadata)[0] == "READY"
+    assert metadata["probability_method"] == "raw"  # Never rewrite the frozen artifact.
+
+
+@pytest.mark.parametrize("field,value", [
+    ("model_version", "unexpected"), ("probability_method", "calibrated"),
+    ("transformed_feature_count", 106), ("feature_count", 56),
+])
+def test_status_still_detects_real_contract_drift(frontend_client, field, value):
+    from frontend.views import system_status as status
+
+    metadata = status._read_metadata(str(status.METADATA_PATH))
+    model = dict(frontend_client.model_info(), **{field: value})
+    assert status._contract_comparison({"model": model}, metadata)[2] == 1
+
+
 def test_frontend_score_claim(
     frontend_client: FraudAPIClient,
     frontend_claim: dict[str, Any],

@@ -4,6 +4,7 @@ import html
 import os
 import logging
 import uuid
+from pathlib import Path
 
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -78,7 +79,7 @@ APP_DESCRIPTION: Final[str] = (
 )
 
 APP_VERSION: Final[str] = (
-    "6.0"
+    "6.1"
 )
 
 DEFAULT_API_URL: Final[str] = (
@@ -113,7 +114,7 @@ st.set_page_config(
     page_title=APP_TITLE,
     page_icon="◈",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
     menu_items={
         "Get Help":
             None,
@@ -519,198 +520,24 @@ def _sidebar_model_identity(
 
 
 def render_sidebar() -> str:
-    """
-    Render global navigation and compact runtime status.
-    """
-
+    selected_page = st.session_state.setdefault('main_navigation', 'Overview')
+    if selected_page not in PAGE_BY_NAME:
+        selected_page = st.session_state['main_navigation'] = 'Overview'
     with st.sidebar:
-
-        # ---------------------------------------------------------------------
-        # Product identity
-        # ---------------------------------------------------------------------
-
-        st.markdown(
-            (
-                '<div class="sidebar-brand">'
-                '<div class="sidebar-brand-title">'
-                "◇ Fraud Intelligence"
-                "</div>"
-                '<div class="sidebar-brand-subtitle">'
-                "AI-Assisted Investigation Console"
-                "</div>"
-                "</div>"
-            ),
-            unsafe_allow_html=True,
-        )
-
-        st.write("")
-
-        # ---------------------------------------------------------------------
-        # Navigation
-        # ---------------------------------------------------------------------
-
-        selected_page = (
-            st.radio(
-                "Navigation",
-                options=[
-                    page.name
-                    for page
-                    in PAGES
-                ],
-                index=0,
-                label_visibility="collapsed",
-                key="main_navigation",
-            )
-        )
-
-        current_page = (
-            PAGE_BY_NAME[
-                selected_page
-            ]
-        )
-
-        st.markdown(
-            (
-                '<div class="sidebar-page-context">'
-                '<span class="sidebar-page-category">'
-                f"{html.escape(current_page.category)}"
-                "</span>"
-                '<span class="sidebar-page-description">'
-                f"{html.escape(current_page.short_description)}"
-                "</span>"
-                "</div>"
-            ),
-            unsafe_allow_html=True,
-        )
-
-        st.write("")
+        page = PAGE_BY_NAME[selected_page]
+        st.markdown('<div class="sidebar-page-context"><span class="sidebar-page-category">' + html.escape(page.category) + '</span><span class="sidebar-page-description">' + html.escape(page.short_description) + '</span></div>', unsafe_allow_html=True)
         st.divider()
-
-        # ---------------------------------------------------------------------
-        # Runtime status
-        # ---------------------------------------------------------------------
-
-        runtime = (
-            get_runtime_status(
-                API_URL
-            )
-        )
-
-        api_online = bool(
-            runtime.get(
-                "api_online"
-            )
-        )
-
-        model_ready = bool(
-            runtime.get(
-                "model_ready"
-            )
-        )
-
-        (
-            model_name,
-            model_version,
-        ) = (
-            _sidebar_model_identity(
-                runtime
-            )
-        )
-
-        if (
-            api_online
-            and model_ready
-        ):
-
-            status_badge(
-                True,
-                label="INFERENCE READY",
-            )
-
-            st.caption(
-                (
-                    f"{model_name} "
-                    f"v{model_version}"
-                )
-            )
-
-            st.caption(
-                "Scoring service operational"
-            )
-
-        elif api_online:
-
-            status_badge(
-                False,
-                label="MODEL NOT READY",
-            )
-
-            st.caption(
-                "API reachable"
-            )
-
-            st.caption(
-                "Model readiness unavailable"
-            )
-
-        else:
-
-            status_badge(
-                False,
-                label="API OFFLINE",
-            )
-
-            st.caption(
-                "Inference service unavailable"
-            )
-
-        # ---------------------------------------------------------------------
-        # Product context
-        # ---------------------------------------------------------------------
-
-        st.write("")
-        st.divider()
-
-        st.markdown(
-            (
-                '<div class="sidebar-context-block">'
-                '<div class="sidebar-context-line">'
-                "Human-in-the-loop prioritization"
-                "</div>"
-                '<div class="sidebar-context-line">'
-                "Synthetic health-insurance environment"
-                "</div>"
-                "</div>"
-            ),
-            unsafe_allow_html=True,
-        )
-
-        st.write("")
-
-        safe_environment = (
-            html.escape(
-                ENVIRONMENT.title()
-            )
-        )
-
-        safe_version = (
-            html.escape(
-                APP_VERSION
-            )
-        )
-
-        st.markdown(
-            (
-                '<div class="sidebar-product-meta">'
-                f"Frontend v{safe_version}"
-                "<br>"
-                f"{safe_environment}"
-                "</div>"
-            ),
-            unsafe_allow_html=True,
-        )
-
-        return selected_page
+        runtime = get_runtime_status(API_URL)
+        online = bool(runtime.get('api_online'))
+        ready = bool(runtime.get('model_ready'))
+        status_badge(online and ready, label='INFERENCE READY' if online and ready else 'SCORING UNAVAILABLE')
+        st.caption('Scoring service operational' if online and ready else 'Scoring is preparing or temporarily unavailable.')
+        with st.expander('Runtime details'):
+            model_name, version = _sidebar_model_identity(runtime)
+            st.caption(f'{model_name} v{version} · Frontend v{APP_VERSION} · {ENVIRONMENT.title()}')
+            st.caption('Co-located demo inference' if os.getenv('FRAUD_INFERENCE_MODE') == 'embedded' else 'Remote inference service')
+        st.caption('Synthetic data only. Scores guide human investigation; they do not establish fraud.')
+    return selected_page
 
 
 # =============================================================================
@@ -718,88 +545,14 @@ def render_sidebar() -> str:
 # =============================================================================
 
 
-def render_header(
-    selected_page: str,
-) -> None:
-    """
-    Render persistent product and workspace context.
-    """
-
-    page_definition = (
-        PAGE_BY_NAME[
-            selected_page
-        ]
-    )
-
-    safe_title = (
-        html.escape(
-            APP_TITLE
-        )
-    )
-
-    safe_subtitle = (
-        html.escape(
-            APP_SUBTITLE
-        )
-    )
-
-    safe_page = (
-        html.escape(
-            page_definition.name
-        )
-    )
-
-    safe_description = (
-        html.escape(
-            page_definition
-            .short_description
-        )
-    )
-
-    safe_category = (
-        html.escape(
-            page_definition.category
-        )
-    )
-
+def render_header(selected_page: str) -> None:
+    page = PAGE_BY_NAME[selected_page]
     st.markdown(
-        (
-            '<div class="dashboard-header">'
-            '<div class="dashboard-title">'
-            f"{safe_title}"
-            "</div>"
-            '<div class="dashboard-subtitle">'
-            f"{safe_subtitle}"
-            "</div>"
-            "</div>"
-        ),
-        unsafe_allow_html=True,
+        '<div class="app-topbar"><span class="app-wordmark">Health Fraud Intelligence</span>'
+        '<span class="page-context-strip"><span>' + html.escape(page.category)
+        + '</span><span aria-hidden="true"> / </span><strong>' + html.escape(page.name)
+        + '</strong></span></div>', unsafe_allow_html=True,
     )
-
-    st.markdown(
-        (
-            '<div class="page-context-strip">'
-            '<span class="page-context-category">'
-            f"{safe_category}"
-            "</span>"
-            '<span class="page-context-divider">'
-            "•"
-            "</span>"
-            '<strong>'
-            f"{safe_page}"
-            "</strong>"
-            '<span class="page-context-divider">'
-            "•"
-            "</span>"
-            '<span>'
-            f"{safe_description}"
-            "</span>"
-            "</div>"
-        ),
-        unsafe_allow_html=True,
-    )
-
-    st.write("")
 
 
 # =============================================================================
@@ -855,22 +608,62 @@ def render_page(
 # =============================================================================
 
 
+def _overview_route():
+    render_page("Overview")
+
+
+def _science_route():
+    render_page("Data Science Lab")
+
+
+def _claim_route():
+    render_page("Claim Analysis")
+
+
+def _portfolio_route():
+    render_page("Portfolio Scoring")
+
+
+def _queue_route():
+    render_page("Investigation Queue")
+
+
+def _insights_route():
+    render_page("Model Insights")
+
+
+def _status_route():
+    render_page("System Status")
+
+
 def main() -> None:
-    """
-    Application entry point.
-    """
-
-    selected_page = (
-        render_sidebar()
-    )
-
-    render_header(
-        selected_page
-    )
-
-    render_page(
-        selected_page
-    )
+    # Native routes reset the reading position on navigation and support direct links.
+    handlers = {
+        "Overview": (_overview_route, None),
+        "Data Science Lab": (_science_route, "data-science"),
+        "Claim Analysis": (_claim_route, "claim-analysis"),
+        "Portfolio Scoring": (_portfolio_route, "portfolio-scoring"),
+        "Investigation Queue": (_queue_route, "investigation-queue"),
+        "Model Insights": (_insights_route, "model-insights"),
+        "System Status": (_status_route, "system-status"),
+    }
+    pages = {name: st.Page(handler, title=name, url_path=path, default=name == "Overview")
+             for name, (handler, path) in handlers.items()}
+    assets = Path(__file__).resolve().parent / "assets"
+    st.logo(str(assets / "brand.svg"), icon_image=str(assets / "mark.svg"), size="large")
+    current = st.navigation({
+        "Discover": [pages[name] for name in ["Overview", "Data Science Lab", "Model Insights"]],
+        "Analyze & investigate": [pages[name] for name in ["Claim Analysis", "Portfolio Scoring", "Investigation Queue"]],
+        "Operate": [pages["System Status"]],
+    }, position="sidebar", expanded=True)
+    target = st.session_state.pop("_navigation_target", None)
+    if target in pages and pages[target].url_path != current.url_path:
+        st.switch_page(pages[target])
+    selected = next(name for name, page in pages.items() if page.url_path == current.url_path)
+    st.session_state["main_navigation"] = selected
+    render_sidebar()
+    render_header(selected)
+    current.run()
 
 
 if __name__ == "__main__":

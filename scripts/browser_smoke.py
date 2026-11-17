@@ -10,6 +10,12 @@ import pandas as pd
 from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE_LABELS = {
+    "Exploration": "Explore", "Data quality": "Data quality", "Time & evaluation splits": "Timeline",
+    "Fraud patterns": "Fraud patterns", "Model experiments": "Models", "Investigation capacity": "Capacity",
+    "Explainability & errors": "Errors", "Robustness & drift": "Robustness",
+}
+PAGES = ["Overview", "Data Science Lab", "Claim Analysis", "Portfolio Scoring", "Investigation Queue", "Model Insights", "System Status"]
 
 
 def main():
@@ -38,16 +44,42 @@ def main():
             assert "Diagnostic reference:" not in target.locator("body").inner_text()
 
         def navigate(name):
-            page.get_by_test_id("stSidebar").get_by_text(name, exact=True).click()
-            page.get_by_test_id("stMain").get_by_text(name, exact=True).first.wait_for()
+            page.get_by_test_id("stSidebar").get_by_role("link", name=name, exact=True).click()
+            page.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
             clean()
+            expect(page.get_by_test_id("stMain").locator("h1")).to_have_count(1)
+            expect(page.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
 
         def choose(label, option):
+            if label == "Analysis workspace":
+                page.get_by_test_id("stButtonGroup").get_by_text(WORKSPACE_LABELS[option], exact=True).click()
+                return
             page.get_by_role("combobox", name=label, exact=True).click()
             page.get_by_role("option", name=option, exact=True).click()
 
-        for name in ["Overview", "Data Science Lab", "Claim Analysis", "Portfolio Scoring", "Investigation Queue", "Model Insights", "System Status"]:
+        def sidebar_control(target, opening):
+            selectors = ([
+                '[data-testid="stExpandSidebarButton"]',
+                '[data-testid="stExpandSidebarButton"] button',
+                '[data-testid="stSidebarCollapsedControl"] button',
+                'button[aria-label="Open sidebar"]',
+                'button[aria-label="Expand sidebar"]',
+            ] if opening else [
+                '[data-testid="stSidebarCollapseButton"] button',
+                'button[aria-label="Close sidebar"]',
+            ])
+            for selector in selectors:
+                element = target.locator(selector)
+                if element.count() and element.first.is_visible():
+                    element.first.click()
+                    return
+
+        for name in PAGES:
             navigate(name)
+            if name == "System Status":
+                expect(page.locator(".metric-card-pro").filter(
+                    has=page.get_by_text("System Status", exact=True)
+                ).locator(".metric-value")).to_have_text("READY")
             passed.append("navigation:" + name)
         navigate("Data Science Lab")
         choose("Research corpus", "Expanded longitudinal research · 149,841 claims")
@@ -74,6 +106,17 @@ def main():
         page.get_by_test_id("stVegaLiteChart").first.scroll_into_view_if_needed()
         page.screenshot(path=str(args.output / "science-charts-desktop.png"), full_page=True)
 
+        navigate("Model Insights")
+        for tab_name, heading in {
+            "Performance": "Model Performance", "Explainability": "Global Explainability",
+            "Errors & limits": "Observed Failure Modes", "Model contract": "Model Status",
+        }.items():
+            page.get_by_role("tab", name=tab_name, exact=True).click()
+            page.get_by_role("heading", name=heading, exact=True, level=2).wait_for()
+            clean()
+            expect(page.get_by_test_id("stException")).to_have_count(0)
+            passed.append("model-insights:" + tab_name)
+
         navigate("Claim Analysis")
         # Streamlit overlays its native radio input with a styled option label.
         # Exercise the visible control, then assert the actual checked state.
@@ -86,6 +129,7 @@ def main():
         page.get_by_role("button", name="Analyze Demo Claim", exact=True).click()
         page.get_by_text("Demo claim scored and explained successfully.", exact=True).wait_for()
         clean()
+        page.get_by_text("Explanation quality checks", exact=True).click()
         expect(page.locator(".metric-card-pro").filter(
             has=page.get_by_text("SHAP Additivity", exact=True)
         ).locator(".metric-value")).to_have_text("Verified")
@@ -96,6 +140,7 @@ def main():
         passed.extend(["score-and-explain:quick-demo", "explanation:107-features-and-additivity"])
 
         navigate("Portfolio Scoring")
+        page.get_by_role("tab", name="Upload Portfolio", exact=True).click()
         csv = pd.read_parquet(ROOT / "data/interim/claims.parquet").head(5).to_csv(index=False).encode()
         page.locator('input[type="file"]').first.set_input_files({"name": "verified-five-claims.csv", "mimeType": "text/csv", "buffer": csv})
         score = page.get_by_role("button", name="Score Portfolio", exact=True)
@@ -105,6 +150,13 @@ def main():
         expect(page.locator(".metric-card-pro").filter(has=page.get_by_text("Claims Scored", exact=True)).locator(".metric-value")).to_have_text("5")
         clean()
         passed.append("portfolio:csv-upload-and-score")
+        page.get_by_role("button", name="Continue to investigation", exact=True).click()
+        page.get_by_role("button", name="Build queue from scored portfolio", exact=True).click()
+        page.get_by_text("Queue Overview", exact=True).wait_for()
+        clean()
+        passed.append("portfolio:context-preserving-investigation-handoff")
+        page.get_by_role("button", name="Reset Queue", exact=True).click()
+        page.get_by_text("Build Investigation Queue", exact=True).wait_for()
 
         navigate("Investigation Queue")
         page.get_by_role("tab", name="Demo Portfolio", exact=True).click()
@@ -136,6 +188,8 @@ def main():
         decision_select.get_by_role("combobox", name="Human decision", exact=True).press("Enter")
         expect(decision_select.get_by_role("combobox", name="Human decision", exact=True)).to_have_value("Clear")
         page.get_by_role("button", name="Save Human Decision", exact=True).click()
+        page.get_by_text("Pending review: 14 · Clear: 1", exact=True).wait_for()
+        clean()
         resume = page.get_by_test_id("stFileUploader").filter(has_text="Resume decisions JSON")
         # Use the same native picker action as a user. This also waits for
         # Streamlit to finish rendering the current uploader after a rerun.
@@ -151,26 +205,53 @@ def main():
         passed.extend(["queue:score-and-rank", "queue:human-decision", "export:formula-safe-csv", "workspace:save-and-resume"])
         page.screenshot(path=str(args.output / "queue-desktop.png"), full_page=True)
 
-        mobile = browser.new_page(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
-        mobile.goto(args.url)
-        mobile.get_by_text("Scoring service operational", exact=True).wait_for(timeout=90000)
-        for selector in ['[data-testid="stExpandSidebarButton"] button', '[data-testid="stSidebarCollapsedControl"] button', 'button[aria-label="Open sidebar"]']:
-            control = mobile.locator(selector)
-            if control.count() and control.first.is_visible():
-                control.first.click()
-                break
-        mobile.get_by_test_id("stSidebar").get_by_text("Data Science Lab", exact=True).click()
-        for selector in ['[data-testid="stSidebarCollapseButton"] button', 'button[aria-label="Close sidebar"]']:
-            control = mobile.locator(selector)
-            if control.count() and control.first.is_visible():
-                control.first.click()
-                break
-        expect(mobile.get_by_role("combobox", name="Analysis workspace", exact=True)).to_be_visible()
-        clean(mobile)
-        assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4"), "Mobile document overflow"
-        expect(mobile.get_by_test_id("stException")).to_have_count(0)
-        mobile.screenshot(path=str(args.output / "science-mobile.png"), full_page=True)
-        passed.append("mobile:390px-navigation-and-no-document-overflow")
+        for width in [390, 768]:
+            mobile = browser.new_page(viewport={"width": width, "height": 844}, is_mobile=True, has_touch=True)
+            mobile.goto(args.url)
+            mobile.get_by_role("heading", name="Executive Overview", level=1).wait_for(timeout=90000)
+            for name in PAGES:
+                nav = mobile.get_by_test_id("stSidebar").get_by_role("link", name=name, exact=True)
+                sidebar_control(mobile, True)
+                nav.click()
+                mobile.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
+                sidebar_control(mobile, False)
+                if width == 390:
+                    expect(mobile.get_by_test_id("stSidebar")).not_to_be_in_viewport()
+                clean(mobile)
+                expect(mobile.get_by_test_id("stMain").locator("h1")).to_have_count(1)
+                expect(mobile.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
+                assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4"), f"Document overflow: {width}px {name}"
+                mobile.screenshot(path=str(args.output / f"{name.lower().replace(' ', '-')}-{width}.png"), full_page=False)
+                if name == "Claim Analysis":
+                    mobile.get_by_role("button", name="Analyze Demo Claim", exact=True).click()
+                    mobile.get_by_text("Model Explanation", exact=True).wait_for()
+                    clean(mobile)
+                    mobile.screenshot(path=str(args.output / f"claim-result-{width}.png"), full_page=False)
+                    smart = mobile.get_by_test_id("stRadioOption").filter(has=mobile.get_by_text("Smart Analysis", exact=True))
+                    smart.click()
+                    mobile.get_by_role("combobox", name="Customer", exact=True).wait_for()
+                    clean(mobile)
+                    mobile.screenshot(path=str(args.output / f"claim-intake-{width}.png"), full_page=False)
+                if name == "Data Science Lab":
+                    for workspace, title in workspaces.items():
+                        mobile.get_by_test_id("stButtonGroup").get_by_text(WORKSPACE_LABELS[workspace], exact=True).click()
+                        mobile.get_by_text(title, exact=True).wait_for()
+                        clean(mobile)
+                        charts = mobile.get_by_test_id("stVegaLiteChart")
+                        if charts.count():
+                            for chart_index in range(charts.count()):
+                                chart = charts.nth(chart_index)
+                                chart.scroll_into_view_if_needed()
+                                assert chart.evaluate("e => e.scrollWidth <= e.clientWidth + 2"), f"Chart overflow: {width}px {workspace} chart {chart_index}"
+                                assert chart.evaluate("e => [...e.querySelectorAll('canvas, svg')].every(c => c.getBoundingClientRect().right <= innerWidth + 2)"), f"Cropped chart canvas: {width}px {workspace} chart {chart_index}"
+                                mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}-{chart_index}.png"), full_page=False)
+                        else:
+                            mobile.get_by_test_id("stDataFrame").first.scroll_into_view_if_needed()
+                            mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}.png"), full_page=False)
+                        assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4")
+                        passed.append(f"responsive:{width}px:lab:{workspace}")
+                passed.append(f"responsive:{width}px:{name}")
+            mobile.close()
         assert not errors, errors
         browser.close()
     (args.output / "result.json").write_text(json.dumps({"passed": passed, "javascript_errors": errors}, indent=2))

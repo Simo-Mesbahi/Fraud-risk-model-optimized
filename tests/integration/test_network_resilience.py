@@ -73,3 +73,20 @@ def test_real_transport_retries_health_but_never_replays_scoring_post():
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+@pytest.mark.parametrize("status", [429, 502, 503, 504])
+def test_proxy_html_never_reaches_the_product_interface(status):
+    response = requests.Response()
+    response.status_code = status
+    response._content = b'<!DOCTYPE html><script>private-edge-details</script>' * 500
+    response.headers["Content-Type"] = "text/html"
+    with FraudAPIClient("http://127.0.0.1:1") as client:
+        client.session.request = Mock(return_value=response)
+        with pytest.raises(FraudAPIResponseError) as error:
+            client._request("POST", "/score", json={"claim": {}})
+        message = str(error.value)
+        assert str(status) in message
+        assert "try again" in message.lower()
+        assert "<" not in message and "private-edge-details" not in message
+        assert len(message) < 250

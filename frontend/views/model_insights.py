@@ -970,7 +970,6 @@ def _render_runtime_status(
 
     if runtime_error:
 
-        st.write("")
 
         info_panel(
             "Runtime Verification Failed",
@@ -984,7 +983,6 @@ def _render_runtime_status(
 
     if mismatches:
 
-        st.write("")
 
         info_panel(
             "Model Contract Mismatch",
@@ -1021,180 +1019,177 @@ def _render_model_summary(
     Render frozen out-of-time model performance.
     """
 
-    st.write("")
-    st.write("")
 
-    section_header(
-        "Model Performance",
-        (
-            "Out-of-time evaluation of the frozen "
-            "fraud-risk ranking model."
-        ),
-        eyebrow="OUT-OF-TIME EVALUATION",
-    )
+    with st.container(key="model_metrics"):
+        section_header(
+            "Model Performance",
+            (
+                "Out-of-time evaluation of the frozen "
+                "fraud-risk ranking model."
+            ),
+            eyebrow="OUT-OF-TIME EVALUATION",
+        )
 
-    metrics = _final_metrics(
-        metadata
-    )
+        metrics = _final_metrics(
+            metadata
+        )
 
-    if not metrics:
+        if not metrics:
+
+            info_panel(
+                "Evaluation Metrics Unavailable",
+                (
+                    "The final_test_metrics section is not "
+                    "available in the frozen model metadata."
+                ),
+                tone="warning",
+            )
+
+            return
+
+        review_fraction = _safe_float(
+            policy.get(
+                "fraction"
+            )
+        )
+
+        policy_label = (
+            f"{review_fraction:.0%}"
+            if review_fraction is not None
+            else "operational"
+        )
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            metric_card(
+                "Average Precision",
+                _format_metric(
+                    metrics.get(
+                        "average_precision"
+                    ),
+                    4,
+                ),
+                "Primary imbalanced ranking metric",
+                tone="info",
+            )
+
+        with c2:
+
+            metric_card(
+                "ROC-AUC",
+                _format_metric(
+                    metrics.get(
+                        "roc_auc"
+                    ),
+                    4,
+                ),
+                "Global ranking discrimination",
+                tone="info",
+            )
+
+        with c3:
+
+            metric_card(
+                "Recall @ 3%",
+                _format_percent(
+                    metrics.get(
+                        "recall_at_3pct"
+                    ),
+                    2,
+                ),
+                "Fraud cases captured",
+                tone="success",
+            )
+
+        with c4:
+
+            metric_card(
+                "Lift @ 3%",
+                _format_lift(
+                    metrics.get(
+                        "lift_at_3pct"
+                    )
+                ),
+                "Versus random review",
+                tone="success",
+            )
+
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            metric_card(
+                "Precision @ 3%",
+                _format_percent(
+                    metrics.get(
+                        "precision_at_3pct"
+                    ),
+                    2,
+                ),
+                "Investigation yield",
+            )
+
+        with c2:
+
+            metric_card(
+                "Fraud Amount Capture",
+                _format_percent(
+                    metrics.get(
+                        "fraud_amount_capture_at_3pct"
+                    ),
+                    2,
+                ),
+                "At 3% review capacity",
+                tone="success",
+            )
+
+        with c3:
+
+            metric_card(
+                "Brier Score",
+                _format_metric(
+                    metrics.get(
+                        "brier_score"
+                    ),
+                    4,
+                ),
+                "Probability error • lower is better",
+            )
+
+        with c4:
+
+            metric_card(
+                "Log Loss",
+                _format_metric(
+                    metrics.get(
+                        "log_loss"
+                    ),
+                    4,
+                ),
+                "Probability quality • lower is better",
+            )
+
 
         info_panel(
-            "Evaluation Metrics Unavailable",
+            "Operational Interpretation",
             (
-                "The final_test_metrics section is not "
-                "available in the frozen model metadata."
+                "This model is deployed as a ranking system rather than "
+                "a binary fraud adjudicator. Under constrained investigation "
+                f"capacity ({policy_label} by default), recall, precision, "
+                "lift and fraud-amount capture are therefore the primary "
+                "operational measures. ROC-AUC and Average Precision describe "
+                "broader ranking quality, while Brier score and log loss "
+                "describe probability quality."
             ),
-            tone="warning",
-        )
-
-        return
-
-    review_fraction = _safe_float(
-        policy.get(
-            "fraction"
-        )
-    )
-
-    policy_label = (
-        f"{review_fraction:.0%}"
-        if review_fraction is not None
-        else "operational"
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        metric_card(
-            "Average Precision",
-            _format_metric(
-                metrics.get(
-                    "average_precision"
-                ),
-                4,
-            ),
-            "Primary imbalanced ranking metric",
             tone="info",
         )
-
-    with c2:
-
-        metric_card(
-            "ROC-AUC",
-            _format_metric(
-                metrics.get(
-                    "roc_auc"
-                ),
-                4,
-            ),
-            "Global ranking discrimination",
-            tone="info",
-        )
-
-    with c3:
-
-        metric_card(
-            "Recall @ 3%",
-            _format_percent(
-                metrics.get(
-                    "recall_at_3pct"
-                ),
-                2,
-            ),
-            "Fraud cases captured",
-            tone="success",
-        )
-
-    with c4:
-
-        metric_card(
-            "Lift @ 3%",
-            _format_lift(
-                metrics.get(
-                    "lift_at_3pct"
-                )
-            ),
-            "Versus random review",
-            tone="success",
-        )
-
-    st.write("")
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        metric_card(
-            "Precision @ 3%",
-            _format_percent(
-                metrics.get(
-                    "precision_at_3pct"
-                ),
-                2,
-            ),
-            "Investigation yield",
-        )
-
-    with c2:
-
-        metric_card(
-            "Fraud Amount Capture",
-            _format_percent(
-                metrics.get(
-                    "fraud_amount_capture_at_3pct"
-                ),
-                2,
-            ),
-            "At 3% review capacity",
-            tone="success",
-        )
-
-    with c3:
-
-        metric_card(
-            "Brier Score",
-            _format_metric(
-                metrics.get(
-                    "brier_score"
-                ),
-                4,
-            ),
-            "Probability error • lower is better",
-        )
-
-    with c4:
-
-        metric_card(
-            "Log Loss",
-            _format_metric(
-                metrics.get(
-                    "log_loss"
-                ),
-                4,
-            ),
-            "Probability quality • lower is better",
-        )
-
-    st.write("")
-
-    info_panel(
-        "Operational Interpretation",
-        (
-            "This model is deployed as a ranking system rather than "
-            "a binary fraud adjudicator. Under constrained investigation "
-            f"capacity ({policy_label} by default), recall, precision, "
-            "lift and fraud-amount capture are therefore the primary "
-            "operational measures. ROC-AUC and Average Precision describe "
-            "broader ranking quality, while Brier score and log loss "
-            "describe probability quality."
-        ),
-        tone="info",
-    )
 
 
 # =============================================================================
@@ -1210,8 +1205,6 @@ def _render_model_contract(
     Render model identity, feature-space contract and review policy.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Frozen Model Contract",
@@ -1342,7 +1335,6 @@ def _render_model_contract(
                     "Frozen deployment version",
                 )
 
-            st.write("")
 
             m1, m2, m3 = st.columns(3)
 
@@ -1379,7 +1371,6 @@ def _render_model_contract(
                     helper="Prediction target",
                 )
 
-            st.write("")
             st.divider()
 
             key_value_row(
@@ -1451,7 +1442,6 @@ def _render_model_contract(
                 tone="info",
             )
 
-            st.write("")
 
             key_value_row(
                 "Review policy",
@@ -1508,7 +1498,6 @@ def _render_model_contract(
                 ),
             )
 
-            st.write("")
 
             st.caption(
                 (
@@ -1532,8 +1521,6 @@ def _render_inference_pipeline(
     Explain the production inference and explanation spaces.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Inference Architecture",
@@ -1640,7 +1627,6 @@ def _render_inference_pipeline(
             ),
         )
 
-    st.write("")
 
     info_panel(
         "Feature-Space Interpretation",
@@ -1801,333 +1787,43 @@ def _prepare_shap_importance(
 # =============================================================================
 
 
-def _render_global_explainability(
-    runtime_model: dict[str, Any],
-) -> dict[str, Any]:
+def _render_global_explainability(runtime_model: dict[str, Any]) -> dict[str, Any]:
     """
     Render global business-level SHAP diagnostics.
     """
-
-    st.write("")
-    st.write("")
-
-    section_header(
-        "Global Explainability",
-        (
-            "Business features with the strongest average "
-            "influence on model output across the analyzed population."
-        ),
-        eyebrow="GLOBAL SHAP",
-    )
-
-    runtime_explainability = (
-        _runtime_explainability(
-            runtime_model
-        )
-    )
-
-    importance = _load_csv(
-        BUSINESS_IMPORTANCE_FILE
-    )
-
-    importance, error = (
-        _prepare_shap_importance(
-            importance
-        )
-    )
-
+    section_header('Global Explainability', 'Business features with the strongest average influence on model output across the analyzed population.', eyebrow='GLOBAL SHAP')
+    runtime_explainability = _runtime_explainability(runtime_model)
+    importance = _load_csv(BUSINESS_IMPORTANCE_FILE)
+    importance, error = _prepare_shap_importance(importance)
     if error:
-
-        info_panel(
-            "Global SHAP Unavailable",
-            error,
-            tone="warning",
-        )
-
+        info_panel('Global SHAP Unavailable', error, tone='warning')
         return {}
-
-    top = (
-        importance
-        .head(
-            TOP_SHAP_FEATURES
-        )
-        .copy()
-    )
-
-    top_feature = (
-        top.iloc[0]
-        if not top.empty
-        else None
-    )
-
-    c1, c2, c3 = (
-        st.columns(3)
-    )
-
+    top = importance.head(TOP_SHAP_FEATURES).copy()
+    top_feature = top.iloc[0] if not top.empty else None
+    c1, c2, c3 = st.columns(3)
     with c1:
-
-        metric_card(
-            "Business Features",
-            f"{len(importance):,}",
-            "Global SHAP aggregation",
-        )
-
+        metric_card('Business Features', f'{len(importance):,}', 'Global SHAP aggregation')
     with c2:
-
-        metric_card(
-            "Top Driver",
-            (
-                str(
-                    top_feature[
-                        "display_feature"
-                    ]
-                )
-                if top_feature is not None
-                else "—"
-            ),
-            (
-                (
-                    f"Mean |SHAP| "
-                    f"{top_feature['mean_abs_shap']:.4f}"
-                )
-                if top_feature is not None
-                else "Unavailable"
-            ),
-            tone="info",
-        )
-
+        metric_card('Top Driver', str(top_feature['display_feature']) if top_feature is not None else '—', f"Mean |SHAP| {top_feature['mean_abs_shap']:.4f}" if top_feature is not None else 'Unavailable', tone='info')
     with c3:
-
-        metric_card(
-            "SHAP Method",
-            str(
-                runtime_explainability.get(
-                    "method"
-                )
-                or "TreeSHAP"
-            ),
-            str(
-                runtime_explainability.get(
-                    "output_space"
-                )
-                or "Global artifact"
-            ),
-            tone="success",
-        )
-
-    st.write("")
-
-    tooltip = [
-        alt.Tooltip(
-            "display_feature:N",
-            title="Feature",
-        ),
-        alt.Tooltip(
-            "mean_abs_shap:Q",
-            title="Mean |SHAP|",
-            format=".5f",
-        ),
-    ]
-
-    if (
-        "signed_mean_shap"
-        in top.columns
-    ):
-
-        tooltip.append(
-            alt.Tooltip(
-                "signed_mean_shap:Q",
-                title="Signed Mean SHAP",
-                format=".5f",
-            )
-        )
-
-    chart = (
-        alt.Chart(
-            top
-        )
-        .mark_bar(
-            cornerRadiusEnd=5,
-        )
-        .encode(
-            x=alt.X(
-                "mean_abs_shap:Q",
-                title=(
-                    "Mean absolute SHAP contribution"
-                ),
-            ),
-            y=alt.Y(
-                "display_feature:N",
-                sort="-x",
-                title=None,
-            ),
-            tooltip=tooltip,
-        )
-        .properties(
-            height=500
-        )
-    )
-
-    st.altair_chart(
-        chart,
-        width="stretch",
-    )
-
-    table_columns = [
-        column
-        for column in [
-            "display_feature",
-            "mean_abs_shap",
-            "signed_mean_shap",
-        ]
-        if column in top.columns
-    ]
-
-    with st.expander(
-        "Global SHAP ranking",
-        expanded=False,
-    ):
-
-        st.dataframe(
-            top[
-                table_columns
-            ],
-            width="stretch",
-            hide_index=True,
-            column_config={
-                "display_feature":
-                    st.column_config.TextColumn(
-                        "Business Feature",
-                        width="large",
-                    ),
-
-                "mean_abs_shap":
-                    st.column_config.NumberColumn(
-                        "Mean |SHAP|",
-                        format="%.5f",
-                    ),
-
-                "signed_mean_shap":
-                    st.column_config.NumberColumn(
-                        "Signed Mean SHAP",
-                        format="%.5f",
-                    ),
-            },
-        )
-
-    st.write("")
-
-    left, right = (
-        st.columns(2)
-    )
-
-    global_figure = _existing_image(
-        FIGURES_DIR,
-        "01_shap_global_bar.png",
-    )
-
-    beeswarm = _existing_image(
-        FIGURES_DIR,
-        "02_shap_beeswarm.png",
-    )
-
-    with left:
-
-        with st.container(
-            border=True
-        ):
-
-            st.markdown(
-                "#### Global Importance"
-            )
-
-            if global_figure:
-
-                st.image(
-                    str(
-                        global_figure
-                    ),
-                    width="stretch",
-                )
-
-            else:
-
-                st.info(
-                    (
-                        "Global SHAP figure is not "
-                        "available in current artifacts."
-                    )
-                )
-
-    with right:
-
-        with st.container(
-            border=True
-        ):
-
-            st.markdown(
-                "#### SHAP Distribution"
-            )
-
-            if beeswarm:
-
-                st.image(
-                    str(
-                        beeswarm
-                    ),
-                    width="stretch",
-                )
-
-            else:
-
-                st.info(
-                    (
-                        "SHAP beeswarm figure is not "
-                        "available in current artifacts."
-                    )
-                )
-
-    st.write("")
-
-    info_panel(
-        "How to Read SHAP",
-        (
-            "Mean absolute SHAP measures average influence magnitude, "
-            "not causal importance. Signed mean SHAP summarizes average "
-            "direction in the model-output space, but opposite effects "
-            "across observations may cancel. Claim-level explanations "
-            "should therefore be inspected separately through the "
-            "Claim Analysis workflow."
-        ),
-        tone="info",
-    )
-
-    return {
-        "feature_count":
-            len(importance),
-
-        "top_feature":
-            (
-                str(
-                    top_feature[
-                        "display_feature"
-                    ]
-                )
-                if top_feature is not None
-                else None
-            ),
-
-        "top_mean_abs_shap":
-            (
-                _safe_float(
-                    top_feature[
-                        "mean_abs_shap"
-                    ]
-                )
-                if top_feature is not None
-                else None
-            ),
-    }
+        metric_card('SHAP Method', str(runtime_explainability.get('method') or 'TreeSHAP'), str(runtime_explainability.get('output_space') or 'Global artifact'), tone='success')
+    tooltip = [alt.Tooltip('display_feature:N', title='Feature'), alt.Tooltip('mean_abs_shap:Q', title='Mean |SHAP|', format='.5f')]
+    if 'signed_mean_shap' in top.columns:
+        tooltip.append(alt.Tooltip('signed_mean_shap:Q', title='Signed Mean SHAP', format='.5f'))
+    from frontend.research.charts import bar
+    bar(top, "display_feature", "mean_abs_shap", title="Mean absolute SHAP influence")
+    table_columns = [column for column in ['display_feature', 'mean_abs_shap', 'signed_mean_shap'] if column in top.columns]
+    with st.expander('Global SHAP ranking', expanded=False):
+        st.dataframe(top[table_columns], width='stretch', hide_index=True, column_config={'display_feature': st.column_config.TextColumn('Business Feature', width='large'), 'mean_abs_shap': st.column_config.NumberColumn('Mean |SHAP|', format='%.5f'), 'signed_mean_shap': st.column_config.NumberColumn('Signed Mean SHAP', format='%.5f')})
+    with st.expander('Original SHAP figures'):
+        st.caption('Unmodified reference figures. Use fullscreen to inspect the distribution in detail.')
+        for filename, title in [('01_shap_global_bar.png', 'Global importance'), ('02_shap_beeswarm.png', 'SHAP distribution')]:
+            path = _existing_image(FIGURES_DIR, filename)
+            if path:
+                st.markdown('**' + title + '**')
+                st.image(str(path), width='stretch')
+    info_panel('How to Read SHAP', 'Mean absolute SHAP measures average influence magnitude, not causal importance. Signed mean SHAP summarizes average direction in the model-output space, but opposite effects across observations may cancel. Claim-level explanations should therefore be inspected separately through the Claim Analysis workflow.', tone='info')
+    return {'feature_count': len(importance), 'top_feature': str(top_feature['display_feature']) if top_feature is not None else None, 'top_mean_abs_shap': _safe_float(top_feature['mean_abs_shap']) if top_feature is not None else None}
 
 
 # =============================================================================
@@ -2140,8 +1836,6 @@ def _render_mechanism_analysis() -> dict[str, Any]:
     Analyze model behavior across synthetic fraud mechanisms.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Fraud Mechanism Analysis",
@@ -2412,7 +2106,6 @@ def _render_mechanism_analysis() -> dict[str, Any]:
     strongest = ordered.iloc[0]
     weakest = ordered.iloc[-1]
 
-    st.write("")
 
     c1, c2 = st.columns(2)
 
@@ -2489,8 +2182,6 @@ def _render_difficulty_analysis() -> dict[str, Any]:
     Analyze score behavior across synthetic fraud difficulty.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Fraud Difficulty",
@@ -2750,14 +2441,12 @@ def _render_difficulty_analysis() -> dict[str, Any]:
             "easy_hard_gap"
         ] = gap
 
-        st.write("")
 
         info_panel(
             "Difficulty Sensitivity",
             (
-                "Mean model risk changes by "
-                f"{gap:+.1%} when comparing easy "
-                "with hard synthetic fraud."
+                "Difference in mean model risk (easy minus hard): "
+                f"{gap * 100:+.1f} percentage points."
             ),
             tone=(
                 "warning"
@@ -2774,70 +2463,22 @@ def _render_difficulty_analysis() -> dict[str, Any]:
 # =============================================================================
 
 
-def _render_evaluation_diagnostics() -> None:
-    """
-    Render frozen out-of-time validation figures.
-    """
-
-    st.write("")
-    st.write("")
-
-    section_header(
-        "Evaluation Diagnostics",
-        (
-            "Frozen out-of-time figures used to inspect "
-            "ranking, policy performance and probability quality."
-        ),
-        eyebrow="MODEL VALIDATION",
-    )
-
-    tabs = st.tabs(
-        [
-            title
-            for _, title, _
-            in EVALUATION_FIGURES
-        ]
-    )
-
-    for tab, specification in zip(
-        tabs,
-        EVALUATION_FIGURES,
-    ):
-
-        (
-            filename,
-            title,
-            description,
-        ) = specification
-
-        with tab:
-
-            st.caption(
-                description
-            )
-
-            path = _existing_image(
-                FINAL_EVALUATION_DIR,
-                filename,
-            )
-
+def _render_evaluation_diagnostics():
+    from frontend.research.reference import validation_chart
+    section_header("Evaluation Diagnostics", "Interactive views of the exact frozen reference cohort.", eyebrow="MODEL VALIDATION")
+    choices = {
+        "Precision–recall": "precision_recall", "ROC": "roc", "Calibration": "calibration",
+        "Review capacity": "capacity", "Review outcomes": "confusion",
+    }
+    selected = st.segmented_control("Validation figure", list(choices), default="Precision–recall", required=True, wrap=True)
+    validation_chart(choices[selected])
+    with st.expander("Original validation figures"):
+        st.caption("Archived figures are retained unchanged for scientific traceability.")
+        for filename, title, description in EVALUATION_FIGURES:
+            path = _existing_image(FINAL_EVALUATION_DIR, filename)
             if path:
-
-                st.image(
-                    str(path),
-                    width="stretch",
-                )
-
-            else:
-
-                info_panel(
-                    "Figure Unavailable",
-                    (
-                        f"{title} is not present in "
-                        "the frozen evaluation artifacts."
-                    ),
-                    tone="warning",
-                )
+                st.markdown("**" + title + "**")
+                st.image(str(path), width="stretch")
 
 
 # =============================================================================
@@ -2850,8 +2491,6 @@ def _render_error_analysis() -> None:
     Render representative case-level model failures.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Observed Failure Modes",
@@ -3027,8 +2666,6 @@ def _render_artifact_coverage() -> None:
     Surface analytical evidence availability.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Analytical Artifact Coverage",
@@ -3159,7 +2796,6 @@ def _render_artifact_coverage() -> None:
         ]
     )
 
-    st.write("")
 
     with st.expander(
         "Artifact inventory",
@@ -3188,8 +2824,6 @@ def _render_conclusions(
     Generate evidence-grounded model-governance conclusions.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Model Interpretation Summary",
@@ -3367,7 +3001,7 @@ def _render_conclusions(
                 limitations.append(
                     (
                         "Hard synthetic fraud receives approximately "
-                        f"**{difficulty_gap:.1%} lower mean risk** "
+                        f"**{difficulty_gap * 100:.1f} percentage points lower mean risk** "
                         "than easy fraud."
                     )
                 )
@@ -3399,7 +3033,6 @@ def _render_conclusions(
                     f"• {limitation}"
                 )
 
-    st.write("")
 
     human_review_notice()
 
@@ -3409,135 +3042,30 @@ def _render_conclusions(
 # =============================================================================
 
 
-def render(
-    client,
-) -> None:
-    """
-    Render the complete model intelligence and governance workspace.
-    """
-
-    section_header(
-        "Model Insights",
-        (
-            "Performance, explainability, robustness, "
-            "failure analysis and governance of the "
-            "deployed fraud-risk model."
-        ),
-    )
-
-    # -------------------------------------------------------------------------
-    # Evidence sources
-    # -------------------------------------------------------------------------
-
+def render(client):
+    section_header("Model Insights", "Inspect reference performance, model behaviour and the limits of the evidence.", level=1)
     metadata = _load_metadata()
-
-    (
-        runtime_model,
-        runtime_error,
-    ) = _read_runtime_model(
-        client
-    )
-
-    policy = _review_policy(
-        metadata,
-        runtime_model,
-    )
-
-    # -------------------------------------------------------------------------
-    # Availability
-    # -------------------------------------------------------------------------
-
-    if not metadata:
-
-        info_panel(
-            "Frozen Metadata Unavailable",
-            (
-                "The local model metadata artifact could not "
-                "be loaded. Runtime deployment information may "
-                "still be available, but historical evaluation "
-                "results cannot be fully verified."
-            ),
-            tone="warning",
-        )
-
-        st.write("")
-
-    # -------------------------------------------------------------------------
-    # Runtime / governance
-    # -------------------------------------------------------------------------
-
-    _render_runtime_status(
-        metadata,
-        runtime_model,
-        runtime_error,
-    )
-
-    # -------------------------------------------------------------------------
-    # Evaluation
-    # -------------------------------------------------------------------------
-
-    _render_model_summary(
-        metadata,
-        policy,
-    )
-
-    # -------------------------------------------------------------------------
-    # Contract
-    # -------------------------------------------------------------------------
-
-    _render_model_contract(
-        metadata,
-        runtime_model,
-    )
-
-    # -------------------------------------------------------------------------
-    # Architecture
-    # -------------------------------------------------------------------------
-
-    _render_inference_pipeline(
-        runtime_model,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # Explainability
-    # -------------------------------------------------------------------------
-
-    shap_summary = (
-        _render_global_explainability(
-            runtime_model
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # Robustness
-    # -------------------------------------------------------------------------
-
-    mechanism_summary = (
-        _render_mechanism_analysis()
-    )
-
-    difficulty_summary = (
-        _render_difficulty_analysis()
-    )
-
-    # -------------------------------------------------------------------------
-    # Diagnostics
-    # -------------------------------------------------------------------------
-
-    _render_evaluation_diagnostics()
-
-    _render_error_analysis()
-
-    # -------------------------------------------------------------------------
-    # Governance
-    # -------------------------------------------------------------------------
-
-    _render_artifact_coverage()
-
-    _render_conclusions(
-        metadata,
-        shap_summary,
-        mechanism_summary,
-        difficulty_summary,
-    )
+    runtime_model, runtime_error = _read_runtime_model(client)
+    policy = _review_policy(metadata, runtime_model)
+    labels = ["Performance", "Explainability", "Errors & limits", "Model contract"]
+    tabs = st.tabs(labels, key="insight_tab", on_change="rerun")
+    if tabs[0].open:
+        with tabs[0]:
+            _render_model_summary(metadata, policy)
+            _render_evaluation_diagnostics()
+    if tabs[1].open:
+        with tabs[1]:
+            _render_global_explainability(runtime_model)
+            _render_mechanism_analysis()
+            _render_difficulty_analysis()
+    if tabs[2].open:
+        with tabs[2]:
+            st.info("Known limits: synthetic validation only; amount-inflation and hard fraud remain difficult. SHAP describes model behaviour, not causality.")
+            _render_error_analysis()
+            human_review_notice()
+    if tabs[3].open:
+        with tabs[3]:
+            _render_runtime_status(metadata, runtime_model, runtime_error)
+            _render_model_contract(metadata, runtime_model)
+            _render_inference_pipeline(runtime_model, metadata)
+            _render_artifact_coverage()

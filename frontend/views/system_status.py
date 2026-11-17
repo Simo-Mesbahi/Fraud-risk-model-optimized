@@ -1015,6 +1015,24 @@ def _contract_comparison(
             key
         )
 
+        # Older frozen metadata records source features only. The archived
+        # global SHAP table independently enumerates the transformed space.
+        if key == "transformed_feature_count" and local is None:
+            try:
+                features = pd.read_csv(
+                    EXPLAINABILITY_DIR / "global_feature_importance.csv",
+                    usecols=["feature"],
+                )["feature"]
+                if not features.empty and features.notna().all() and features.is_unique:
+                    local = len(features)
+            except (OSError, ValueError, pd.errors.ParserError):
+                pass
+
+        # The frozen artifact's "raw" means uncalibrated predict_proba.
+        # Other values remain distinct so genuine scoring drift still fails.
+        if key == "probability_method" and local == "raw":
+            local = "predict_proba"
+
         live = runtime.get(
             key
         )
@@ -1301,276 +1319,275 @@ def _render_service_health(
     Render primary operational health.
     """
 
-    section_header(
-        "Inference Service",
+    with st.container(key="service_metrics"):
+        section_header(
+            "Inference Service",
+            (
+                "Live connectivity, semantic health, latency "
+                "and readiness of the deployed scoring backend."
+            ),
+            eyebrow="RUNTIME HEALTH",
+        )
+
         (
-            "Live connectivity, semantic health, latency "
-            "and readiness of the deployed scoring backend."
-        ),
-        eyebrow="RUNTIME HEALTH",
-    )
-
-    (
-        overall_status,
-        overall_tone,
-        overall_description,
-    ) = _system_status(
-        diagnostics,
-        metadata,
-    )
-
-    online = bool(
-        diagnostics.get(
-            "online"
-        )
-    )
-
-    health_ok = bool(
-        diagnostics.get(
-            "health_ok"
-        )
-    )
-
-    model_info_ok = bool(
-        diagnostics.get(
-            "model_info_ok"
-        )
-    )
-
-    model_ready = (
-        _api_model_ready(
-            diagnostics
-        )
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        metric_card(
-            "System Status",
             overall_status,
+            overall_tone,
             overall_description,
-            tone=overall_tone,
+        ) = _system_status(
+            diagnostics,
+            metadata,
         )
 
-    with c2:
-
-        metric_card(
-            "API",
-            (
-                "ONLINE"
-                if online
-                else "OFFLINE"
-            ),
-            (
-                "Backend reachable"
-                if online
-                else "Connection unavailable"
-            ),
-            tone=(
-                "success"
-                if online
-                else "danger"
-            ),
-        )
-
-    with c3:
-
-        metric_card(
-            "Health Endpoint",
-            (
-                "HEALTHY"
-                if (
-                    health_ok
-                    and _health_reports_ready(
-                        diagnostics
-                    )
-                )
-                else "FAILED"
-            ),
-            _format_latency(
-                diagnostics.get(
-                    "health_latency_ms"
-                )
-            ),
-            tone=(
-                "success"
-                if (
-                    health_ok
-                    and _health_reports_ready(
-                        diagnostics
-                    )
-                )
-                else "danger"
-            ),
-        )
-
-    with c4:
-
-        metric_card(
-            "Model Contract",
-            (
-                "AVAILABLE"
-                if model_info_ok
-                else "FAILED"
-            ),
-            _format_latency(
-                diagnostics.get(
-                    "model_info_latency_ms"
-                )
-            ),
-            tone=(
-                "success"
-                if model_info_ok
-                else "danger"
-            ),
-        )
-
-    st.write("")
-
-    model = _nonempty_dict(
-        diagnostics.get(
-            "model"
-        )
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        mini_metric(
-            "Model",
-            str(
-                model.get(
-                    "model_name",
-                    "—",
-                )
-            ),
-            helper="Runtime estimator",
-            tone="info",
-        )
-
-    with c2:
-
-        mini_metric(
-            "Version",
-            str(
-                model.get(
-                    "model_version",
-                    "—",
-                )
-            ),
-            helper="Deployment version",
-        )
-
-    with c3:
-
-        mini_metric(
-            "Inference",
-            (
-                "READY"
-                if model_ready
-                else "NOT READY"
-            ),
-            helper="End-to-end scoring",
-            tone=(
-                "success"
-                if model_ready
-                else "danger"
-            ),
-        )
-
-    with c4:
-
-        mini_metric(
-            "Diagnostic Time",
-            _format_latency(
-                diagnostics.get(
-                    "total_latency_ms"
-                )
-            ),
-            helper="Health + contract",
-        )
-
-    st.write("")
-
-    if model_ready:
-
-        info_panel(
-            "End-to-End Inference Ready",
-            (
-                "The API is reachable, /health reports a loaded "
-                "model and /model-info exposes a valid deployment "
-                "contract. Fraud-risk scoring is operational."
-            ),
-            tone="success",
-        )
-
-    elif online:
-
-        info_panel(
-            "Backend Reachable — Inference Not Ready",
-            (
-                "The backend responds, but the complete inference "
-                "contract could not be validated."
-            ),
-            tone="danger",
-        )
-
-    else:
-
-        info_panel(
-            "Inference Service Unavailable",
-            (
-                "The Streamlit frontend cannot currently "
-                "reach the FastAPI inference service."
-            ),
-            tone="danger",
-        )
-
-    errors = [
-        (
-            "Health",
+        online = bool(
             diagnostics.get(
-                "health_error"
-            ),
-        ),
-        (
-            "Model info",
+                "online"
+            )
+        )
+
+        health_ok = bool(
             diagnostics.get(
-                "model_info_error"
+                "health_ok"
+            )
+        )
+
+        model_info_ok = bool(
+            diagnostics.get(
+                "model_info_ok"
+            )
+        )
+
+        model_ready = (
+            _api_model_ready(
+                diagnostics
+            )
+        )
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            metric_card(
+                "System Status",
+                overall_status,
+                overall_description,
+                tone=overall_tone,
+            )
+
+        with c2:
+
+            metric_card(
+                "API",
+                (
+                    "ONLINE"
+                    if online
+                    else "OFFLINE"
+                ),
+                (
+                    "Backend reachable"
+                    if online
+                    else "Connection unavailable"
+                ),
+                tone=(
+                    "success"
+                    if online
+                    else "danger"
+                ),
+            )
+
+        with c3:
+
+            metric_card(
+                "Health Endpoint",
+                (
+                    "HEALTHY"
+                    if (
+                        health_ok
+                        and _health_reports_ready(
+                            diagnostics
+                        )
+                    )
+                    else "FAILED"
+                ),
+                _format_latency(
+                    diagnostics.get(
+                        "health_latency_ms"
+                    )
+                ),
+                tone=(
+                    "success"
+                    if (
+                        health_ok
+                        and _health_reports_ready(
+                            diagnostics
+                        )
+                    )
+                    else "danger"
+                ),
+            )
+
+        with c4:
+
+            metric_card(
+                "Model Contract",
+                (
+                    "AVAILABLE"
+                    if model_info_ok
+                    else "FAILED"
+                ),
+                _format_latency(
+                    diagnostics.get(
+                        "model_info_latency_ms"
+                    )
+                ),
+                tone=(
+                    "success"
+                    if model_info_ok
+                    else "danger"
+                ),
+            )
+
+
+        model = _nonempty_dict(
+            diagnostics.get(
+                "model"
+            )
+        )
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            mini_metric(
+                "Model",
+                str(
+                    model.get(
+                        "model_name",
+                        "—",
+                    )
+                ),
+                helper="Runtime estimator",
+                tone="info",
+            )
+
+        with c2:
+
+            mini_metric(
+                "Version",
+                str(
+                    model.get(
+                        "model_version",
+                        "—",
+                    )
+                ),
+                helper="Deployment version",
+            )
+
+        with c3:
+
+            mini_metric(
+                "Inference",
+                (
+                    "READY"
+                    if model_ready
+                    else "NOT READY"
+                ),
+                helper="End-to-end scoring",
+                tone=(
+                    "success"
+                    if model_ready
+                    else "danger"
+                ),
+            )
+
+        with c4:
+
+            mini_metric(
+                "Diagnostic Time",
+                _format_latency(
+                    diagnostics.get(
+                        "total_latency_ms"
+                    )
+                ),
+                helper="Health + contract",
+            )
+
+
+        if model_ready:
+
+            info_panel(
+                "End-to-End Inference Ready",
+                (
+                    "The API is reachable, /health reports a loaded "
+                    "model and /model-info exposes a valid deployment "
+                    "contract. Fraud-risk scoring is operational."
+                ),
+                tone="success",
+            )
+
+        elif online:
+
+            info_panel(
+                "Backend Reachable — Inference Not Ready",
+                (
+                    "The backend responds, but the complete inference "
+                    "contract could not be validated."
+                ),
+                tone="danger",
+            )
+
+        else:
+
+            info_panel(
+                "Inference Service Unavailable",
+                (
+                    "The Streamlit frontend cannot currently "
+                    "reach the FastAPI inference service."
+                ),
+                tone="danger",
+            )
+
+        errors = [
+            (
+                "Health",
+                diagnostics.get(
+                    "health_error"
+                ),
             ),
-        ),
-    ]
+            (
+                "Model info",
+                diagnostics.get(
+                    "model_info_error"
+                ),
+            ),
+        ]
 
-    errors = [
-        item
-        for item in errors
-        if item[1]
-    ]
+        errors = [
+            item
+            for item in errors
+            if item[1]
+        ]
 
-    if errors:
+        if errors:
 
-        with st.expander(
-            "Runtime errors",
-            expanded=False,
-        ):
+            with st.expander(
+                "Runtime errors",
+                expanded=False,
+            ):
 
-            for label, error in errors:
+                for label, error in errors:
 
-                st.markdown(
-                    f"**{label}**"
-                )
+                    st.markdown(
+                        f"**{label}**"
+                    )
 
-                st.code(
-                    str(error),
-                    language=None,
-                )
+                    st.code(
+                        str(error),
+                        language=None,
+                    )
 
 
 # =============================================================================
@@ -1586,8 +1603,6 @@ def _render_model_contract(
     Render deployment identity and inference contract.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Deployed Model Contract",
@@ -1690,7 +1705,6 @@ def _render_model_contract(
                     "Frozen deployment version",
                 )
 
-            st.write("")
 
             c1, c2, c3 = st.columns(3)
 
@@ -1734,7 +1748,6 @@ def _render_model_contract(
                     helper="Prediction target",
                 )
 
-            st.write("")
             st.divider()
 
             key_value_row(
@@ -1785,7 +1798,6 @@ def _render_model_contract(
                 tone="info",
             )
 
-            st.write("")
 
             key_value_row(
                 "Policy",
@@ -1842,7 +1854,6 @@ def _render_model_contract(
                 ),
             )
 
-            st.write("")
 
             st.caption(
                 (
@@ -1866,8 +1877,6 @@ def _render_contract_consistency(
     Verify frozen analytical metadata against runtime deployment.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Contract Consistency",
@@ -1960,7 +1969,6 @@ def _render_contract_consistency(
             ),
         )
 
-    st.write("")
 
     if (
         comparisons > 0
@@ -2051,8 +2059,6 @@ def _render_artifacts() -> None:
     Render inference and analytical artifact readiness.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Model Artifact Registry",
@@ -2099,12 +2105,12 @@ def _render_artifacts() -> None:
     with c1:
 
         metric_card(
-            "Inference Artifacts",
+            "Local Inference Files",
             (
                 f"{inference_available}/"
                 f"{len(inference)}"
             ),
-            "Required for model loading",
+            "Local process files; remote API health is checked separately",
             tone=(
                 "success"
                 if (
@@ -2210,7 +2216,6 @@ def _render_artifacts() -> None:
             }
         )
 
-    st.write("")
 
     with st.expander(
         "Artifact inventory",
@@ -2276,8 +2281,6 @@ def _render_architecture(
     Render readiness of principal application layers.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "System Architecture",
@@ -2382,7 +2385,6 @@ def _render_architecture(
                 )
             )
 
-    st.write("")
 
     (
         status,
@@ -2412,8 +2414,6 @@ def _render_runtime(
     Render technical frontend runtime information.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Runtime Environment",
@@ -2474,7 +2474,6 @@ def _render_runtime(
             tone="info",
         )
 
-    st.write("")
 
     c1, c2, c3 = (
         st.columns(3)
@@ -2518,7 +2517,6 @@ def _render_runtime(
             helper="Sequential diagnostic",
         )
 
-    st.write("")
 
     with st.container(
         border=True
@@ -2570,7 +2568,6 @@ def _render_runtime(
             monospace=True,
         )
 
-        st.write("")
 
         st.caption(
             (
@@ -2593,8 +2590,6 @@ def _render_diagnostics(
     Render low-level contracts and diagnostic state.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Technical Diagnostics",
@@ -2880,92 +2875,18 @@ def _render_diagnostics(
 # =============================================================================
 
 
-def render(
-    client,
-) -> None:
-    """
-    Render the complete operational status and deployment
-    verification workspace.
-    """
-
-    section_header(
-        "System Status",
-        (
-            "Operational readiness, inference health, model "
-            "contract verification, explainability availability "
-            "and analytical artifact traceability."
-        ),
-    )
-
-    # -------------------------------------------------------------------------
-    # Evaluate runtime state exactly once per Streamlit render.
-    # -------------------------------------------------------------------------
-
-    diagnostics = _check_api(
-        client
-    )
-
-    metadata = _read_metadata(
-        str(
-            METADATA_PATH
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # 1. Operational health
-    # -------------------------------------------------------------------------
-
-    _render_service_health(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 2. Deployed model
-    # -------------------------------------------------------------------------
-
-    _render_model_contract(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 3. Deployment verification
-    # -------------------------------------------------------------------------
-
-    _render_contract_consistency(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 4. Artifact registry
-    # -------------------------------------------------------------------------
-
-    _render_artifacts()
-
-    # -------------------------------------------------------------------------
-    # 5. Stack readiness
-    # -------------------------------------------------------------------------
-
-    _render_architecture(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 6. Runtime environment
-    # -------------------------------------------------------------------------
-
-    _render_runtime(
-        diagnostics
-    )
-
-    # -------------------------------------------------------------------------
-    # 7. Low-level diagnostics
-    # -------------------------------------------------------------------------
-
-    _render_diagnostics(
-        diagnostics,
-        metadata,
-    )
+def render(client):
+    section_header("System Status", "Check scoring readiness and inspect the supporting deployment evidence.", level=1)
+    diagnostics = _check_api(client)
+    metadata = _read_metadata(str(METADATA_PATH))
+    _render_service_health(diagnostics, metadata)
+    st.caption("Readiness is measured from the configured scoring endpoint. Local frontend files and remote API state are separate checks.")
+    with st.expander("Model identity and consistency"):
+        _render_model_contract(diagnostics, metadata)
+        _render_contract_consistency(diagnostics, metadata)
+    with st.expander("Artifact registry and architecture"):
+        _render_artifacts()
+        _render_architecture(diagnostics, metadata)
+    with st.expander("Runtime and technical diagnostics"):
+        _render_runtime(diagnostics)
+        _render_diagnostics(diagnostics, metadata)

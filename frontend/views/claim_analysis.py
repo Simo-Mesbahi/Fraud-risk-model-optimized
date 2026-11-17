@@ -1109,377 +1109,69 @@ def _render_explainability() -> None:
     """
     Render local TreeSHAP explanation for the active claim.
     """
-
-    explanation = (
-        st.session_state.get(
-            "single_explanation"
-        )
-    )
-
-    if not isinstance(
-        explanation,
-        dict,
-    ):
+    explanation = st.session_state.get('single_explanation')
+    if not isinstance(explanation, dict):
         return
-
-    st.write("")
-    st.write("")
-
-    section_header(
-        "Model Explanation",
-        (
-            "Local TreeSHAP attribution showing which model "
-            "features moved this claim's prediction upward "
-            "or downward relative to the model baseline."
-        ),
-    )
-
-    explanation_error = (
-        explanation.get(
-            "_frontend_explanation_error"
-        )
-    )
-
+    section_header('Model Explanation', "Local TreeSHAP attribution showing which model features moved this claim's prediction upward or downward relative to the model baseline.")
+    explanation_error = explanation.get('_frontend_explanation_error')
     if explanation_error:
-        st.warning(
-            (
-                "The claim was scored successfully, but the "
-                "model explanation is currently unavailable. "
-                f"{explanation_error}"
-            )
-        )
+        st.warning(f'The claim was scored successfully, but the model explanation is currently unavailable. {explanation_error}')
         return
-
-    method = (
-        explanation.get(
-            "explanation_method"
-        )
-        or explanation.get(
-            "method"
-        )
-        or "TreeSHAP"
-    )
-
-    output_space = (
-        explanation.get(
-            "explanation_space"
-        )
-        or explanation.get(
-            "output_space"
-        )
-        or "raw_margin_log_odds"
-    )
-
-    transformed_feature_count = (
-        explanation.get(
-            "transformed_feature_count"
-        )
-    )
-
-    contributions = (
-        _normalize_contributions(
-            explanation
-        )
-    )
-
+    method = explanation.get('explanation_method') or explanation.get('method') or 'TreeSHAP'
+    output_space = explanation.get('explanation_space') or explanation.get('output_space') or 'raw_margin_log_odds'
+    transformed_feature_count = explanation.get('transformed_feature_count')
+    contributions = _normalize_contributions(explanation)
     if transformed_feature_count is None:
-        transformed_feature_count = len(
-            contributions
-        )
-
-    consistency = explanation.get(
-        "consistency",
-        {},
-    )
-
-    if not isinstance(
-        consistency,
-        dict,
-    ):
+        transformed_feature_count = len(contributions)
+    consistency = explanation.get('consistency', {})
+    if not isinstance(consistency, dict):
         consistency = {}
-
-    shap_ok = consistency.get(
-        "shap_additivity_ok"
-    )
-
-    probability_ok = consistency.get(
-        "probability_consistency_ok"
-    )
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
-        metric_card(
-            "Method",
-            str(method),
-            "Local explanation engine",
-            tone="info",
-        )
-
-    with c2:
-        metric_card(
-            "Feature Space",
-            str(
-                transformed_feature_count
-            ),
-            "Transformed model features",
-            tone="neutral",
-        )
-
-    with c3:
-        metric_card(
-            "SHAP Additivity",
-            (
-                "Verified"
-                if shap_ok is True
-                else (
-                    "Failed"
-                    if shap_ok is False
-                    else "Unavailable"
-                )
-            ),
-            "Raw-margin reconstruction",
-            tone=(
-                "success"
-                if shap_ok is True
-                else (
-                    "danger"
-                    if shap_ok is False
-                    else "neutral"
-                )
-            ),
-        )
-
-    with c4:
-        metric_card(
-            "Probability Check",
-            (
-                "Verified"
-                if probability_ok is True
-                else (
-                    "Failed"
-                    if probability_ok is False
-                    else "Unavailable"
-                )
-            ),
-            "Probability reconstruction",
-            tone=(
-                "success"
-                if probability_ok is True
-                else (
-                    "danger"
-                    if probability_ok is False
-                    else "neutral"
-                )
-            ),
-        )
-
-    st.write("")
-
-    info_panel(
-        "How to interpret this explanation",
-        (
-            "Positive SHAP values push the model prediction toward "
-            "higher fraud risk; negative values push it toward lower "
-            "fraud risk. These are predictive contributions, not "
-            "causal findings and not evidence of fraud by themselves."
-        ),
-        tone="info",
-    )
-
-    st.write("")
-
-    positive, negative = (
-        _explanation_drivers(
-            explanation
-        )
-    )
-
-    left, right = st.columns(
-        2,
-        gap="large",
-    )
-
+    shap_ok = consistency.get('shap_additivity_ok')
+    probability_ok = consistency.get('probability_consistency_ok')
+    with st.expander("Explanation quality checks"):
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            metric_card('Method', str(method), 'Local explanation engine', tone='info')
+        with c2:
+            metric_card('Feature Space', str(transformed_feature_count), 'Transformed model features', tone='neutral')
+        with c3:
+            metric_card('SHAP Additivity', 'Verified' if shap_ok is True else 'Failed' if shap_ok is False else 'Unavailable', 'Raw-margin reconstruction', tone='success' if shap_ok is True else 'danger' if shap_ok is False else 'neutral')
+        with c4:
+            metric_card('Probability Check', 'Verified' if probability_ok is True else 'Failed' if probability_ok is False else 'Unavailable', 'Probability reconstruction', tone='success' if probability_ok is True else 'danger' if probability_ok is False else 'neutral')
+    info_panel('How to interpret this explanation', 'Positive SHAP values push the model prediction toward higher fraud risk; negative values push it toward lower fraud risk. These are predictive contributions, not causal findings and not evidence of fraud by themselves.', tone='info')
+    positive, negative = _explanation_drivers(explanation)
+    left, right = st.columns(2, gap='large')
     with left:
-        st.markdown(
-            "#### Factors increasing model risk"
-        )
-
-        st.caption(
-            (
-                "Largest positive local contributions "
-                "for this claim."
-            )
-        )
-
-        visible_positive = (
-            positive[
-                :MAX_VISIBLE_SHAP_DRIVERS
-            ]
-        )
-
+        st.markdown('#### Factors increasing model risk')
+        st.caption('Largest positive local contributions for this claim.')
+        visible_positive = positive[:MAX_VISIBLE_SHAP_DRIVERS]
         if not visible_positive:
-            st.info(
-                (
-                    "No positive SHAP contribution "
-                    "was returned for this claim."
-                )
-            )
-
+            st.info('No positive SHAP contribution was returned for this claim.')
         else:
             for driver in visible_positive:
-                _render_driver(
-                    driver,
-                    direction="increase",
-                )
-
+                _render_driver(driver, direction='increase')
     with right:
-        st.markdown(
-            "#### Factors reducing model risk"
-        )
-
-        st.caption(
-            (
-                "Largest negative local contributions "
-                "for this claim."
-            )
-        )
-
-        visible_negative = (
-            negative[
-                :MAX_VISIBLE_SHAP_DRIVERS
-            ]
-        )
-
+        st.markdown('#### Factors reducing model risk')
+        st.caption('Largest negative local contributions for this claim.')
+        visible_negative = negative[:MAX_VISIBLE_SHAP_DRIVERS]
         if not visible_negative:
-            st.info(
-                (
-                    "No negative SHAP contribution "
-                    "was returned for this claim."
-                )
-            )
-
+            st.info('No negative SHAP contribution was returned for this claim.')
         else:
             for driver in visible_negative:
-                _render_driver(
-                    driver,
-                    direction="decrease",
-                )
-
-    # -------------------------------------------------------------------------
-    # Technical explanation
-    # -------------------------------------------------------------------------
-
-    st.write("")
-
-    with st.expander(
-        "Technical SHAP diagnostics",
-        expanded=False,
-    ):
-        st.markdown(
-            "##### Explanation contract"
-        )
-
-        technical = {
-            "method":
-                method,
-
-            "output_space":
-                output_space,
-
-            "transformed_feature_count":
-                transformed_feature_count,
-
-            "base_value":
-                explanation.get(
-                    "base_value"
-                ),
-
-            "model_raw_margin":
-                explanation.get(
-                    "model_raw_margin"
-                ),
-
-            "shap_reconstructed_margin":
-                explanation.get(
-                    "shap_reconstructed_margin"
-                ),
-
-            "fraud_probability":
-                explanation.get(
-                    "fraud_probability"
-                ),
-
-            "shap_reconstructed_probability":
-                explanation.get(
-                    "shap_reconstructed_probability"
-                ),
-
-            "consistency":
-                consistency,
-        }
-
-        st.json(
-            _json_safe(
-                technical
-            )
-        )
-
+                _render_driver(driver, direction='decrease')
+    with st.expander('Technical SHAP diagnostics', expanded=False):
+        st.markdown('##### Explanation contract')
+        technical = {'method': method, 'output_space': output_space, 'transformed_feature_count': transformed_feature_count, 'base_value': explanation.get('base_value'), 'model_raw_margin': explanation.get('model_raw_margin'), 'shap_reconstructed_margin': explanation.get('shap_reconstructed_margin'), 'fraud_probability': explanation.get('fraud_probability'), 'shap_reconstructed_probability': explanation.get('shap_reconstructed_probability'), 'consistency': consistency}
+        st.json(_json_safe(technical))
         if contributions:
-
-            st.markdown(
-                "##### Full transformed-feature attribution"
-            )
-
-            technical_frame = pd.DataFrame(
-                contributions[
-                    :MAX_TECHNICAL_SHAP_ROWS
-                ]
-            )
-
-            technical_frame[
-                "feature_label"
-            ] = (
-                technical_frame[
-                    "feature"
-                ]
-                .map(
-                    _humanize_feature_name
-                )
-            )
-
-            technical_frame = (
-                technical_frame[
-                    [
-                        "feature",
-                        "feature_label",
-                        "feature_value",
-                        "shap_value",
-                        "absolute_shap",
-                    ]
-                ]
-            )
-
-            st.dataframe(
-                technical_frame,
-                width="stretch",
-                hide_index=True,
-            )
-
-            st.caption(
-                (
-                    f"{len(contributions):,} transformed "
-                    "feature contributions returned."
-                )
-            )
-
+            st.markdown('##### Full transformed-feature attribution')
+            technical_frame = pd.DataFrame(contributions[:MAX_TECHNICAL_SHAP_ROWS])
+            technical_frame['feature_label'] = technical_frame['feature'].map(_humanize_feature_name)
+            technical_frame = technical_frame[['feature', 'feature_label', 'feature_value', 'shap_value', 'absolute_shap']]
+            st.dataframe(technical_frame, width='stretch', hide_index=True)
+            st.caption(f'{len(contributions):,} transformed feature contributions returned.')
         else:
-            st.info(
-                (
-                    "The API did not expose the complete "
-                    "transformed-feature contribution vector."
-                )
-            )
+            st.info('The API did not expose the complete transformed-feature contribution vector.')
 
 
 # =============================================================================
@@ -1554,7 +1246,6 @@ def _render_claim_snapshot(
             tone="neutral",
         )
 
-    st.write("")
 
     with st.container(
         border=True
@@ -1625,229 +1316,56 @@ def _render_assessment() -> None:
     """
     Render the final individual fraud-risk assessment.
     """
-
-    prediction = (
-        st.session_state.get(
-            "single_prediction"
-        )
-    )
-
-    score = (
-        st.session_state.get(
-            "single_score"
-        )
-    )
-
-    claim = (
-        st.session_state.get(
-            "single_claim"
-        )
-    )
-
-    source = (
-        st.session_state.get(
-            "single_source"
-        )
-    )
-
-    if (
-        prediction is None
-        or score is None
-        or claim is None
-    ):
+    prediction = st.session_state.get('single_prediction')
+    score = st.session_state.get('single_score')
+    claim = st.session_state.get('single_claim')
+    source = st.session_state.get('single_source')
+    if prediction is None or score is None or claim is None:
         return
-
     score = float(score)
-
-    st.write("")
-    st.write("")
-
-    section_header(
-        "Risk Assessment",
-        (
-            "Individual prediction produced by "
-            "the deployed fraud-risk pipeline."
-        ),
-    )
-
-    left, right = st.columns(
-        [
-            0.85,
-            1.75,
-        ],
-        gap="large",
-    )
-
+    section_header('Risk Assessment', 'Individual prediction produced by the deployed fraud-risk pipeline.')
+    left, right = st.columns([0.85, 1.75], gap='large')
     with left:
-        risk_gauge(
-            score
-        )
-
-        risk_badge(
-            score
-        )
-
+        risk_gauge(score)
+        risk_badge(score)
     with right:
-        with st.container(
-            border=True
-        ):
-            (
-                recommendation,
-                explanation,
-                recommendation_tone,
-            ) = _recommendation(
-                score
-            )
-
-            c1, c2, c3 = st.columns(
-                [
-                    1,
-                    1,
-                    1.35,
-                ]
-            )
-
+        with st.container(border=True):
+            recommendation, explanation, recommendation_tone = _recommendation(score)
+            c1, c2, c3 = st.columns([1, 1, 1.35])
             with c1:
-                metric_card(
-                    "Fraud Risk",
-                    f"{score:.2%}",
-                    "Individual model score",
-                    tone=recommendation_tone,
-                )
-
+                metric_card('Fraud Risk', f'{score:.2%}', 'Individual model score', tone=recommendation_tone)
             with c2:
-                metric_card(
-                    "Risk Tier",
-                    risk_tier(
-                        score
-                    ),
-                    "Individual risk level",
-                    tone=recommendation_tone,
-                )
-
+                metric_card('Risk Tier', risk_tier(score), 'Individual risk level', tone=recommendation_tone)
             with c3:
-                metric_card(
-                    "Recommended Action",
-                    recommendation,
-                    "Decision-support recommendation",
-                    tone=recommendation_tone,
-                )
-
-            st.write("")
+                metric_card('Recommended Action', recommendation, 'Decision-support recommendation', tone=recommendation_tone)
             st.divider()
-
             c1, c2 = st.columns(2)
-
             with c1:
-                st.caption(
-                    "CLAIM"
-                )
-
-                st.code(
-                    _format_identifier(
-                        prediction.get(
-                            "claim_id"
-                        )
-                    ),
-                    language=None,
-                )
-
-                st.write(
-                    (
-                        "**Source:** "
-                        f"{source or '—'}"
-                    )
-                )
-
+                st.caption('CLAIM')
+                st.code(_format_identifier(prediction.get('claim_id')), language=None)
+                st.write(f"**Source:** {source or '—'}")
             with c2:
-                st.caption(
-                    "MODEL"
-                )
-
-                model_name = (
-                    _format_identifier(
-                        prediction.get(
-                            "model_name"
-                        )
-                    )
-                )
-
-                model_version = (
-                    _format_identifier(
-                        prediction.get(
-                            "model_version"
-                        )
-                    )
-                )
-
-                st.write(
-                    (
-                        f"**{model_name}** "
-                        f"v{model_version}"
-                    )
-                )
-
-                st.write(
-                    (
-                        "**Risk tier:** "
-                        f"{risk_tier(score)}"
-                    )
-                )
-
+                st.caption('MODEL')
+                model_name = _format_identifier(prediction.get('model_name'))
+                model_version = _format_identifier(prediction.get('model_version'))
+                st.write(f'**{model_name}** v{model_version}')
+                st.write(f'**Risk tier:** {risk_tier(score)}')
             st.divider()
-
             if score >= RISK_HIGH_THRESHOLD:
-                st.error(
-                    explanation
-                )
-
+                st.error(explanation)
             elif score >= RISK_MEDIUM_THRESHOLD:
-                st.warning(
-                    explanation
-                )
-
+                st.warning(explanation)
             elif score >= RISK_LOW_THRESHOLD:
-                st.info(
-                    explanation
-                )
-
+                st.info(explanation)
             else:
-                st.success(
-                    explanation
-                )
-
-            st.caption(
-                (
-                    "This recommendation is generated from "
-                    "model risk and does not constitute a "
-                    "fraud determination."
-                )
-            )
-
-    st.write("")
-    st.write("")
-
-    _render_claim_snapshot(
-        claim
-    )
-
+                st.success(explanation)
+            st.caption('This recommendation is generated from model risk and does not constitute a fraud determination.')
     _render_explainability()
-
-    st.write("")
-
+    with st.expander("Claim details"):
+        _render_claim_snapshot(claim)
     human_review_notice()
-
-    st.write("")
-
-    with st.expander(
-        "Technical model input",
-        expanded=False,
-    ):
-        st.json(
-            _strip_leakage(
-                claim
-            )
-        )
+    with st.expander('Technical model input', expanded=False):
+        st.json(_strip_leakage(claim))
 
 
 # =============================================================================
@@ -1965,7 +1483,6 @@ def _render_smart_form(
             ),
         )
 
-    st.write("")
 
     st.markdown(
         "#### Service"
@@ -2012,7 +1529,6 @@ def _render_smart_form(
             key="smart_service_code",
         )
 
-    st.write("")
 
     st.markdown(
         "#### Timing"
@@ -2078,7 +1594,6 @@ def _render_smart_form(
         service_code,
     )
 
-    st.write("")
 
     info_panel(
         "Historical Service Reference",
@@ -2090,7 +1605,6 @@ def _render_smart_form(
         tone="info",
     )
 
-    st.write("")
 
     st.markdown(
         "#### Financial information"
@@ -2168,7 +1682,6 @@ def _render_smart_form(
                 )
             )
 
-    st.write("")
 
     with st.expander(
         "Optional claim details",
@@ -2232,8 +1745,12 @@ def _render_smart_form(
                 key="smart_submission_hour",
             )
 
-    st.write("")
 
+    with st.container(border=True):
+        st.caption("Review before analysis")
+        st.write(f"**{str(service_category).replace('_', ' ').title()} · {service_code}**")
+        st.write(f"Claim **€{claim_amount:,.2f}** · requested **€{requested_reimbursement:,.2f}**")
+        st.caption(f"Customer {customer_id} · Provider {provider_id}. Historical features are generated from the available prior context.")
     analyze = st.button(
         "Analyze Claim",
         type="primary",
@@ -2301,12 +1818,8 @@ def _render_smart_form(
                 "Smart Analysis",
             )
 
-        st.success(
-            (
-                "Claim successfully enriched, scored "
-                "and explained with the deployed model."
-            )
-        )
+        st.session_state["claim_analysis_flash"] = 'Claim successfully enriched, scored and explained with the deployed model.'
+        st.rerun()
 
     except Exception as exc:
         st.error(
@@ -2357,15 +1870,11 @@ def _render_quick_demo(
                     100,
                 )
             ),
-            format_func=lambda i:
-                str(
-                    demo_claims
-                    .iloc[i]
-                    .get(
-                        "claim_id",
-                        i,
-                    )
-                ),
+            format_func=lambda i: (
+                f"{demo_claims.iloc[i].get('claim_id', i)} · "
+                f"{demo_claims.iloc[i].get('service_category', 'Claim')} · "
+                f"€{_safe_float(demo_claims.iloc[i].get('claim_amount')):,.2f}"
+            ),
             key="demo_claim_selector",
         )
 
@@ -2395,12 +1904,8 @@ def _render_quick_demo(
                     "Quick Demo",
                 )
 
-            st.success(
-                (
-                    "Demo claim scored and "
-                    "explained successfully."
-                )
-            )
+            st.session_state["claim_analysis_flash"] = 'Demo claim scored and explained successfully.'
+            st.rerun()
 
         with st.expander(
             "View inference payload",
@@ -2446,7 +1951,6 @@ def _render_advanced_json(
         tone="info",
     )
 
-    st.write("")
 
     raw = st.text_area(
         "Complete claim JSON",
@@ -2518,12 +2022,8 @@ def _render_advanced_json(
                 "Advanced JSON",
             )
 
-        st.success(
-            (
-                "JSON claim scored and "
-                "explained successfully."
-            )
-        )
+        st.session_state["claim_analysis_flash"] = 'JSON claim scored and explained successfully.'
+        st.rerun()
 
     except json.JSONDecodeError as exc:
         st.error(
@@ -2544,76 +2044,30 @@ def _render_advanced_json(
 # =============================================================================
 
 
-def render(
-    client,
-) -> None:
-    """
-    Render the complete individual-claim investigation workflow.
-    """
-
-    section_header(
-        "Claim Analysis",
-        (
-            "Analyze an individual health-insurance claim "
-            "using automatic historical enrichment, deployed "
-            "fraud-risk scoring and local TreeSHAP explainability."
-        ),
-    )
-
-    left, right = st.columns(
-        [
-            4,
-            1,
-        ]
-    )
-
-    with left:
-        st.caption(
-            (
-                "Smart Analysis minimizes manual input: "
-                "customer history, provider activity, service "
-                "benchmarks and contextual ratios are generated "
-                "from the available historical context."
-            )
-        )
-
-    with right:
-        if st.button(
-            "Reset Analysis",
-            width="stretch",
-            key="reset_claim_analysis",
-        ):
+def render(client):
+    section_header("Claim Analysis", "Score a synthetic claim and understand the factors behind its model risk.", level=1)
+    if st.session_state.get("claim_analysis_flash"):
+        st.success(st.session_state.pop("claim_analysis_flash"))
+    mode_col, reset_col = st.columns([4, 1])
+    with reset_col:
+        if st.button("Reset Analysis", width="stretch", key="reset_claim_analysis"):
             _reset_analysis()
             st.rerun()
-
-    st.write("")
-
-    mode = st.radio(
-        "Analysis mode",
-        [
-            "Smart Analysis",
-            "Quick Demo",
-            "Advanced JSON",
-        ],
-        horizontal=True,
-        label_visibility="collapsed",
-        key="claim_analysis_mode",
-    )
-
-    if mode == "Smart Analysis":
-        _render_smart_form(
-            client
-        )
-
-    elif mode == "Quick Demo":
-        _render_quick_demo(
-            client
-        )
-
+    with mode_col:
+        mode = st.radio("Analysis mode", ["Quick Demo", "Smart Analysis", "Advanced JSON"],
+                        horizontal=True, label_visibility="collapsed", key="claim_analysis_mode", on_change=_reset_analysis)
+    def intake():
+        if mode == "Smart Analysis":
+            _render_smart_form(client)
+        elif mode == "Quick Demo":
+            _render_quick_demo(client)
+        else:
+            _render_advanced_json(client)
+    if st.session_state.get("single_prediction") is not None:
+        _render_assessment()
+        from frontend.utils.presentation import go_to
+        st.button("Score a portfolio", on_click=go_to, args=("Portfolio Scoring",), width="stretch")
+        with st.expander("Analyze another claim"):
+            intake()
     else:
-        _render_advanced_json(
-            client
-        )
-
-    # Persistent assessment survives Streamlit reruns.
-    _render_assessment()
+        intake()

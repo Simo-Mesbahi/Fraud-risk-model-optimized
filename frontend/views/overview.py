@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -826,283 +825,34 @@ def _render_metadata_notice(
 # =============================================================================
 
 
-def _render_executive_kpis(
-    metadata: dict[str, Any],
-    runtime_model: dict[str, Any],
-) -> None:
-    """
-    Render frozen out-of-time model performance.
-    """
-
-    metrics = (
-        _extract_metrics(
-            metadata
-        )
-    )
-
-    review_fraction = (
-        _review_fraction(
-            metadata,
-            runtime_model,
-        )
-    )
-
-    review_label = (
-        _review_fraction_label(
-            review_fraction
-        )
-    )
-
-    section_header(
-        "Executive Performance",
-        (
-            "Out-of-time evaluation of the frozen "
-            "fraud-risk ranking model."
-        ),
-        eyebrow="MODEL PERFORMANCE",
-    )
-
+def _render_executive_kpis(metadata, runtime_model):
+    from frontend.research.reference import reference_evidence
+    metrics = _extract_metrics(metadata)
+    fraction = _review_fraction(metadata, runtime_model)
+    label = _review_fraction_label(fraction)
+    section_header("Executive Performance", "Frozen reference model · held-out synthetic claims.")
     if not metrics:
-
-        info_panel(
-            "Evaluation Metrics Unavailable",
-            (
-                "Final out-of-time evaluation metrics are not "
-                "available in the current model metadata."
-            ),
-            tone="warning",
-        )
-
+        st.info("Evaluation evidence is unavailable.")
         return
-
-    recall = (
-        _capacity_metric(
-            metrics,
-            "recall",
-            review_fraction,
-        )
-    )
-
-    lift = (
-        _capacity_metric(
-            metrics,
-            "lift",
-            review_fraction,
-        )
-    )
-
-    precision = (
-        _capacity_metric(
-            metrics,
-            "precision",
-            review_fraction,
-        )
-    )
-
-    fraud_amount_capture = (
-        _capacity_metric(
-            metrics,
-            "fraud_amount_capture",
-            review_fraction,
-        )
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(
-            4
-        )
-    )
-
-    with c1:
-
-        metric_card(
-            "Average Precision",
-            _metric_number(
-                metrics.get(
-                    "average_precision"
-                ),
-                4,
-            ),
-            "Primary ranking metric",
-            tone="info",
-        )
-
-    with c2:
-
-        metric_card(
-            "ROC-AUC",
-            _metric_number(
-                metrics.get(
-                    "roc_auc"
-                ),
-                4,
-            ),
-            "Global discrimination",
-            tone="neutral",
-        )
-
-    with c3:
-
-        metric_card(
-            f"Recall @ {review_label}",
-            _metric_percent(
-                recall,
-                2,
-            ),
-            (
-                "Fraud cases captured"
-                if recall is not None
-                else "Not persisted at this capacity"
-            ),
-            tone=(
-                "success"
-                if recall is not None
-                else "neutral"
-            ),
-        )
-
-    with c4:
-
-        metric_card(
-            f"Lift @ {review_label}",
-            _metric_multiplier(
-                lift,
-                2,
-            ),
-            (
-                "Versus untargeted review"
-                if lift is not None
-                else "Not persisted at this capacity"
-            ),
-            tone=(
-                "success"
-                if lift is not None
-                else "neutral"
-            ),
-        )
-
-    st.write("")
-
-    c1, c2, c3 = (
-        st.columns(
-            3
-        )
-    )
-
-    with c1:
-
-        metric_card(
-            f"Precision @ {review_label}",
-            _metric_percent(
-                precision,
-                2,
-            ),
-            (
-                "Investigation yield"
-                if precision is not None
-                else "Not persisted at this capacity"
-            ),
-            tone=(
-                "info"
-                if precision is not None
-                else "neutral"
-            ),
-        )
-
-    with c2:
-
-        metric_card(
-            "Fraud Amount Captured",
-            _metric_percent(
-                fraud_amount_capture,
-                2,
-            ),
-            (
-                f"At {review_label} review capacity"
-                if fraud_amount_capture is not None
-                else "Not persisted at this capacity"
-            ),
-            tone=(
-                "success"
-                if fraud_amount_capture is not None
-                else "neutral"
-            ),
-        )
-
-    with c3:
-
-        prevalence = (
-            metrics.get(
-                "test_fraud_prevalence"
-            )
-        )
-
-        if prevalence is None:
-
-            prevalence = (
-                metadata.get(
-                    "test_fraud_prevalence"
-                )
-            )
-
-        if prevalence is None:
-
-            metric_card(
-                "Test Fraud Prevalence",
-                "Not recorded",
-                (
-                    "Not persisted in frozen evaluation metadata"
-                ),
-                tone="neutral",
-            )
-
-        else:
-
-            metric_card(
-                "Test Fraud Prevalence",
-                _metric_percent(
-                    prevalence,
-                    3,
-                ),
-                "Out-of-time population",
-                tone="neutral",
-            )
-
-    st.write("")
-
-    if any(
-        value is None
-        for value in (
-            recall,
-            lift,
-            precision,
-            fraud_amount_capture,
-        )
-    ):
-
-        info_panel(
-            "Capacity-Specific Metrics",
-            (
-                f"The active review policy is {review_label}. "
-                "Metrics evaluated at another capacity are not "
-                "substituted or relabelled. Missing values therefore "
-                "remain explicitly unavailable."
-            ),
-            tone="warning",
-        )
-
-        st.write("")
-
-    info_panel(
-        "Operational Interpretation",
-        (
-            "The deployed model is used primarily as a ranking system. "
-            "Under constrained investigation capacity, recall, precision, "
-            "lift and fraud-amount capture are more operationally useful "
-            "than relying on a standalone binary classification threshold."
-        ),
-        tone="info",
-    )
+    with st.container(key="overview_kpis"):
+        columns = st.columns(4)
+        values = [
+            ("Average Precision", _metric_number(metrics.get("average_precision"), 3), "Overall precision–recall ranking", "info"),
+            (f"Recall @ {label}", _metric_percent(_capacity_metric(metrics, "recall", fraction), 1), "Share of labelled fraud captured", "success"),
+            (f"Precision @ {label}", _metric_percent(_capacity_metric(metrics, "precision", fraction), 1), "Fraud share of reviewed claims", "info"),
+            (f"Lift @ {label}", _metric_multiplier(_capacity_metric(metrics, "lift", fraction), 1), "Yield versus random review", "success"),
+        ]
+        for col, (title, value, helper, tone) in zip(columns, values):
+            with col:
+                metric_card(title, value, helper, tone=tone)
+    evidence = reference_evidence()
+    if evidence:
+        st.caption(f"Reference test: {evidence['claims']:,} claims · {evidence['frauds']:,} simulated fraud cases · {evidence['prevalence']:.2%} prevalence · January–June 2026.")
+    with st.expander("Additional metrics and interpretation"):
+        st.write(f"**ROC-AUC:** {_metric_number(metrics.get('roc_auc'), 3)} · **Fraud amount captured at {label}:** {_metric_percent(_capacity_metric(metrics, 'fraud_amount_capture', fraction), 1)}")
+        st.write("Average precision measures ranking across thresholds. Review precision describes investigation yield; recall describes how much labelled fraud is captured. Captured submitted amounts are not demonstrated cash savings.")
+        if evidence:
+            st.caption("Prevalence is measured from the exact reference test labels, rather than inferred from rounded metrics.")
 
 
 # =============================================================================
@@ -1427,260 +1177,19 @@ def _capacity_figure_path() -> Path | None:
     return None
 
 
-def _render_capacity_chart(
-    metadata: dict[str, Any],
-    runtime_model: dict[str, Any],
-) -> None:
-    """
-    Render real investigation-capacity behavior.
-
-    Priority
-    --------
-    1. machine-readable capacity curve;
-    2. frozen evaluation figure;
-    3. explicit unavailable state.
-
-    Synthetic fallback values are never generated.
-    """
-
-    review_fraction = (
-        _review_fraction(
-            metadata,
-            runtime_model,
-        )
-    )
-
-    review_label = (
-        _review_fraction_label(
-            review_fraction
-        )
-    )
-
-    section_header(
-        "Investigation Capacity",
-        (
-            "How fraud capture evolves as "
-            "human-review capacity increases."
-        ),
-        eyebrow="OPERATIONAL POLICY",
-    )
-
-    raw_data, source = (
-        _load_capacity_data()
-    )
-
-    data = (
-        _normalize_capacity_data(
-            raw_data
-        )
-    )
-
-    if data.empty:
-
-        figure_path = (
-            _capacity_figure_path()
-        )
-
-        if figure_path is not None:
-
-            st.image(
-                str(
-                    figure_path
-                ),
-                width="stretch",
-            )
-
-            st.caption(
-                (
-                    "Frozen out-of-time capacity analysis. "
-                    "The original evaluation figure is displayed because "
-                    "a machine-readable capacity curve was not persisted. "
-                    "No synthetic values or interpolation are used."
-                )
-            )
-
-            st.caption(
-                (
-                    "Artifact source: "
-                    + _artifact_relative_label(
-                        figure_path
-                    )
-                )
-            )
-
-            info_panel(
-                "Current Review Policy",
-                (
-                    f"The live investigation policy reviews the top "
-                    f"{review_label} highest-risk claims."
-                ),
-                tone="info",
-            )
-
-            return
-
-        info_panel(
-            "Capacity Analysis Unavailable",
-            (
-                "Neither a machine-readable capacity curve nor "
-                "a frozen capacity-analysis figure is available. "
-                "No synthetic fallback values are generated."
-            ),
-            tone="warning",
-        )
-
+def _render_capacity_chart(metadata, runtime_model):
+    from frontend.research.reference import validation_chart
+    section_header("Investigation Capacity", "Compare investigation effort with captured synthetic fraud.", eyebrow="REVIEW POLICY")
+    fraction = _review_fraction(metadata, runtime_model)
+    if validation_chart("capacity", fraction):
+        st.caption(f"The vertical guide marks the current {fraction:.0%} review policy. A review decision does not establish that fraud occurred.")
         return
-
-    chart_data = (
-        data[
-            [
-                "capacity",
-                "Recall",
-                "Fraud Amount Capture",
-            ]
-        ]
-        .melt(
-            id_vars=[
-                "capacity"
-            ],
-            var_name="Metric",
-            value_name="Value",
-        )
-    )
-
-    maximum_capacity = max(
-        float(
-            data[
-                "capacity"
-            ]
-            .max()
-        ),
-        review_fraction,
-    )
-
-    lines = (
-        alt.Chart(
-            chart_data
-        )
-        .mark_line(
-            point=True,
-            strokeWidth=3,
-        )
-        .encode(
-            x=alt.X(
-                "capacity:Q",
-                title="Investigation Capacity",
-                axis=alt.Axis(
-                    format=".1%",
-                ),
-                scale=alt.Scale(
-                    domain=[
-                        0,
-                        maximum_capacity,
-                    ],
-                    nice=True,
-                ),
-            ),
-
-            y=alt.Y(
-                "Value:Q",
-                title="Fraud Capture",
-                axis=alt.Axis(
-                    format=".0%",
-                ),
-                scale=alt.Scale(
-                    domain=[
-                        0,
-                        1,
-                    ]
-                ),
-            ),
-
-            color=alt.Color(
-                "Metric:N",
-                title=None,
-            ),
-
-            tooltip=[
-                alt.Tooltip(
-                    "capacity:Q",
-                    title="Capacity",
-                    format=".1%",
-                ),
-
-                alt.Tooltip(
-                    "Metric:N",
-                    title="Metric",
-                ),
-
-                alt.Tooltip(
-                    "Value:Q",
-                    title="Value",
-                    format=".2%",
-                ),
-            ],
-        )
-    )
-
-    policy_data = (
-        pd.DataFrame(
-            {
-                "capacity": [
-                    review_fraction
-                ],
-            }
-        )
-    )
-
-    policy_rule = (
-        alt.Chart(
-            policy_data
-        )
-        .mark_rule(
-            strokeDash=[
-                6,
-                5,
-            ],
-            strokeWidth=2,
-        )
-        .encode(
-            x=alt.X(
-                "capacity:Q"
-            )
-        )
-    )
-
-    chart = (
-        (
-            lines
-            + policy_rule
-        )
-        .properties(
-            height=390
-        )
-        .interactive()
-    )
-
-    st.altair_chart(
-        chart,
-        width="stretch",
-    )
-
-    st.caption(
-        (
-            "Dashed marker: current operational review "
-            f"capacity ({review_label})."
-        )
-    )
-
-    if source:
-
-        st.caption(
-            (
-                "Artifact source: "
-                f"{source}"
-            )
-        )
+    path = _capacity_figure_path()
+    if path:
+        st.image(str(path), width="stretch")
+        st.caption("Original frozen evaluation figure. Interactive evidence is unavailable.")
+    else:
+        st.info("Capacity evidence is unavailable.")
 
 
 # =============================================================================
@@ -1797,7 +1306,6 @@ def _render_live_system(
             )
         )
 
-        st.write("")
 
         c1, c2 = (
             st.columns(
@@ -1833,7 +1341,6 @@ def _render_live_system(
                 tone="neutral",
             )
 
-        st.write("")
 
         c1, c2 = (
             st.columns(
@@ -1877,7 +1384,6 @@ def _render_live_system(
                 ),
             )
 
-        st.write("")
 
         st.markdown(
             "##### Inference Contract"
@@ -2023,8 +1529,6 @@ def _render_contract_consistency(
     Missing metadata therefore never becomes a false deployment mismatch.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Deployment Consistency",
@@ -2310,274 +1814,32 @@ def _render_risk_drivers() -> None:
     """
     Render global business-level SHAP importance.
     """
-
-    st.write("")
-    st.write("")
-
-    section_header(
-        "Main Risk Drivers",
-        (
-            "Highest-impact business variables identified "
-            "by global SHAP analysis."
-        ),
-        eyebrow="GLOBAL EXPLAINABILITY",
-    )
-
-    importance = (
-        _load_artifact_csv(
-            "explainability",
-            "business_feature_importance.csv",
-        )
-    )
-
+    section_header('Main Risk Drivers', 'Highest-impact business variables identified by global SHAP analysis.', eyebrow='GLOBAL EXPLAINABILITY')
+    importance = _load_artifact_csv('explainability', 'business_feature_importance.csv')
     if importance.empty:
-
-        info_panel(
-            "SHAP Importance Unavailable",
-            (
-                "Global business-level SHAP importance is not "
-                "available in the frontend runtime."
-            ),
-            tone="warning",
-        )
-
+        info_panel('SHAP Importance Unavailable', 'Global business-level SHAP importance is not available in the frontend runtime.', tone='warning')
         return
-
-    required = {
-        "business_feature",
-        "mean_abs_shap",
-    }
-
-    if not required.issubset(
-        importance.columns
-    ):
-
-        info_panel(
-            "Invalid SHAP Artifact",
-            (
-                "The SHAP importance artifact exists, but its schema "
-                "does not contain the required fields."
-            ),
-            tone="warning",
-        )
-
+    required = {'business_feature', 'mean_abs_shap'}
+    if not required.issubset(importance.columns):
+        info_panel('Invalid SHAP Artifact', 'The SHAP importance artifact exists, but its schema does not contain the required fields.', tone='warning')
         return
-
-    importance = (
-        importance.copy()
-    )
-
-    importance[
-        "mean_abs_shap"
-    ] = pd.to_numeric(
-        importance[
-            "mean_abs_shap"
-        ],
-        errors="coerce",
-    )
-
-    if (
-        "signed_mean_shap"
-        in importance.columns
-    ):
-
-        importance[
-            "signed_mean_shap"
-        ] = pd.to_numeric(
-            importance[
-                "signed_mean_shap"
-            ],
-            errors="coerce",
-        )
-
-    importance = (
-        importance
-        .dropna(
-            subset=[
-                "mean_abs_shap"
-            ]
-        )
-        .loc[
-            lambda current:
-                current[
-                    "mean_abs_shap"
-                ]
-                >= 0
-        ]
-    )
-
+    importance = importance.copy()
+    importance['mean_abs_shap'] = pd.to_numeric(importance['mean_abs_shap'], errors='coerce')
+    if 'signed_mean_shap' in importance.columns:
+        importance['signed_mean_shap'] = pd.to_numeric(importance['signed_mean_shap'], errors='coerce')
+    importance = importance.dropna(subset=['mean_abs_shap']).loc[lambda current: current['mean_abs_shap'] >= 0]
     if importance.empty:
-
-        info_panel(
-            "No Usable SHAP Values",
-            (
-                "The SHAP artifact was loaded but contains "
-                "no valid numerical importance values."
-            ),
-            tone="warning",
-        )
-
+        info_panel('No Usable SHAP Values', 'The SHAP artifact was loaded but contains no valid numerical importance values.', tone='warning')
         return
-
-    top = (
-        importance
-        .nlargest(
-            MAX_RISK_DRIVERS,
-            "mean_abs_shap",
-        )
-        .copy()
-        .reset_index(
-            drop=True
-        )
-    )
-
-    top[
-        "Rank"
-    ] = (
-        np.arange(
-            1,
-            len(
-                top
-            )
-            + 1,
-        )
-    )
-
-    top[
-        "Feature"
-    ] = (
-        top[
-            "business_feature"
-        ]
-        .apply(
-            _pretty_feature
-        )
-    )
-
-    left, right = (
-        st.columns(
-            [
-                1.4,
-                1,
-            ],
-            gap="large",
-        )
-    )
-
-    with left:
-
-        chart = (
-            alt.Chart(
-                top
-            )
-            .mark_bar(
-                cornerRadiusEnd=5,
-            )
-            .encode(
-                x=alt.X(
-                    "mean_abs_shap:Q",
-                    title="Mean absolute SHAP impact",
-                ),
-
-                y=alt.Y(
-                    "Feature:N",
-                    sort="-x",
-                    title=None,
-                ),
-
-                tooltip=[
-                    alt.Tooltip(
-                        "Rank:Q",
-                        title="Rank",
-                    ),
-
-                    alt.Tooltip(
-                        "Feature:N",
-                        title="Feature",
-                    ),
-
-                    alt.Tooltip(
-                        "mean_abs_shap:Q",
-                        title="Mean |SHAP|",
-                        format=".5f",
-                    ),
-                ],
-            )
-            .properties(
-                height=350
-            )
-        )
-
-        st.altair_chart(
-            chart,
-            width="stretch",
-        )
-
-    with right:
-
-        display_columns = [
-            "Rank",
-            "Feature",
-            "mean_abs_shap",
-        ]
-
-        if (
-            "signed_mean_shap"
-            in top.columns
-        ):
-
-            display_columns.append(
-                "signed_mean_shap"
-            )
-
-        st.dataframe(
-            top[
-                display_columns
-            ],
-            width="stretch",
-            hide_index=True,
-            height=350,
-            column_config={
-                "Rank":
-                    st.column_config.NumberColumn(
-                        "Rank",
-                        format="%d",
-                        width="small",
-                    ),
-
-                "Feature":
-                    st.column_config.TextColumn(
-                        "Risk Driver",
-                        width="large",
-                    ),
-
-                "mean_abs_shap":
-                    st.column_config.NumberColumn(
-                        "Mean |SHAP|",
-                        format="%.5f",
-                    ),
-
-                "signed_mean_shap":
-                    st.column_config.NumberColumn(
-                        "Mean Direction",
-                        format="%.5f",
-                    ),
-            },
-        )
-
-    st.write("")
-
-    info_panel(
-        "SHAP Interpretation",
-        (
-            "Mean absolute SHAP measures average predictive influence "
-            "on model output. It does not imply causality. The direction "
-            "of an individual claim's contribution can differ from the "
-            "global average. Claim Analysis provides local TreeSHAP "
-            "attribution for a specific claim."
-        ),
-        tone="info",
-    )
+    top = importance.nlargest(MAX_RISK_DRIVERS, 'mean_abs_shap').copy().reset_index(drop=True)
+    top['Rank'] = np.arange(1, len(top) + 1)
+    top['Feature'] = top['business_feature'].apply(_pretty_feature)
+    from frontend.research.charts import bar
+    from frontend.utils.presentation import present_table
+    bar(top, "business_feature", "mean_abs_shap", title="Mean absolute SHAP influence")
+    with st.expander("Risk driver values"):
+        present_table(top[["Rank", "Feature", "mean_abs_shap"]], width="stretch", hide_index=True)
+    info_panel('SHAP Interpretation', "Mean absolute SHAP measures average predictive influence on model output. It does not imply causality. The direction of an individual claim's contribution can differ from the global average. Claim Analysis provides local TreeSHAP attribution for a specific claim.", tone='info')
 
 
 # =============================================================================
@@ -2590,8 +1852,6 @@ def _render_model_observations() -> None:
     Render high-level model behavior from frozen analytical artifacts.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Risk Intelligence",
@@ -2899,8 +2159,6 @@ def _render_artifact_coverage() -> None:
     Render traceability of analytical evidence used by the overview.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Evidence Coverage",
@@ -3129,8 +2387,6 @@ def _render_governance() -> None:
     Render human-in-the-loop operating boundary.
     """
 
-    st.write("")
-    st.write("")
 
     section_header(
         "Decision Governance",
@@ -3149,120 +2405,26 @@ def _render_governance() -> None:
 # =============================================================================
 
 
-def render(
-    client: Any,
-) -> None:
-    """
-    Render the executive fraud-intelligence overview.
-    """
-
-    section_header(
-        "Executive Overview",
-        (
-            "Fraud-risk performance, investigation capacity, "
-            "model intelligence, explainability and live "
-            "inference readiness."
-        ),
-    )
-
-    metadata = (
-        _load_metadata()
-    )
-
-    (
-        health,
-        runtime_model,
-        runtime_error,
-    ) = (
-        _read_runtime_system(
-            client
-        )
-    )
-
-    # =========================================================================
-    # Artifact status
-    # =========================================================================
-
-    _render_metadata_notice(
-        metadata
-    )
-
-    # =========================================================================
-    # Executive performance
-    # =========================================================================
-
-    _render_executive_kpis(
-        metadata,
-        runtime_model,
-    )
-
-    _render_evaluation_context(
-        metadata
-    )
-
-    st.write("")
-    st.write("")
-
-    # =========================================================================
-    # Capacity + live runtime
-    # =========================================================================
-
-    left, right = (
-        st.columns(
-            [
-                1.55,
-                1,
-            ],
-            gap="large",
-        )
-    )
-
+def render(client):
+    from frontend.utils.presentation import go_to
+    section_header("Executive Overview", "A transparent demonstration of fraud-risk ranking, data analysis and human investigation.", level=1)
+    st.caption("Public synthetic health-insurance data. Evaluation does not establish performance on real insurance claims.")
+    left, right = st.columns(2)
     with left:
-
-        _render_capacity_chart(
-            metadata,
-            runtime_model,
-        )
-
+        st.button("Explore the data", type="primary", width="stretch", on_click=go_to, args=("Data Science Lab",))
     with right:
-
-        _render_live_system(
-            health,
-            runtime_model,
-            runtime_error,
-        )
-
-    # =========================================================================
-    # Deployment governance
-    # =========================================================================
-
-    _render_contract_consistency(
-        metadata,
-        runtime_model,
-        runtime_error,
-    )
-
-    # =========================================================================
-    # Global explainability
-    # =========================================================================
-
+        st.button("Try a claim demo", width="stretch", on_click=go_to,
+                  args=("Claim Analysis",), kwargs={"claim_analysis_mode": "Quick Demo"})
+    metadata = _load_metadata()
+    health, runtime_model, runtime_error = _read_runtime_system(client)
+    _render_metadata_notice(metadata)
+    _render_executive_kpis(metadata, runtime_model)
+    _render_evaluation_context(metadata)
+    _render_capacity_chart(metadata, runtime_model)
     _render_risk_drivers()
-
-    # =========================================================================
-    # Model behavior
-    # =========================================================================
-
     _render_model_observations()
-
-    # =========================================================================
-    # Analytical traceability
-    # =========================================================================
-
-    _render_artifact_coverage()
-
-    # =========================================================================
-    # Human governance
-    # =========================================================================
-
-    _render_governance()
-    
+    with st.expander("Evidence and deployment checks"):
+        _render_live_system(health, runtime_model, runtime_error)
+        _render_contract_consistency(metadata, runtime_model, runtime_error)
+        _render_artifact_coverage()
+    human_review_notice()

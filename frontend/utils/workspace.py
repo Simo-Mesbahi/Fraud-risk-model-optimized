@@ -124,7 +124,7 @@ def restore_uploaded_decisions():
 def render_decision_workspace(frame, metadata, source_claims):
     import streamlit as st
 
-    with st.expander("Save & resume investigator decisions"):
+    with st.expander("Save & resume investigator decisions", key="investigator_workspace"):
         st.caption(
             "Download notes to your device. To resume later, regenerate the same queue, then import this JSON. "
             "The file contains editable human decisions; model scores are always obtained from the API. "
@@ -136,9 +136,9 @@ def render_decision_workspace(frame, metadata, source_claims):
             st.session_state.queue_human_notes,
             st.session_state.queue_decision_timestamps,
         )
-        st.download_button("Save investigator decisions", raw, "investigator-decisions.json", "application/json", on_click="ignore")
+        st.download_button("Save investigator decisions", raw, "investigator-decisions.json", "application/json", on_click="ignore", key="save_investigator_decisions")
         upload = st.file_uploader("Resume decisions JSON (2 MiB maximum)", type=["json"], key="queue_resume_file", max_upload_size=2)
-        st.button("Restore decisions", disabled=upload is None, on_click=restore_uploaded_decisions)
+        st.button("Restore decisions", disabled=upload is None, on_click=restore_uploaded_decisions, key="restore_investigator_decisions")
         if st.session_state.get("queue_resume_error"):
             st.error(st.session_state.queue_resume_error)
         if "queue_resume_notice" in st.session_state:

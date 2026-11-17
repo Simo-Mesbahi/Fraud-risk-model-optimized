@@ -4,6 +4,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+from frontend.utils.presentation import present_table, readable_label, wrapped_label
 
 BLUE = "#6CA6FF"
 AMBER = "#FFD166"
@@ -13,7 +14,8 @@ PURPLE = "#B79BFF"
 
 def show_chart(chart, *, height=300):
     chart = (
-        chart.properties(height=height)
+        chart.properties(height=height, padding={"left": 5, "right": 20, "top": 5, "bottom": 5},
+                         autosize=alt.AutoSizeParams(type="fit-x", contains="padding"))
         .configure_view(strokeOpacity=0)
         .configure_axis(
             labelColor="#ABB8CE",
@@ -21,8 +23,10 @@ def show_chart(chart, *, height=300):
             gridColor="#243047",
             labelFontSize=12,
             titleFontSize=12,
+            labelLimit=210,
         )
-        .configure_legend(labelColor="#C5D1E5", titleColor="#E5EDF9", labelLimit=300)
+        .configure_legend(labelColor="#C5D1E5", titleColor="#E5EDF9", labelLimit=260,
+                          orient="bottom", direction="vertical", columns=1)
     )
     st.altair_chart(chart, width="stretch")
 
@@ -66,13 +70,16 @@ def histogram(frame, field="claim_amount", by_label=False):
         .encode(
             x=alt.X(
                 "from:Q",
-                title=f"{field.replace('_', ' ').title()} (€) · log scale",
+                title=f"{readable_label(field)} · logarithmic scale",
                 scale=alt.Scale(type="log"),
             ),
             x2="to:Q",
             y=alt.Y("share:Q", title="Within-group share", axis=alt.Axis(format=".0%")),
             color=alt.Color(
-                "label:N", scale=alt.Scale(range=[BLUE, AMBER]), title="Synthetic label"
+                "label:N", scale=alt.Scale(
+                    domain=[label for label, _ in groups],
+                    range=[AMBER if label == "Fraud label" else BLUE for label, _ in groups]),
+                title="Synthetic label" if by_label else "Population"
             ),
             tooltip=[
                 alt.Tooltip("from:Q", format=",.2f"),
@@ -90,21 +97,24 @@ def bar(frame, x, y, *, color=BLUE, percentage=False, title=None):
     if frame.empty:
         return
     tooltip = [
-        alt.Tooltip(x + ":N", title=x.replace("_", " ").title()),
-        alt.Tooltip(y + ":Q", format=".2%" if percentage else ",.2f"),
+        alt.Tooltip(x + ":N", title=readable_label(x)),
+        alt.Tooltip(y + ":Q", title=readable_label(y), format=".2%" if percentage else ",.2f"),
     ]
+    display = frame.assign(_display_label=frame[x].map(wrapped_label).astype(str))
     show_chart(
-        alt.Chart(frame, description=title or f"{y} by {x}")
+        alt.Chart(display, description=title or f"{readable_label(y)} by {readable_label(x)}")
         .mark_bar(color=color, cornerRadiusEnd=4)
         .encode(
-            y=alt.Y(x + ":N", sort="-x", title=None),
+            y=alt.Y("_display_label:N", sort="-x", title=None,
+                    axis=alt.Axis(labelExpr="split(datum.label, '\\n')", labelLimit=230,
+                                  labelLineHeight=14)),
             x=alt.X(
                 y + ":Q",
                 title=title or y.replace("_", " ").title(),
-                axis=alt.Axis(format=".0%") if percentage else alt.Axis(),
+                axis=alt.Axis(format=".0%", tickCount=5) if percentage else alt.Axis(tickCount=5),
             ),
             tooltip=tooltip,
-        )
+        ), height=max(230, min(720, len(frame) * 42 + 40)),
     )
 
 
@@ -118,4 +128,4 @@ def number(value):
 
 def evidence_table(frame, label="View chart data"):
     with st.expander(label):
-        st.dataframe(frame, width="stretch", hide_index=True)
+        present_table(frame, width="stretch", hide_index=True)

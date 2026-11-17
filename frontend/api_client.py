@@ -500,25 +500,21 @@ class FraudAPIClient:
             )
 
         except ValueError:
-
-            text = (
-                response.text
-                .strip()
-            )
-
-            return (
-                text
-                or f"HTTP {response.status_code}"
-            )
+            # Edge/proxy failures can contain entire HTML challenge pages.
+            # Never expose those documents or their scripts in the product UI.
+            messages = {
+                429: "Scoring is temporarily busy. Please wait a moment and try again.",
+                502: "The scoring service is preparing. Please try again shortly.",
+                503: "The scoring service is temporarily unavailable. Please try again shortly.",
+                504: "The scoring service took too long. Please try again shortly.",
+            }
+            return messages.get(response.status_code, "The scoring service could not complete this request.")
 
         if not isinstance(
             payload,
             dict,
         ):
-
-            return str(
-                payload
-            )
+            return "The scoring service returned an unexpected error response."
 
         detail = payload.get(
             "detail"
@@ -617,6 +613,11 @@ class FraudAPIClient:
                 payload
             )
 
+        formatted = " ".join(formatted.split())
+        if "<" in formatted or ">" in formatted:
+            formatted = "The scoring service could not complete this request."
+        formatted = formatted[:600]
+
         request_id = (
             payload.get(
                 "request_id"
@@ -627,7 +628,7 @@ class FraudAPIClient:
         )
 
         if request_id:
-
+            request_id = "".join(c for c in str(request_id)[:80] if c.isalnum() or c in "-_:")
             formatted = (
                 f"{formatted} "
                 f"[request_id={request_id}]"

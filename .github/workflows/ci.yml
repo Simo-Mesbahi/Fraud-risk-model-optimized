@@ -74,6 +74,20 @@ jobs:
           test "$(docker compose exec -T fraud-frontend id -u)" != 0
       - name: Browser happy paths, downloads and mobile layout
         run: python scripts/browser_smoke.py
+      - name: Check demo memory and readiness after every workflow
+        run: |
+          docker compose exec -T fraud-frontend python - <<'PY'
+          import json, pathlib, urllib.request
+          health = json.load(urllib.request.urlopen('http://127.0.0.1:8800/health'))
+          assert health['model_loaded'] is True
+          root = pathlib.Path('/sys/fs/cgroup')
+          events = root / 'memory.events'
+          if events.exists():
+              values = dict(line.split() for line in events.read_text().splitlines())
+              assert int(values.get('oom_kill', 0)) == 0
+          peak = root / 'memory.peak'
+          print(json.dumps({'embedded_inference': health['model_loaded'], 'peak_bytes': int(peak.read_text()) if peak.exists() else None}))
+          PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
