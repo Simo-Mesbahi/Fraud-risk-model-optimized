@@ -20,6 +20,7 @@ from frontend.research.charts import (
     show_chart,
 )
 from frontend.research.data import evaluation_frame
+from frontend.utils.presentation import present_table, readable_label
 from health_fraud.evaluation.metrics import (
     bootstrap_intervals,
     calibration_table,
@@ -71,11 +72,11 @@ def exploration(frame, corpus, score):
         if c in frame
     ]
     selected = st.multiselect(
-        "Numeric relationships", candidates, default=candidates[:5], max_selections=8
+        "Numeric relationships", candidates, default=candidates[:5], max_selections=8, format_func=readable_label
     )
     if len(selected) >= 2:
         correlations = (
-            frame[selected]
+            frame[selected].rename(columns=readable_label)
             .corr(method="spearman")
             .rename_axis("first")
             .reset_index()
@@ -112,6 +113,7 @@ def exploration(frame, corpus, score):
 def quality(frame, corpus, score):
     st.subheader("Which data issues are visible and how are they handled?")
     profile = quality_profile(frame)
+    st.write(f"**{sum(profile["rules"].values()):,} rule violations** in this cohort. A claim can trigger multiple rules; structural missingness is assessed separately.")
     fields = pd.DataFrame(profile["column_profile"])
     missing = fields.loc[fields.missing > 0].sort_values(
         "missing_rate", ascending=False
@@ -130,7 +132,7 @@ def quality(frame, corpus, score):
         "Absent prior claims or an unrecorded policy change can create structural missingness. These values are not automatically corrupt records."
     )
     evidence_table(fields, "Full field-level quality profile")
-    st.dataframe(
+    present_table(
         pd.DataFrame(profile["rules"].items(), columns=["Rule", "Flagged rows"]),
         hide_index=True,
         width="stretch",
@@ -150,7 +152,7 @@ def quality(frame, corpus, score):
                 if isinstance(data, dict) and "rows" in data
             ]
         )
-        st.dataframe(audit, hide_index=True, width="stretch")
+        present_table(audit, hide_index=True, width="stretch")
         st.caption(
             "This audit covers the full corpus, independent of exploration filters. The controlled-corruption challenge is separate and never enters model fitting."
         )
@@ -193,9 +195,9 @@ def temporal(frame, corpus, score):
             monthly,
             description="Monthly claim volume, coloured by the chronological evaluation split.",
         )
-        .mark_bar()
+        .mark_bar(size=24)
         .encode(
-            x=alt.X("month:T", title="Submission month"),
+            x=alt.X("month:T", title="Submission month", axis=alt.Axis(format="%b %Y", tickCount="month", labelOverlap=True)),
             y=alt.Y("claims:Q", title="Claims"),
             color=alt.Color(
                 "period:N",
@@ -213,12 +215,13 @@ def temporal(frame, corpus, score):
             tooltip=["month:T", "period:N", "claims:Q"],
         )
     )
+    st.write(f"This view contains **{len(monthly)} months** and **{int(monthly.claims.sum()):,} claims**. Changes in label prevalence describe the simulation and do not by themselves demonstrate real-world drift.")
     show_chart(chart)
     show_chart(
         alt.Chart(monthly, description="Observed synthetic fraud prevalence by month.")
         .mark_line(color=AMBER, point=True)
         .encode(
-            x=alt.X("month:T", title="Submission month"),
+            x=alt.X("month:T", title="Submission month", axis=alt.Axis(format="%b %Y", tickCount="month", labelOverlap=True)),
             y=alt.Y(
                 "fraud_rate:Q",
                 title="Synthetic fraud prevalence",
@@ -236,6 +239,7 @@ def temporal(frame, corpus, score):
 
 def fraud(frame, corpus, score):
     st.subheader("Which patterns distinguish the simulated labels?")
+    st.write(f"**{int(frame.is_fraud.sum()):,} of {len(frame):,} claims** carry a simulated fraud label. Compare rates alongside group sizes, rather than treating a pattern as a verdict.")
     histogram(frame, by_label=True)
     group = (
         frame.groupby("service_category", observed=True)
@@ -311,10 +315,10 @@ def models(frame, corpus, score):
         table,
         "Model / experiment",
         "AP",
-        percentage=True,
+        percentage=False,
         title="Validation Average Precision",
     )
-    st.dataframe(
+    present_table(
         table.style.format(
             {
                 "AP": "{:.4f}",
@@ -368,6 +372,7 @@ def models(frame, corpus, score):
             var_name="cohort",
             value_name="AP",
         )
+        long["cohort"] = long["cohort"].map(readable_label)
         show_chart(
             alt.Chart(
                 long,
@@ -377,7 +382,7 @@ def models(frame, corpus, score):
             .encode(
                 x=alt.X("training_claims:Q", title="Training examples"),
                 y=alt.Y("AP:Q", title="Average Precision"),
-                color="cohort:N",
+                color=alt.Color("cohort:N", title="Evaluation cohort"),
                 tooltip=[
                     "training_claims:Q",
                     "training_period_end:N",
@@ -393,7 +398,7 @@ def models(frame, corpus, score):
     calibration = report.get("calibration_trial", {})
     if calibration:
         st.markdown("#### Separate-period calibration experiment")
-        st.dataframe(
+        present_table(
             pd.DataFrame(
                 [
                     {
@@ -452,6 +457,7 @@ def capacity(frame, corpus, score):
         var_name="measure",
         value_name="fraction",
     ).dropna()
+    long["measure"] = long["measure"].map(readable_label)
     show_chart(
         alt.Chart(
             long,
@@ -465,7 +471,9 @@ def capacity(frame, corpus, score):
                 axis=alt.Axis(format=".0%"),
             ),
             y=alt.Y("fraction:Q", title="Outcome", axis=alt.Axis(format=".0%")),
-            color="measure:N",
+            color=alt.Color("measure:N", title="Outcome", scale=alt.Scale(
+                domain=["Fraud recall", "Review precision", "Fraud amount captured"],
+                range=[BLUE, AMBER, GREEN])),
             tooltip=[
                 "measure:N",
                 alt.Tooltip("review_fraction:Q", format=".1%"),
@@ -557,7 +565,7 @@ def errors(frame, corpus, score):
         ]
         if c in cases
     ]
-    st.dataframe(cases[columns].head(200), hide_index=True, width="stretch")
+    present_table(cases[columns].head(200), hide_index=True, width="stretch")
     if kind == "Missed synthetic fraud" and not cases.empty:
         mechanisms = (
             cases.groupby("fraud_mechanism", observed=True)
@@ -597,7 +605,7 @@ def robustness(frame, corpus, score):
         st.info("Select scored out-of-time cases for robustness analysis.")
         return
     dimension = st.selectbox(
-        "Evaluation subgroup", ["service_category", "provider_region", "coverage_level"]
+        "Evaluation subgroup", ["service_category", "provider_region", "coverage_level"], format_func=readable_label
     )
     rows = []
     for name, group in evaluated.groupby(dimension, observed=True, dropna=False):
@@ -616,7 +624,7 @@ def robustness(frame, corpus, score):
             }
         )
     table = pd.DataFrame(rows)
-    st.dataframe(table, hide_index=True, width="stretch")
+    present_table(table, hide_index=True, width="stretch")
     st.caption(
         "Subgroup differences are descriptive; small positive counts make rankings unstable. Missing or undefined metrics remain blank."
     )
@@ -633,7 +641,7 @@ def robustness(frame, corpus, score):
         ]
     )
     st.markdown("#### Reference-quantile distribution shift")
-    st.dataframe(drift, hide_index=True, width="stretch")
+    present_table(drift, hide_index=True, width="stretch")
     st.caption(
         "PSI compares the full training-era reference with the filtered test cohort. It indicates distribution change, not a demonstrated accuracy failure."
     )
@@ -654,13 +662,13 @@ def robustness(frame, corpus, score):
                 if value
             ]
         )
-        st.dataframe(intervals, hide_index=True, width="stretch")
+        present_table(intervals, hide_index=True, width="stretch")
         st.caption(
             "95% customer-cluster bootstrap intervals, 100 replicates, seed 42. They describe this synthetic cohort and do not cover the gap to real insurance data."
         )
     scenarios = corpus.report.get("robustness_scenarios", [])
     if scenarios:
         st.markdown("#### Independent simulated worlds")
-        st.dataframe(pd.DataFrame(scenarios), hide_index=True, width="stretch")
+        present_table(pd.DataFrame(scenarios), hide_index=True, width="stretch")
         for limitation in corpus.report.get("robustness_limitations", []):
             st.caption(limitation)

@@ -54,15 +54,12 @@ services:
       - "8501:8501"
 
     environment:
-      FRAUD_API_URL: "http://fraud-api:8000"
+      FRAUD_API_URL: "http://127.0.0.1:8800"
+      FRAUD_INFERENCE_MODE: "embedded"
       ARTIFACTS_ROOT: "/app/artifacts"
       APP_ENV: "production"
       PYTHONPATH: "/app:/app/src"
       PYTHONUNBUFFERED: "1"
-
-    depends_on:
-      fraud-api:
-        condition: service_healthy
 
     restart: unless-stopped
 

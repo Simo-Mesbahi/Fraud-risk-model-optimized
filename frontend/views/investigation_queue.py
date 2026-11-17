@@ -1506,401 +1506,82 @@ def _generate_queue(
 # =============================================================================
 
 
-def _render_queue_builder(
-    client,
-) -> None:
+def _render_queue_builder(client) -> None:
     """
     Render portfolio source and investigation-capacity controls.
     """
-
-    section_header(
-        "Build Investigation Queue",
-        (
-            "Score a portfolio and select the "
-            "highest-risk claims according to "
-            "available investigation capacity."
-        ),
-        eyebrow="QUEUE GENERATION",
-    )
-
-    model_info = (
-        _runtime_model_info(
-            client
-        )
-    )
-
-    default_capacity = (
-        _runtime_review_fraction(
-            model_info
-        )
-    )
-
-    default_capacity_percent = int(
-        round(
-            default_capacity
-            * 100
-        )
-    )
-
-    default_capacity_percent = min(
-        max(
-            default_capacity_percent,
-            1,
-        ),
-        25,
-    )
-
-    control_left, control_right = (
-        st.columns(
-            [
-                3,
-                1,
-            ]
-        )
-    )
-
+    section_header('Build Investigation Queue', 'Score a portfolio and select the highest-risk claims according to available investigation capacity.', eyebrow='QUEUE GENERATION')
+    model_info = _runtime_model_info(client)
+    default_capacity = _runtime_review_fraction(model_info)
+    default_capacity_percent = int(round(default_capacity * 100))
+    default_capacity_percent = min(max(default_capacity_percent, 1), 25)
+    control_left, control_right = st.columns([3, 1])
     with control_left:
-
-        capacity_percent = (
-            st.slider(
-                "Investigation capacity",
-                min_value=1,
-                max_value=25,
-                value=(
-                    default_capacity_percent
-                ),
-                step=1,
-                key="queue_capacity",
-                help=(
-                    "Percentage of the scored portfolio "
-                    "that investigators can review."
-                ),
-            )
-        )
-
-    capacity = (
-        capacity_percent
-        / 100
-    )
-
+        capacity_percent = st.slider('Investigation capacity', min_value=1, max_value=25, value=default_capacity_percent, step=1, key='queue_capacity', help='Percentage of the scored portfolio that investigators can review.')
+    capacity = capacity_percent / 100
     with control_right:
-
-        metric_card(
-            "Review Capacity",
-            f"{capacity:.0%}",
-            "Portfolio selection rate",
-            tone="info",
-        )
-
-    st.write("")
-
-    info_panel(
-        "Operational Policy",
-        (
-            "The backend ranks the complete portfolio and returns "
-            f"the highest-risk claims at {capacity:.0%} review "
-            "capacity. Queue inclusion supports prioritization only "
-            "and does not establish that fraud occurred."
-        ),
-        tone="info",
-    )
-
-    if (
-        abs(
-            capacity
-            - default_capacity
-        )
-        > 1e-12
-    ):
-        st.caption(
-            (
-                "Current queue capacity differs from the "
-                f"deployed default policy ({default_capacity:.1%})."
-            )
-        )
-
-    st.write("")
-
-    upload_tab, demo_tab = (
-        st.tabs(
-            [
-                "Upload Portfolio",
-                "Demo Portfolio",
-            ]
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # Uploaded portfolio
-    # -------------------------------------------------------------------------
-
-    with upload_tab:
-
-        uploaded = (
-            st.file_uploader(
-                "Upload claims",
-                type=[
-                    "json",
-                    "csv",
-                    "parquet",
-                ],
-                key="queue_file",
-                help=(
-                    "Supported formats: JSON, CSV and Parquet. "
-                    f"Maximum {MAX_QUEUE_SOURCE_SIZE:,} claims."
-                ),
-            )
-        )
-
-        if uploaded is None:
-
-            st.caption(
-                (
-                    "Upload a complete portfolio "
-                    "to create a prioritized queue."
-                )
-            )
-
-        else:
-
-            try:
-
-                claims = read_uploaded_file(
-                    uploaded
-                )
-
-                preview = _claims_to_frame(
-                    claims
-                )
-
-                selected_estimate = min(
-                    len(preview),
-                    max(
-                        1,
-                        int(
-                            np.ceil(
-                                len(preview)
-                                * capacity
-                            )
-                        ),
-                    ),
-                )
-
-                leakage_present = [
-                    column
-                    for column
-                    in LEAKAGE_COLUMNS
-                    if column
-                    in preview.columns
-                ]
-
-                p1, p2, p3, p4 = (
-                    st.columns(4)
-                )
-
-                with p1:
-
-                    metric_card(
-                        "Claims Detected",
-                        f"{len(preview):,}",
-                        "Valid portfolio records",
-                    )
-
-                with p2:
-
-                    metric_card(
-                        "Expected Queue",
-                        f"{selected_estimate:,}",
-                        (
-                            f"At {capacity:.0%} "
-                            "review capacity"
-                        ),
-                        tone="info",
-                    )
-
-                with p3:
-
-                    missing_values = int(
-                        preview
-                        .isna()
-                        .sum()
-                        .sum()
-                    )
-
-                    metric_card(
-                        "Missing Values",
-                        f"{missing_values:,}",
-                        "Across source portfolio",
-                        tone=(
-                            "warning"
-                            if missing_values
-                            else "success"
-                        ),
-                    )
-
-                with p4:
-
-                    metric_card(
-                        "Input Columns",
-                        f"{len(preview.columns):,}",
-                        "Available source fields",
-                    )
-
-                if leakage_present:
-
-                    st.write("")
-
-                    info_panel(
-                        "Protected Evaluation Fields Detected",
-                        (
-                            f"{len(leakage_present)} synthetic/evaluation "
-                            "field(s) were found and will be removed "
-                            "automatically before inference."
-                        ),
-                        tone="info",
-                    )
-
-                with st.expander(
-                    "Portfolio preview",
-                    expanded=False,
-                ):
-
-                    st.dataframe(
-                        preview.head(20),
-                        width="stretch",
-                        hide_index=True,
-                    )
-
-                if st.button(
-                    "Build Investigation Queue",
-                    type="primary",
-                    width="stretch",
-                    key="build_uploaded_queue",
-                ):
-
-                    _generate_queue(
-                        client=client,
-                        claims=claims,
-                        capacity=capacity,
-                        source_name=(
-                            uploaded.name
-                        ),
-                        source_type="uploaded",
-                    )
-
-                    st.success(
-                        (
-                            "Investigation queue "
-                            "created successfully."
-                        )
-                    )
-
+        metric_card('Review Capacity', f'{capacity:.0%}', 'Portfolio selection rate', tone='info')
+    st.write('')
+    info_panel('Operational Policy', f'The backend ranks the complete portfolio and returns the highest-risk claims at {capacity:.0%} review capacity. Queue inclusion supports prioritization only and does not establish that fraud occurred.', tone='info')
+    if abs(capacity - default_capacity) > 1e-12:
+        st.caption(f'Current queue capacity differs from the deployed default policy ({default_capacity:.1%}).')
+    st.write('')
+    current = st.session_state.get("batch_input")
+    if current:
+        with st.container(border=True):
+            st.write(f"**Current scored portfolio:** {len(current):,} claims. The queue is verified again by the scoring service at the capacity selected above.")
+            if st.button("Build queue from scored portfolio", type="primary", width="stretch"):
+                try:
+                    _generate_queue(client, current, capacity, st.session_state.get("batch_source") or "Scored portfolio", "portfolio")
                     st.rerun()
-
-            except Exception as exc:
-
-                st.error(
-                    (
-                        "Unable to process portfolio. "
-                        f"{exc}"
-                    )
-                )
-
-    # -------------------------------------------------------------------------
-    # Demo portfolio
-    # -------------------------------------------------------------------------
-
-    with demo_tab:
-
-        st.caption(
-            (
-                "Run the complete prioritization workflow "
-                "using the synthetic portfolio bundled with "
-                "the project."
-            )
-        )
-
-        demo_size = (
-            st.select_slider(
-                "Demo portfolio size",
-                options=[
-                    100,
-                    250,
-                    500,
-                    1_000,
-                    2_500,
-                    5_000,
-                    10_000,
-                ],
-                value=500,
-                key="queue_demo_size",
-            )
-        )
-
-        estimated_selection = min(
-            int(demo_size),
-            max(
-                1,
-                int(
-                    np.ceil(
-                        int(demo_size)
-                        * capacity
-                    )
-                ),
-            ),
-        )
-
-        st.caption(
-            (
-                f"Approximately {estimated_selection:,} "
-                f"of {int(demo_size):,} claims will be "
-                f"selected at {capacity:.0%} capacity."
-            )
-        )
-
-        if st.button(
-            "Build Demo Queue",
-            type="primary",
-            width="stretch",
-            key="build_demo_queue",
-        ):
-
+                except Exception as exc:
+                    st.error(str(exc))
+    upload_tab, demo_tab = st.tabs(['Upload Portfolio', 'Demo Portfolio'], default='Demo Portfolio')
+    with upload_tab:
+        uploaded = st.file_uploader('Upload claims', type=['json', 'csv', 'parquet'], key='queue_file', help=f'Supported formats: JSON, CSV and Parquet. Maximum {MAX_QUEUE_SOURCE_SIZE:,} claims.')
+        if uploaded is None:
+            st.caption('Upload a complete portfolio to create a prioritized queue.')
+        else:
             try:
-
-                demo = load_demo_claims(
-                    limit=int(
-                        demo_size
-                    )
-                )
-
-                claims = demo.to_dict(
-                    orient="records"
-                )
-
-                _generate_queue(
-                    client=client,
-                    claims=claims,
-                    capacity=capacity,
-                    source_name=(
-                        "Synthetic demo portfolio"
-                    ),
-                    source_type="demo",
-                )
-
-                st.success(
-                    (
-                        "Demo investigation queue "
-                        "created successfully."
-                    )
-                )
-
-                st.rerun()
-
+                claims = read_uploaded_file(uploaded)
+                preview = _claims_to_frame(claims)
+                selected_estimate = min(len(preview), max(1, int(np.ceil(len(preview) * capacity))))
+                leakage_present = [column for column in LEAKAGE_COLUMNS if column in preview.columns]
+                p1, p2, p3, p4 = st.columns(4)
+                with p1:
+                    metric_card('Claims Detected', f'{len(preview):,}', 'Valid portfolio records')
+                with p2:
+                    metric_card('Expected Queue', f'{selected_estimate:,}', f'At {capacity:.0%} review capacity', tone='info')
+                with p3:
+                    missing_values = int(preview.isna().sum().sum())
+                    metric_card('Missing Values', f'{missing_values:,}', 'Across source portfolio', tone='warning' if missing_values else 'success')
+                with p4:
+                    metric_card('Input Columns', f'{len(preview.columns):,}', 'Available source fields')
+                if leakage_present:
+                    st.write('')
+                    info_panel('Protected Evaluation Fields Detected', f'{len(leakage_present)} synthetic/evaluation field(s) were found and will be removed automatically before inference.', tone='info')
+                with st.expander('Portfolio preview', expanded=False):
+                    st.dataframe(preview.head(20), width='stretch', hide_index=True)
+                if st.button('Build Investigation Queue', type='primary', width='stretch', key='build_uploaded_queue'):
+                    _generate_queue(client=client, claims=claims, capacity=capacity, source_name=uploaded.name, source_type='uploaded')
+                    st.success('Investigation queue created successfully.')
+                    st.rerun()
             except Exception as exc:
-
-                st.error(
-                    str(exc)
-                )
+                st.error(f'Unable to process portfolio. {exc}')
+    with demo_tab:
+        st.caption('Run the complete prioritization workflow using the synthetic portfolio bundled with the project.')
+        demo_size = st.select_slider('Demo portfolio size', options=[100, 250, 500, 1000, 2500, 5000, 10000], value=500, key='queue_demo_size')
+        estimated_selection = min(int(demo_size), max(1, int(np.ceil(int(demo_size) * capacity))))
+        st.caption(f'Approximately {estimated_selection:,} of {int(demo_size):,} claims will be selected at {capacity:.0%} capacity.')
+        if st.button('Build Demo Queue', type='primary', width='stretch', key='build_demo_queue'):
+            try:
+                demo = load_demo_claims(limit=int(demo_size))
+                claims = demo.to_dict(orient='records')
+                _generate_queue(client=client, claims=claims, capacity=capacity, source_name='Synthetic demo portfolio', source_type='demo')
+                st.success('Demo investigation queue created successfully.')
+                st.rerun()
+            except Exception as exc:
+                st.error(str(exc))
 
 
 # =============================================================================
@@ -1993,197 +1674,18 @@ def _validate_stored_queue(
 # =============================================================================
 
 
-def _render_summary(
-    frame: pd.DataFrame,
-    metadata: dict[str, Any],
-) -> None:
-    """
-    Render executive operational KPIs.
-    """
-
-    section_header(
-        "Queue Overview",
-        (
-            "Operational summary of claims "
-            "currently selected for human review."
-        ),
-        eyebrow="SELECTED WORKLIST",
-    )
-
-    total = _safe_int(
-        metadata.get(
-            "total_claims"
-        )
-    )
-
-    selected = _safe_int(
-        metadata.get(
-            "selected_claims"
-        )
-    )
-
-    capacity = _safe_float(
-        metadata.get(
-            "capacity"
-        )
-    )
-
-    mean_risk = _safe_float(
-        frame["fraud_risk_score"]
-        .mean()
-    )
-
-    max_risk = _safe_float(
-        frame["fraud_risk_score"]
-        .max()
-    )
-
-    immediate_count = int(
-        (
-            frame["priority"]
-            == "P1 — Immediate"
-        )
-        .sum()
-    )
-
-    pending_count = int(
-        (
-            frame["human_decision"]
-            == "Pending review"
-        )
-        .sum()
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        metric_card(
-            "Portfolio",
-            f"{total:,}",
-            "Total claims ranked",
-        )
-
-    with c2:
-
-        metric_card(
-            "Selected",
-            f"{selected:,}",
-            (
-                f"Top {capacity:.0%} "
-                "for review"
-            ),
-            tone="info",
-        )
-
-    with c3:
-
-        metric_card(
-            "Mean Selected Risk",
-            f"{mean_risk:.2%}",
-            "Current worklist",
-            tone="warning",
-        )
-
-    with c4:
-
-        metric_card(
-            "Immediate Priority",
-            f"{immediate_count:,}",
-            (
-                f"Max risk {max_risk:.2%}"
-            ),
-            tone=(
-                "danger"
-                if immediate_count
-                else "success"
-            ),
-        )
-
-    st.write("")
-
-    c1, c2, c3 = (
-        st.columns(3)
-    )
-
-    with c1:
-
-        metric_card(
-            "Pending Reviews",
-            f"{pending_count:,}",
-            "Awaiting investigator action",
-            tone=(
-                "warning"
-                if pending_count
-                else "success"
-            ),
-        )
-
-    generation_seconds = _safe_float(
-        metadata.get(
-            "generation_seconds"
-        ),
-        default=-1.0,
-    )
-
-    with c2:
-
-        metric_card(
-            "Generation Runtime",
-            (
-                f"{generation_seconds:.2f}s"
-                if generation_seconds >= 0
-                else "—"
-            ),
-            "End-to-end queue creation",
-            tone="info",
-        )
-
-    throughput = _safe_float(
-        metadata.get(
-            "throughput_claims_per_second"
-        ),
-        default=-1.0,
-    )
-
-    with c3:
-
-        metric_card(
-            "Throughput",
-            (
-                f"{throughput:,.0f}/s"
-                if throughput >= 0
-                else "—"
-            ),
-            "Portfolio claims processed",
-            tone="neutral",
-        )
-
-    source_name = (
-        metadata.get(
-            "source_name"
-        )
-        or st.session_state.get(
-            "queue_source_name"
-        )
-        or "—"
-    )
-
-    generated_at = metadata.get(
-        "generated_at",
-        "—",
-    )
-
-    st.caption(
-        (
-            f"Source: {source_name} • "
-            f"Queue generated: {generated_at} • "
-            f"Model: {metadata.get('model_name') or '—'} "
-            f"v{metadata.get('model_version') or '—'}"
-        )
-    )
+def _render_summary(frame, metadata):
+    section_header("Queue Overview", "Selected cases and the progress of human review.")
+    pending = int(frame.human_decision.eq("Pending review").sum())
+    with st.container(key="queue_summary"):
+        columns = st.columns(4)
+        for col, title, value, helper in zip(columns,
+            ["Portfolio", "Selected", "Pending Reviews", "Mean Selected Risk"],
+            [f"{metadata.get('total_claims', 0):,}", f"{len(frame):,}", f"{pending:,}", f"{frame.fraud_risk_score.mean():.1%}"],
+            ["Claims ranked", f"At {metadata.get('capacity', .03):.0%} capacity", "Awaiting a human decision", "Selected cases"]):
+            with col:
+                metric_card(title, value, helper, tone="info")
+    st.caption(f"Source: {metadata.get('source_name', '—')} · Model: {metadata.get('model_name', '—')} v{metadata.get('model_version', '—')} · Generated: {metadata.get('generated_at', '—')}")
 
 
 # =============================================================================
@@ -2406,76 +1908,12 @@ def _render_priority_distribution(
 # =============================================================================
 
 
-def _render_decision_progress(
-    frame: pd.DataFrame,
-) -> None:
-    """
-    Render human-review workflow progress independently of model priority.
-    """
-
-    st.write("")
-    st.write("")
-
-    section_header(
-        "Human Review Progress",
-        (
-            "Investigator decisions are tracked separately "
-            "from model scores and model recommendations."
-        ),
-        eyebrow="HUMAN WORKFLOW",
-    )
-
-    counts = (
-        frame["human_decision"]
-        .value_counts()
-        .reindex(
-            DECISION_OPTIONS,
-            fill_value=0,
-        )
-    )
-
-    total = max(
-        len(frame),
-        1,
-    )
-
-    columns = st.columns(
-        len(
-            DECISION_OPTIONS
-        )
-    )
-
-    tones = {
-        "Pending review": "warning",
-        "Investigate": "info",
-        "Escalate": "danger",
-        "Clear": "success",
-    }
-
-    for column, decision in zip(
-        columns,
-        DECISION_OPTIONS,
-    ):
-
-        count = int(
-            counts[
-                decision
-            ]
-        )
-
-        with column:
-
-            metric_card(
-                decision,
-                f"{count:,}",
-                (
-                    f"{count / total:.1%} "
-                    "of selected queue"
-                ),
-                tone=tones[
-                    decision
-                ],
-            )
+def _render_decision_progress(frame):
+    section_header("Human Review Progress", "Human decisions remain independent of model recommendations.")
+    completed = int(frame.human_decision.ne("Pending review").sum())
+    st.progress(completed / max(1, len(frame)), text=f"{completed:,} / {len(frame):,} cases reviewed")
+    decisions = frame.human_decision.value_counts()
+    st.caption(" · ".join(f"{name}: {int(count):,}" for name, count in decisions.items()))
 
 
 # =============================================================================
@@ -3592,7 +3030,6 @@ def _render_export(
         )
     )
 
-    render_decision_workspace(frame, metadata, st.session_state.queue_source_claims)
 
 
 # =============================================================================
@@ -3600,224 +3037,50 @@ def _render_export(
 # =============================================================================
 
 
-def render(
-    client,
-) -> None:
+def render(client) -> None:
     """
     Render the operational investigation worklist.
     """
-
     _initialize_queue_state()
-
-    section_header(
-        "Investigation Queue",
-        (
-            "Prioritize model-selected claims, support "
-            "investigator triage and keep human decisions "
-            "strictly separate from model recommendations."
-        ),
-    )
-
-    # -------------------------------------------------------------------------
-    # Header controls
-    # -------------------------------------------------------------------------
-
-    header_left, header_right = (
-        st.columns(
-            [
-                4,
-                1,
-            ]
-        )
-    )
-
-    with header_left:
-
-        st.caption(
-            (
-                "The deployed model ranks the portfolio and "
-                "the backend applies the chosen review capacity. "
-                "Investigators retain final decision authority."
-            )
-        )
-
-    with header_right:
-
-        if st.button(
-            "Reset Queue",
-            width="stretch",
-            key="reset_investigation_queue",
-        ):
-
-            _reset_queue()
-
-            st.rerun()
-
-    st.write("")
-
-    # -------------------------------------------------------------------------
-    # Queue generation
-    # -------------------------------------------------------------------------
-
-    _render_queue_builder(
-        client
-    )
-
-    frame = (
-        st.session_state.get(
-            "queue_results"
-        )
-    )
-
-    metadata = (
-        st.session_state.get(
-            "queue_metadata"
-        )
-        or {}
-    )
-
-    source_claims = (
-        st.session_state.get(
-            "queue_source_claims"
-        )
-    )
-
-    if (
-        frame is None
-        or not isinstance(
-            frame,
-            pd.DataFrame,
-        )
-        or frame.empty
-        or not source_claims
-    ):
-
-        st.write("")
-        st.write("")
-
-        empty_state(
-            "No Investigation Queue",
-            (
-                "Upload a portfolio or use the demo "
-                "portfolio to generate a prioritized "
-                "human-review worklist."
-            ),
-            hint=(
-                "Queue selection is produced through "
-                "the deployed /top-review endpoint."
-            ),
-        )
-
+    section_header('Investigation Queue', 'Prioritize model-selected claims, support investigator triage and keep human decisions strictly separate from model recommendations.', level=1)
+    if st.button("Reset Queue", key="reset_investigation_queue"):
+        _reset_queue()
+        st.rerun()
+    existing = st.session_state.get("queue_results")
+    if isinstance(existing, pd.DataFrame) and not existing.empty:
+        with st.expander("Change source or review capacity"):
+            _render_queue_builder(client)
+    else:
+        _render_queue_builder(client)
+    frame = st.session_state.get('queue_results')
+    metadata = st.session_state.get('queue_metadata') or {}
+    source_claims = st.session_state.get('queue_source_claims')
+    if frame is None or not isinstance(frame, pd.DataFrame) or frame.empty or (not source_claims):
+        st.caption("Build the demo queue above, upload a portfolio, or continue from Portfolio Scoring.")
         return
-
-    # -------------------------------------------------------------------------
-    # Integrity validation
-    # -------------------------------------------------------------------------
-
-    integrity_errors = (
-        _validate_stored_queue(
-            frame,
-            metadata,
-        )
-    )
-
+    integrity_errors = _validate_stored_queue(frame, metadata)
     if integrity_errors:
-
         for message in integrity_errors:
             st.error(message)
-
-        info_panel(
-            "Queue Snapshot Invalid",
-            (
-                "Reset the queue and regenerate it before "
-                "continuing with investigation."
-            ),
-            tone="danger",
-        )
-
+        info_panel('Queue Snapshot Invalid', 'Reset the queue and regenerate it before continuing with investigation.', tone='danger')
         return
-
-    # -------------------------------------------------------------------------
-    # Synchronize human-state columns
-    # -------------------------------------------------------------------------
-
-    prediction_columns = [
-        column
-        for column in [
-            "claim_id",
-            "fraud_risk_score",
-            "model_name",
-            "model_version",
-            "risk_rank",
-            "risk_percentile",
-            "review_fraction",
-            "selected_for_review",
-        ]
-        if column
-        in frame.columns
-    ]
-
-    prediction_frame = (
-        frame[
-            prediction_columns
-        ]
-        .copy()
-    )
-
-    frame = _enrich_queue(
-        prediction_frame,
-        source_claims,
-    )
-
-    st.session_state.queue_results = (
-        frame
-    )
-
-    # -------------------------------------------------------------------------
-    # Queue analytics
-    # -------------------------------------------------------------------------
-
-    st.write("")
-    st.write("")
-
-    _render_summary(
-        frame,
-        metadata,
-    )
-
-    _render_queue_contract(
-        metadata
-    )
-
-    _render_priority_distribution(
-        frame
-    )
-
-    _render_decision_progress(
-        frame
-    )
-
-    filtered = _render_filters(
-        frame
-    )
-
-    _render_worklist_table(
-        filtered
-    )
-
-    _render_claim_detail(
-        (
-            filtered
-            if not filtered.empty
-            else frame
-        )
-    )
-
-    _render_export(
-        st.session_state.queue_results,
-        metadata,
-    )
-
-    st.write("")
-
+    prediction_columns = [column for column in ['claim_id', 'fraud_risk_score', 'model_name', 'model_version', 'risk_rank', 'risk_percentile', 'review_fraction', 'selected_for_review'] if column in frame.columns]
+    prediction_frame = frame[prediction_columns].copy()
+    frame = _enrich_queue(prediction_frame, source_claims)
+    st.session_state.queue_results = frame
+    st.write('')
+    st.write('')
+    _render_summary(frame, metadata)
+    _render_decision_progress(frame)
+    render_decision_workspace(frame, metadata, source_claims)
+    from frontend.utils.presentation import section_links
+    section_links({"Worklist": "investigation-worklist", "Claim review": "claim-review", "Export": "export"})
+    filtered = _render_filters(frame)
+    _render_worklist_table(filtered)
+    _render_claim_detail(filtered if not filtered.empty else frame)
+    with st.expander("Priority distribution and model contract"):
+        _render_priority_distribution(frame)
+        _render_queue_contract(metadata)
+    _render_export(st.session_state.queue_results, metadata)
+    st.write('')
     human_review_notice()

@@ -200,6 +200,7 @@ def section_header(
     subtitle: str | None = None,
     *,
     eyebrow: str | None = None,
+    level: int = 2,
 ) -> None:
     """
     Render a reusable section heading.
@@ -245,12 +246,15 @@ def section_header(
         else ""
     )
 
+    if level not in {1, 2, 3}:
+        raise ValueError("Section heading level must be 1, 2 or 3.")
+    anchor = "-".join("".join(c.lower() if c.isalnum() else " " for c in title).split())
     markup = (
         '<div class="section-heading">'
         f"{eyebrow_markup}"
-        '<div class="section-title">'
+        f'<h{level} class="section-title" id="{anchor}">'
         f"{safe_title}"
-        "</div>"
+        f"</h{level}>"
         f"{subtitle_markup}"
         "</div>"
     )

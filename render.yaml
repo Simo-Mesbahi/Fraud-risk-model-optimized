@@ -32,4 +32,6 @@ services:
       - key: APP_ENV
         value: production
       - key: FRAUD_API_URL
-        value: https://mesbahi-fraud-risk-model.onrender.com
+        value: http://127.0.0.1:8800
+      - key: FRAUD_INFERENCE_MODE
+        value: embedded

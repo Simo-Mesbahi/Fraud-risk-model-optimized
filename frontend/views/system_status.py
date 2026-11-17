@@ -2099,12 +2099,12 @@ def _render_artifacts() -> None:
     with c1:
 
         metric_card(
-            "Inference Artifacts",
+            "Local Inference Files",
             (
                 f"{inference_available}/"
                 f"{len(inference)}"
             ),
-            "Required for model loading",
+            "Local process files; remote API health is checked separately",
             tone=(
                 "success"
                 if (
@@ -2880,92 +2880,18 @@ def _render_diagnostics(
 # =============================================================================
 
 
-def render(
-    client,
-) -> None:
-    """
-    Render the complete operational status and deployment
-    verification workspace.
-    """
-
-    section_header(
-        "System Status",
-        (
-            "Operational readiness, inference health, model "
-            "contract verification, explainability availability "
-            "and analytical artifact traceability."
-        ),
-    )
-
-    # -------------------------------------------------------------------------
-    # Evaluate runtime state exactly once per Streamlit render.
-    # -------------------------------------------------------------------------
-
-    diagnostics = _check_api(
-        client
-    )
-
-    metadata = _read_metadata(
-        str(
-            METADATA_PATH
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # 1. Operational health
-    # -------------------------------------------------------------------------
-
-    _render_service_health(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 2. Deployed model
-    # -------------------------------------------------------------------------
-
-    _render_model_contract(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 3. Deployment verification
-    # -------------------------------------------------------------------------
-
-    _render_contract_consistency(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 4. Artifact registry
-    # -------------------------------------------------------------------------
-
-    _render_artifacts()
-
-    # -------------------------------------------------------------------------
-    # 5. Stack readiness
-    # -------------------------------------------------------------------------
-
-    _render_architecture(
-        diagnostics,
-        metadata,
-    )
-
-    # -------------------------------------------------------------------------
-    # 6. Runtime environment
-    # -------------------------------------------------------------------------
-
-    _render_runtime(
-        diagnostics
-    )
-
-    # -------------------------------------------------------------------------
-    # 7. Low-level diagnostics
-    # -------------------------------------------------------------------------
-
-    _render_diagnostics(
-        diagnostics,
-        metadata,
-    )
+def render(client):
+    section_header("System Status", "Check scoring readiness and inspect the supporting deployment evidence.", level=1)
+    diagnostics = _check_api(client)
+    metadata = _read_metadata(str(METADATA_PATH))
+    _render_service_health(diagnostics, metadata)
+    st.caption("Readiness is measured from the configured scoring endpoint. Local frontend files and remote API state are separate checks.")
+    with st.expander("Model identity and consistency"):
+        _render_model_contract(diagnostics, metadata)
+        _render_contract_consistency(diagnostics, metadata)
+    with st.expander("Artifact registry and architecture"):
+        _render_artifacts()
+        _render_architecture(diagnostics, metadata)
+    with st.expander("Runtime and technical diagnostics"):
+        _render_runtime(diagnostics)
+        _render_diagnostics(diagnostics, metadata)
