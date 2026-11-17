@@ -48,6 +48,7 @@ def main():
             page.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
             clean()
             expect(page.get_by_test_id("stMain").locator("h1")).to_have_count(1)
+            expect(page.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
 
         def choose(label, option):
             if label == "Analysis workspace":
@@ -58,9 +59,11 @@ def main():
 
         def sidebar_control(target, opening):
             selectors = ([
+                '[data-testid="stExpandSidebarButton"]',
                 '[data-testid="stExpandSidebarButton"] button',
                 '[data-testid="stSidebarCollapsedControl"] button',
                 'button[aria-label="Open sidebar"]',
+                'button[aria-label="Expand sidebar"]',
             ] if opening else [
                 '[data-testid="stSidebarCollapseButton"] button',
                 'button[aria-label="Close sidebar"]',
@@ -210,6 +213,7 @@ def main():
                 sidebar_control(mobile, False)
                 clean(mobile)
                 expect(mobile.get_by_test_id("stMain").locator("h1")).to_have_count(1)
+                expect(mobile.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
                 assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4"), f"Document overflow: {width}px {name}"
                 mobile.screenshot(path=str(args.output / f"{name.lower().replace(' ', '-')}-{width}.png"), full_page=False)
                 if name == "Claim Analysis":

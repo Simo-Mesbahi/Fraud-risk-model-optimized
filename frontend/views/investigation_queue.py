@@ -2424,9 +2424,8 @@ def _open_claim_analysis(
         None
     )
 
-    st.session_state.main_navigation = (
-        "Claim Analysis"
-    )
+    from frontend.utils.presentation import go_to
+    go_to("Claim Analysis")
 
 
 # =============================================================================

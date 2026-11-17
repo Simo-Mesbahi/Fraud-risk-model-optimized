@@ -35,7 +35,7 @@ GitHub Actions and its `browser-verification` artifact.
 | 27 | Portfolio result | Worklist before secondary distribution plots | Real upload/scoring workflow |
 | 28 | Investigation | Worklist and human review before contract diagnostics | Actual queue/decision workflow |
 | 29 | Save/resume | Controls next to progress instead of the page footer | Download/restore round-trip |
-| 30 | Cross-page handoff | Scored portfolio reused; backend revalidates queue selection | 500-claim to 15-case integration test |
+| 30 | Cross-page handoff | Native page URLs, reading-position reset, reused portfolio; backend revalidates selection | 500-claim to 15-case test; viewport assertions |
 | 31 | Model insights | Lazy Performance, Explainability, Errors & limits, Model contract tabs | Four-tab browser checks |
 | 32 | System status | Readiness first; local files distinguished from remote health | Status and diagnostic disclosures |
 | 33 | Empty states | Visible demo source and direct launch actions | Fresh claim/portfolio/queue screens |

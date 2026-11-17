@@ -628,22 +628,56 @@ def render_page(
 # =============================================================================
 
 
+def _overview_route():
+    render_page("Overview")
+
+
+def _science_route():
+    render_page("Data Science Lab")
+
+
+def _claim_route():
+    render_page("Claim Analysis")
+
+
+def _portfolio_route():
+    render_page("Portfolio Scoring")
+
+
+def _queue_route():
+    render_page("Investigation Queue")
+
+
+def _insights_route():
+    render_page("Model Insights")
+
+
+def _status_route():
+    render_page("System Status")
+
+
 def main() -> None:
-    """
-    Application entry point.
-    """
-
-    selected_page = (
-        render_sidebar()
-    )
-
-    render_header(
-        selected_page
-    )
-
-    render_page(
-        selected_page
-    )
+    # Native routes reset the reading position on navigation and support direct links.
+    handlers = {
+        "Overview": (_overview_route, None),
+        "Data Science Lab": (_science_route, "data-science"),
+        "Claim Analysis": (_claim_route, "claim-analysis"),
+        "Portfolio Scoring": (_portfolio_route, "portfolio-scoring"),
+        "Investigation Queue": (_queue_route, "investigation-queue"),
+        "Model Insights": (_insights_route, "model-insights"),
+        "System Status": (_status_route, "system-status"),
+    }
+    pages = {name: st.Page(handler, title=name, url_path=path, default=name == "Overview")
+             for name, (handler, path) in handlers.items()}
+    current = st.navigation(list(pages.values()), position="hidden")
+    target = st.session_state.pop("_navigation_target", None)
+    if target in pages and pages[target].url_path != current.url_path:
+        st.switch_page(pages[target])
+    selected = next(name for name, page in pages.items() if page.url_path == current.url_path)
+    st.session_state["main_navigation"] = selected
+    render_sidebar()
+    render_header(selected)
+    current.run()
 
 
 if __name__ == "__main__":

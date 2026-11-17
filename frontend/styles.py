@@ -4063,6 +4063,18 @@ h3.section-title { font-size: 1.08rem; line-height: 1.35; }
     padding: .6rem .8rem;
     border-radius: 10px;
 }
+[data-testid="stSidebar"] button[kind="primary"],
+[data-testid="stSidebar"] button[kind="secondary"] {
+    min-height: 44px;
+    text-align: left;
+    justify-content: flex-start;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+    padding: .6rem .8rem;
+    border-radius: 10px;
+}
+[data-testid="stSidebar"] .nav-group-label { font-size: .75rem; margin: .9rem 0 .15rem; }
 [data-testid="stSidebar"] [data-testid="stButton"] button,
 [data-testid="stSidebar"] .stButton button {
     min-height: 44px;
@@ -4086,6 +4098,12 @@ h3.section-title { font-size: 1.08rem; line-height: 1.35; }
 }
 .stButton button, [data-testid="stButton"] button,
 .stDownloadButton button { min-height: 44px; }
+button[kind="primary"], button[kind="secondary"] { min-height: 44px; }
+[data-testid="stMain"] button:focus-visible,
+[data-testid="stSidebar"] button:focus-visible {
+    outline: 2px solid #8DB8FF;
+    outline-offset: 3px;
+}
 [data-testid="stSidebar"] .stButton > button:hover { background: rgba(76,141,255,.08); transform: none; }
 .sidebar-page-context { margin-top: .6rem; padding: .7rem .8rem; border-left: 2px solid #354E75; }
 .sidebar-page-category { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .08em; color: #8DB8FF !important; }

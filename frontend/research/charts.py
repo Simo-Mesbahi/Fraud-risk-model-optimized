@@ -76,8 +76,9 @@ def histogram(frame, field="claim_amount", by_label=False):
             y=alt.Y("share:Q", title="Within-group share", axis=alt.Axis(format=".0%")),
             color=alt.Color(
                 "label:N", scale=alt.Scale(
-                    domain=["All claims", "Legitimate label", "Fraud label"],
-                    range=[BLUE, BLUE, AMBER]), title="Synthetic label"
+                    domain=[label for label, _ in groups],
+                    range=[AMBER if label == "Fraud label" else BLUE for label, _ in groups]),
+                title="Synthetic label" if by_label else "Population"
             ),
             tooltip=[
                 alt.Tooltip("from:Q", format=",.2f"),

@@ -90,6 +90,7 @@ def go_to(page: str, **state) -> None:
     for key, value in state.items():
         st.session_state[key] = value
     st.session_state["main_navigation"] = page
+    st.session_state["_navigation_target"] = page
 
 
 def section_links(items: dict[str, str]) -> None:

@@ -1746,6 +1746,11 @@ def _render_smart_form(
             )
 
 
+    with st.container(border=True):
+        st.caption("Review before analysis")
+        st.write(f"**{str(service_category).replace('_', ' ').title()} · {service_code}**")
+        st.write(f"Claim **€{claim_amount:,.2f}** · requested **€{requested_reimbursement:,.2f}**")
+        st.caption(f"Customer {customer_id} · Provider {provider_id}. Historical features are generated from the available prior context.")
     analyze = st.button(
         "Analyze Claim",
         type="primary",
