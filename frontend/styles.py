@@ -4198,6 +4198,20 @@ button[kind="primary"] *, [data-testid="stBaseButton-primary"] *,
 :root[data-fraud-theme="light"] .glass-card,
 :root[data-fraud-theme="light"] .metric-card-pro { background: var(--card-bg); }
 /* Native tables, alerts, charts and tooltips are themed by config.toml. */
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {
+    color: var(--text-muted) !important;
+    opacity: 1;
+}
+/* Native Vega labels default to a faint neutral in light mode. Keep the
+   interactive SVG's labels in sync with the same accessible text palette. */
+[data-testid="stVegaLiteChart"] .role-axis-label text,
+[data-testid="stVegaLiteChart"] .role-legend-label text {
+    fill: var(--text-secondary) !important;
+}
+[data-testid="stVegaLiteChart"] .role-axis-title text,
+[data-testid="stVegaLiteChart"] .role-legend-title text {
+    fill: var(--text-primary) !important;
+}
 
 </style>
 """

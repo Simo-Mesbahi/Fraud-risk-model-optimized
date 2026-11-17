@@ -87,6 +87,18 @@ def main():
                 "e => e.getBoundingClientRect().top >= document.querySelector('[data-testid=stHeader]').getBoundingClientRect().bottom - 1"
             ), "Product context is hidden under the fixed header"
 
+        def assert_chart_text(chart):
+            assert chart.evaluate("""e => {
+                const labels = [...e.querySelectorAll('.role-axis-label text, .role-axis-title text, .role-legend-label text, .role-legend-title text')];
+                const rgb = color => color.startsWith('#') ? [1,3,5].map(i => parseInt(color.slice(i,i+2),16)) : color.match(/[\\d.]+/g).slice(0,3).map(Number);
+                const luminance = color => rgb(color).map(v => v/255).map(v => v <= .04045 ? v/12.92 : ((v+.055)/1.055)**2.4).reduce((s,v,i) => s+v*[.2126,.7152,.0722][i],0);
+                const bg = luminance(getComputedStyle(document.documentElement).getPropertyValue('--bg-main').trim());
+                return labels.length > 0 && labels.every(label => {
+                    const fg = luminance(getComputedStyle(label).fill);
+                    return (Math.max(bg,fg)+.05)/(Math.min(bg,fg)+.05) >= 4.5;
+                });
+            }"""), "Rendered chart labels do not meet the text contrast target"
+
         def choose(label, option):
             if label == "Analysis workspace":
                 page.get_by_test_id("stButtonGroup").get_by_text(WORKSPACE_LABELS[option], exact=True).click()
@@ -305,6 +317,7 @@ def main():
                                 for chart_index in range(charts.count()):
                                     chart = charts.nth(chart_index)
                                     chart.scroll_into_view_if_needed()
+                                    assert_chart_text(chart)
                                     assert chart.evaluate("e => e.scrollWidth <= e.clientWidth + 2"), f"Chart overflow: {width}px {workspace} chart {chart_index}"
                                     assert chart.evaluate("e => [...e.querySelectorAll('canvas, svg')].every(c => c.getBoundingClientRect().right <= innerWidth + 2)"), f"Cropped chart canvas: {width}px {workspace} chart {chart_index}"
                                     mobile.screenshot(path=str(args.output / f"{mode.lower()}-science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}-{chart_index}.png"), full_page=False)

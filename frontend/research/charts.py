@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 from frontend.utils.presentation import present_table, readable_label, wrapped_label
 
-BLUE = "#3977D5"
+BLUE = "#326BC7"
 AMBER = "#B87812"
 GREEN = "#238568"
 PURPLE = "#8B5CF6"
@@ -63,7 +63,7 @@ def histogram(frame, field="claim_amount", by_label=False):
             data,
             description=f"Distribution of {field}; logarithmic monetary axis and explicit bin counts.",
         )
-        .mark_bar(opacity=0.6, orient="vertical")
+        .mark_bar(opacity=0.85 if by_label else 1, orient="vertical")
         .encode(
             x=alt.X(
                 "from:Q",

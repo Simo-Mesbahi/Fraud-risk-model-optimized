@@ -28,7 +28,7 @@ greenColor = "#06734D"
 blueColor = "#2458D3"
 violetColor = "#6848C6"
 grayColor = "#50617B"
-chartCategoricalColors = ["#3977D5", "#B87812", "#238568", "#8B5CF6", "#D34E69", "#238CA1"]
+chartCategoricalColors = ["#326BC7", "#B87812", "#238568", "#8B5CF6", "#D34E69", "#238CA1"]
 
 [theme.light.sidebar]
 backgroundColor = "#EAF0F8"
@@ -55,7 +55,7 @@ greenColor = "#61DFA7"
 blueColor = "#659CFF"
 violetColor = "#B39BFF"
 grayColor = "#9CACC4"
-chartCategoricalColors = ["#3977D5", "#B87812", "#238568", "#8B5CF6", "#D34E69", "#238CA1"]
+chartCategoricalColors = ["#326BC7", "#B87812", "#238568", "#8B5CF6", "#D34E69", "#238CA1"]
 
 [theme.dark.sidebar]
 backgroundColor = "#0C1423"
