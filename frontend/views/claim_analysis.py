@@ -1870,15 +1870,11 @@ def _render_quick_demo(
                     100,
                 )
             ),
-            format_func=lambda i:
-                str(
-                    demo_claims
-                    .iloc[i]
-                    .get(
-                        "claim_id",
-                        i,
-                    )
-                ),
+            format_func=lambda i: (
+                f"{demo_claims.iloc[i].get('claim_id', i)} · "
+                f"{demo_claims.iloc[i].get('service_category', 'Claim')} · "
+                f"€{_safe_float(demo_claims.iloc[i].get('claim_amount')):,.2f}"
+            ),
             key="demo_claim_selector",
         )
 
@@ -2069,6 +2065,8 @@ def render(client):
             _render_advanced_json(client)
     if st.session_state.get("single_prediction") is not None:
         _render_assessment()
+        from frontend.utils.presentation import go_to
+        st.button("Score a portfolio", on_click=go_to, args=("Portfolio Scoring",), width="stretch")
         with st.expander("Analyze another claim"):
             intake()
     else:

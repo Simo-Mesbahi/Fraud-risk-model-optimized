@@ -1301,274 +1301,275 @@ def _render_service_health(
     Render primary operational health.
     """
 
-    section_header(
-        "Inference Service",
+    with st.container(key="service_metrics"):
+        section_header(
+            "Inference Service",
+            (
+                "Live connectivity, semantic health, latency "
+                "and readiness of the deployed scoring backend."
+            ),
+            eyebrow="RUNTIME HEALTH",
+        )
+
         (
-            "Live connectivity, semantic health, latency "
-            "and readiness of the deployed scoring backend."
-        ),
-        eyebrow="RUNTIME HEALTH",
-    )
-
-    (
-        overall_status,
-        overall_tone,
-        overall_description,
-    ) = _system_status(
-        diagnostics,
-        metadata,
-    )
-
-    online = bool(
-        diagnostics.get(
-            "online"
-        )
-    )
-
-    health_ok = bool(
-        diagnostics.get(
-            "health_ok"
-        )
-    )
-
-    model_info_ok = bool(
-        diagnostics.get(
-            "model_info_ok"
-        )
-    )
-
-    model_ready = (
-        _api_model_ready(
-            diagnostics
-        )
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        metric_card(
-            "System Status",
             overall_status,
+            overall_tone,
             overall_description,
-            tone=overall_tone,
+        ) = _system_status(
+            diagnostics,
+            metadata,
         )
 
-    with c2:
-
-        metric_card(
-            "API",
-            (
-                "ONLINE"
-                if online
-                else "OFFLINE"
-            ),
-            (
-                "Backend reachable"
-                if online
-                else "Connection unavailable"
-            ),
-            tone=(
-                "success"
-                if online
-                else "danger"
-            ),
-        )
-
-    with c3:
-
-        metric_card(
-            "Health Endpoint",
-            (
-                "HEALTHY"
-                if (
-                    health_ok
-                    and _health_reports_ready(
-                        diagnostics
-                    )
-                )
-                else "FAILED"
-            ),
-            _format_latency(
-                diagnostics.get(
-                    "health_latency_ms"
-                )
-            ),
-            tone=(
-                "success"
-                if (
-                    health_ok
-                    and _health_reports_ready(
-                        diagnostics
-                    )
-                )
-                else "danger"
-            ),
-        )
-
-    with c4:
-
-        metric_card(
-            "Model Contract",
-            (
-                "AVAILABLE"
-                if model_info_ok
-                else "FAILED"
-            ),
-            _format_latency(
-                diagnostics.get(
-                    "model_info_latency_ms"
-                )
-            ),
-            tone=(
-                "success"
-                if model_info_ok
-                else "danger"
-            ),
-        )
-
-
-    model = _nonempty_dict(
-        diagnostics.get(
-            "model"
-        )
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        mini_metric(
-            "Model",
-            str(
-                model.get(
-                    "model_name",
-                    "—",
-                )
-            ),
-            helper="Runtime estimator",
-            tone="info",
-        )
-
-    with c2:
-
-        mini_metric(
-            "Version",
-            str(
-                model.get(
-                    "model_version",
-                    "—",
-                )
-            ),
-            helper="Deployment version",
-        )
-
-    with c3:
-
-        mini_metric(
-            "Inference",
-            (
-                "READY"
-                if model_ready
-                else "NOT READY"
-            ),
-            helper="End-to-end scoring",
-            tone=(
-                "success"
-                if model_ready
-                else "danger"
-            ),
-        )
-
-    with c4:
-
-        mini_metric(
-            "Diagnostic Time",
-            _format_latency(
-                diagnostics.get(
-                    "total_latency_ms"
-                )
-            ),
-            helper="Health + contract",
-        )
-
-
-    if model_ready:
-
-        info_panel(
-            "End-to-End Inference Ready",
-            (
-                "The API is reachable, /health reports a loaded "
-                "model and /model-info exposes a valid deployment "
-                "contract. Fraud-risk scoring is operational."
-            ),
-            tone="success",
-        )
-
-    elif online:
-
-        info_panel(
-            "Backend Reachable — Inference Not Ready",
-            (
-                "The backend responds, but the complete inference "
-                "contract could not be validated."
-            ),
-            tone="danger",
-        )
-
-    else:
-
-        info_panel(
-            "Inference Service Unavailable",
-            (
-                "The Streamlit frontend cannot currently "
-                "reach the FastAPI inference service."
-            ),
-            tone="danger",
-        )
-
-    errors = [
-        (
-            "Health",
+        online = bool(
             diagnostics.get(
-                "health_error"
-            ),
-        ),
-        (
-            "Model info",
+                "online"
+            )
+        )
+
+        health_ok = bool(
             diagnostics.get(
-                "model_info_error"
+                "health_ok"
+            )
+        )
+
+        model_info_ok = bool(
+            diagnostics.get(
+                "model_info_ok"
+            )
+        )
+
+        model_ready = (
+            _api_model_ready(
+                diagnostics
+            )
+        )
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            metric_card(
+                "System Status",
+                overall_status,
+                overall_description,
+                tone=overall_tone,
+            )
+
+        with c2:
+
+            metric_card(
+                "API",
+                (
+                    "ONLINE"
+                    if online
+                    else "OFFLINE"
+                ),
+                (
+                    "Backend reachable"
+                    if online
+                    else "Connection unavailable"
+                ),
+                tone=(
+                    "success"
+                    if online
+                    else "danger"
+                ),
+            )
+
+        with c3:
+
+            metric_card(
+                "Health Endpoint",
+                (
+                    "HEALTHY"
+                    if (
+                        health_ok
+                        and _health_reports_ready(
+                            diagnostics
+                        )
+                    )
+                    else "FAILED"
+                ),
+                _format_latency(
+                    diagnostics.get(
+                        "health_latency_ms"
+                    )
+                ),
+                tone=(
+                    "success"
+                    if (
+                        health_ok
+                        and _health_reports_ready(
+                            diagnostics
+                        )
+                    )
+                    else "danger"
+                ),
+            )
+
+        with c4:
+
+            metric_card(
+                "Model Contract",
+                (
+                    "AVAILABLE"
+                    if model_info_ok
+                    else "FAILED"
+                ),
+                _format_latency(
+                    diagnostics.get(
+                        "model_info_latency_ms"
+                    )
+                ),
+                tone=(
+                    "success"
+                    if model_info_ok
+                    else "danger"
+                ),
+            )
+
+
+        model = _nonempty_dict(
+            diagnostics.get(
+                "model"
+            )
+        )
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            mini_metric(
+                "Model",
+                str(
+                    model.get(
+                        "model_name",
+                        "—",
+                    )
+                ),
+                helper="Runtime estimator",
+                tone="info",
+            )
+
+        with c2:
+
+            mini_metric(
+                "Version",
+                str(
+                    model.get(
+                        "model_version",
+                        "—",
+                    )
+                ),
+                helper="Deployment version",
+            )
+
+        with c3:
+
+            mini_metric(
+                "Inference",
+                (
+                    "READY"
+                    if model_ready
+                    else "NOT READY"
+                ),
+                helper="End-to-end scoring",
+                tone=(
+                    "success"
+                    if model_ready
+                    else "danger"
+                ),
+            )
+
+        with c4:
+
+            mini_metric(
+                "Diagnostic Time",
+                _format_latency(
+                    diagnostics.get(
+                        "total_latency_ms"
+                    )
+                ),
+                helper="Health + contract",
+            )
+
+
+        if model_ready:
+
+            info_panel(
+                "End-to-End Inference Ready",
+                (
+                    "The API is reachable, /health reports a loaded "
+                    "model and /model-info exposes a valid deployment "
+                    "contract. Fraud-risk scoring is operational."
+                ),
+                tone="success",
+            )
+
+        elif online:
+
+            info_panel(
+                "Backend Reachable — Inference Not Ready",
+                (
+                    "The backend responds, but the complete inference "
+                    "contract could not be validated."
+                ),
+                tone="danger",
+            )
+
+        else:
+
+            info_panel(
+                "Inference Service Unavailable",
+                (
+                    "The Streamlit frontend cannot currently "
+                    "reach the FastAPI inference service."
+                ),
+                tone="danger",
+            )
+
+        errors = [
+            (
+                "Health",
+                diagnostics.get(
+                    "health_error"
+                ),
             ),
-        ),
-    ]
+            (
+                "Model info",
+                diagnostics.get(
+                    "model_info_error"
+                ),
+            ),
+        ]
 
-    errors = [
-        item
-        for item in errors
-        if item[1]
-    ]
+        errors = [
+            item
+            for item in errors
+            if item[1]
+        ]
 
-    if errors:
+        if errors:
 
-        with st.expander(
-            "Runtime errors",
-            expanded=False,
-        ):
+            with st.expander(
+                "Runtime errors",
+                expanded=False,
+            ):
 
-            for label, error in errors:
+                for label, error in errors:
 
-                st.markdown(
-                    f"**{label}**"
-                )
+                    st.markdown(
+                        f"**{label}**"
+                    )
 
-                st.code(
-                    str(error),
-                    language=None,
-                )
+                    st.code(
+                        str(error),
+                        language=None,
+                    )
 
 
 # =============================================================================

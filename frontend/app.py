@@ -4,6 +4,7 @@ import html
 import os
 import logging
 import uuid
+from pathlib import Path
 
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -519,44 +520,23 @@ def _sidebar_model_identity(
 
 
 def render_sidebar() -> str:
-    from frontend.utils.presentation import go_to
-
-    selected_page = st.session_state.setdefault("main_navigation", "Overview")
+    selected_page = st.session_state.setdefault('main_navigation', 'Overview')
     if selected_page not in PAGE_BY_NAME:
-        selected_page = st.session_state["main_navigation"] = "Overview"
+        selected_page = st.session_state['main_navigation'] = 'Overview'
     with st.sidebar:
-        st.markdown(
-            '<div class="sidebar-brand"><div class="sidebar-brand-title">◇ Fraud Intelligence</div>'
-            '<div class="sidebar-brand-subtitle">Health insurance · synthetic research</div></div>',
-            unsafe_allow_html=True,
-        )
-        for group, names in {
-            "Discover": ["Overview", "Data Science Lab", "Model Insights"],
-            "Analyze & investigate": ["Claim Analysis", "Portfolio Scoring", "Investigation Queue"],
-            "Operate": ["System Status"],
-        }.items():
-            st.markdown(f'<p class="nav-group-label">{group}</p>', unsafe_allow_html=True)
-            for name in names:
-                st.button(name, key="nav_" + name, width="stretch",
-                          type="primary" if name == selected_page else "secondary",
-                          on_click=go_to, args=(name,), help=PAGE_BY_NAME[name].short_description)
         page = PAGE_BY_NAME[selected_page]
-        st.markdown(
-            '<div class="sidebar-page-context"><span class="sidebar-page-category">'
-            + html.escape(page.category) + '</span><span class="sidebar-page-description">'
-            + html.escape(page.short_description) + '</span></div>', unsafe_allow_html=True,
-        )
+        st.markdown('<div class="sidebar-page-context"><span class="sidebar-page-category">' + html.escape(page.category) + '</span><span class="sidebar-page-description">' + html.escape(page.short_description) + '</span></div>', unsafe_allow_html=True)
         st.divider()
         runtime = get_runtime_status(API_URL)
-        online = bool(runtime.get("api_online"))
-        ready = bool(runtime.get("model_ready"))
-        status_badge(online and ready, label="INFERENCE READY" if online and ready else "SCORING UNAVAILABLE")
-        st.caption("Scoring service operational" if online and ready else "Scoring is preparing or temporarily unavailable.")
-        with st.expander("Runtime details"):
+        online = bool(runtime.get('api_online'))
+        ready = bool(runtime.get('model_ready'))
+        status_badge(online and ready, label='INFERENCE READY' if online and ready else 'SCORING UNAVAILABLE')
+        st.caption('Scoring service operational' if online and ready else 'Scoring is preparing or temporarily unavailable.')
+        with st.expander('Runtime details'):
             model_name, version = _sidebar_model_identity(runtime)
-            st.caption(f"{model_name} v{version} · Frontend v{APP_VERSION} · {ENVIRONMENT.title()}")
-            st.caption("Co-located demo inference" if os.getenv("FRAUD_INFERENCE_MODE") == "embedded" else "Remote inference service")
-        st.caption("Synthetic data only. Scores guide human investigation; they do not establish fraud.")
+            st.caption(f'{model_name} v{version} · Frontend v{APP_VERSION} · {ENVIRONMENT.title()}')
+            st.caption('Co-located demo inference' if os.getenv('FRAUD_INFERENCE_MODE') == 'embedded' else 'Remote inference service')
+        st.caption('Synthetic data only. Scores guide human investigation; they do not establish fraud.')
     return selected_page
 
 
@@ -669,7 +649,13 @@ def main() -> None:
     }
     pages = {name: st.Page(handler, title=name, url_path=path, default=name == "Overview")
              for name, (handler, path) in handlers.items()}
-    current = st.navigation(list(pages.values()), position="hidden")
+    assets = Path(__file__).resolve().parent / "assets"
+    st.logo(str(assets / "brand.svg"), icon_image=str(assets / "mark.svg"), size="large")
+    current = st.navigation({
+        "Discover": [pages[name] for name in ["Overview", "Data Science Lab", "Model Insights"]],
+        "Analyze & investigate": [pages[name] for name in ["Claim Analysis", "Portfolio Scoring", "Investigation Queue"]],
+        "Operate": [pages["System Status"]],
+    }, position="sidebar", expanded=True)
     target = st.session_state.pop("_navigation_target", None)
     if target in pages and pages[target].url_path != current.url_path:
         st.switch_page(pages[target])

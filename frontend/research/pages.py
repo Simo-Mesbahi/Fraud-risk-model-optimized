@@ -435,18 +435,19 @@ def capacity(frame, corpus, score):
     metrics = metric_summary(
         evaluated.is_fraud, evaluated[score], evaluated.claim_amount, percent / 100
     )
-    cols = st.columns(4)
-    for col, label, value in zip(
-        cols,
-        ["Claims reviewed", "Precision", "Fraud recall", "Fraud amount captured"],
-        [
-            number(metrics["reviewed"]),
-            fraction(metrics["precision_at_capacity"]),
-            fraction(metrics["recall_at_capacity"]),
-            fraction(metrics["fraud_amount_capture"]),
-        ],
-    ):
-        col.metric(label, value)
+    with st.container(key="capacity_metrics"):
+        cols = st.columns(4)
+        for col, label, value in zip(
+            cols,
+            ["Claims reviewed", "Precision", "Fraud recall", "Fraud amount captured"],
+            [
+                number(metrics["reviewed"]),
+                fraction(metrics["precision_at_capacity"]),
+                fraction(metrics["recall_at_capacity"]),
+                fraction(metrics["fraud_amount_capture"]),
+            ],
+        ):
+            col.metric(label, value)
     curve = capacity_curve(evaluated.is_fraud, evaluated[score], evaluated.claim_amount)
     long = curve.melt(
         id_vars="review_fraction",

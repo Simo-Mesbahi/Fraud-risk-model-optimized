@@ -19,12 +19,12 @@ def test_claim_portfolio_and_investigation_are_one_coherent_workflow(monkeypatch
         ui = AppTest.from_file(Path(__file__).resolve().parents[2] / "frontend/app.py").run(timeout=60)
         assert not ui.exception
         assert len([m for m in ui.markdown if '<h1 ' in m.value]) == 1
-        ui.button(key="nav_Claim Analysis").click().run(timeout=60)
+        next(button for button in ui.button if button.label == "Try a claim demo").click().run(timeout=60)
         assert ui.radio(key="claim_analysis_mode").value == "Quick Demo"
         ui.button(key="analyze_demo_claim").click().run(timeout=60)
         assert not ui.exception
         assert ui.session_state["single_explanation"]["consistency"]["shap_additivity_ok"] is True
-        ui.button(key="nav_Portfolio Scoring").click().run(timeout=60)
+        next(button for button in ui.button if button.label == "Score a portfolio").click().run(timeout=60)
         ui.button(key="score_demo_portfolio").click().run(timeout=60)
         assert not ui.exception
         count = len(ui.session_state["batch_input"])

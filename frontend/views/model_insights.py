@@ -1020,175 +1020,176 @@ def _render_model_summary(
     """
 
 
-    section_header(
-        "Model Performance",
-        (
-            "Out-of-time evaluation of the frozen "
-            "fraud-risk ranking model."
-        ),
-        eyebrow="OUT-OF-TIME EVALUATION",
-    )
+    with st.container(key="model_metrics"):
+        section_header(
+            "Model Performance",
+            (
+                "Out-of-time evaluation of the frozen "
+                "fraud-risk ranking model."
+            ),
+            eyebrow="OUT-OF-TIME EVALUATION",
+        )
 
-    metrics = _final_metrics(
-        metadata
-    )
+        metrics = _final_metrics(
+            metadata
+        )
 
-    if not metrics:
+        if not metrics:
+
+            info_panel(
+                "Evaluation Metrics Unavailable",
+                (
+                    "The final_test_metrics section is not "
+                    "available in the frozen model metadata."
+                ),
+                tone="warning",
+            )
+
+            return
+
+        review_fraction = _safe_float(
+            policy.get(
+                "fraction"
+            )
+        )
+
+        policy_label = (
+            f"{review_fraction:.0%}"
+            if review_fraction is not None
+            else "operational"
+        )
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            metric_card(
+                "Average Precision",
+                _format_metric(
+                    metrics.get(
+                        "average_precision"
+                    ),
+                    4,
+                ),
+                "Primary imbalanced ranking metric",
+                tone="info",
+            )
+
+        with c2:
+
+            metric_card(
+                "ROC-AUC",
+                _format_metric(
+                    metrics.get(
+                        "roc_auc"
+                    ),
+                    4,
+                ),
+                "Global ranking discrimination",
+                tone="info",
+            )
+
+        with c3:
+
+            metric_card(
+                "Recall @ 3%",
+                _format_percent(
+                    metrics.get(
+                        "recall_at_3pct"
+                    ),
+                    2,
+                ),
+                "Fraud cases captured",
+                tone="success",
+            )
+
+        with c4:
+
+            metric_card(
+                "Lift @ 3%",
+                _format_lift(
+                    metrics.get(
+                        "lift_at_3pct"
+                    )
+                ),
+                "Versus random review",
+                tone="success",
+            )
+
+
+        c1, c2, c3, c4 = (
+            st.columns(4)
+        )
+
+        with c1:
+
+            metric_card(
+                "Precision @ 3%",
+                _format_percent(
+                    metrics.get(
+                        "precision_at_3pct"
+                    ),
+                    2,
+                ),
+                "Investigation yield",
+            )
+
+        with c2:
+
+            metric_card(
+                "Fraud Amount Capture",
+                _format_percent(
+                    metrics.get(
+                        "fraud_amount_capture_at_3pct"
+                    ),
+                    2,
+                ),
+                "At 3% review capacity",
+                tone="success",
+            )
+
+        with c3:
+
+            metric_card(
+                "Brier Score",
+                _format_metric(
+                    metrics.get(
+                        "brier_score"
+                    ),
+                    4,
+                ),
+                "Probability error • lower is better",
+            )
+
+        with c4:
+
+            metric_card(
+                "Log Loss",
+                _format_metric(
+                    metrics.get(
+                        "log_loss"
+                    ),
+                    4,
+                ),
+                "Probability quality • lower is better",
+            )
+
 
         info_panel(
-            "Evaluation Metrics Unavailable",
+            "Operational Interpretation",
             (
-                "The final_test_metrics section is not "
-                "available in the frozen model metadata."
+                "This model is deployed as a ranking system rather than "
+                "a binary fraud adjudicator. Under constrained investigation "
+                f"capacity ({policy_label} by default), recall, precision, "
+                "lift and fraud-amount capture are therefore the primary "
+                "operational measures. ROC-AUC and Average Precision describe "
+                "broader ranking quality, while Brier score and log loss "
+                "describe probability quality."
             ),
-            tone="warning",
-        )
-
-        return
-
-    review_fraction = _safe_float(
-        policy.get(
-            "fraction"
-        )
-    )
-
-    policy_label = (
-        f"{review_fraction:.0%}"
-        if review_fraction is not None
-        else "operational"
-    )
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        metric_card(
-            "Average Precision",
-            _format_metric(
-                metrics.get(
-                    "average_precision"
-                ),
-                4,
-            ),
-            "Primary imbalanced ranking metric",
             tone="info",
         )
-
-    with c2:
-
-        metric_card(
-            "ROC-AUC",
-            _format_metric(
-                metrics.get(
-                    "roc_auc"
-                ),
-                4,
-            ),
-            "Global ranking discrimination",
-            tone="info",
-        )
-
-    with c3:
-
-        metric_card(
-            "Recall @ 3%",
-            _format_percent(
-                metrics.get(
-                    "recall_at_3pct"
-                ),
-                2,
-            ),
-            "Fraud cases captured",
-            tone="success",
-        )
-
-    with c4:
-
-        metric_card(
-            "Lift @ 3%",
-            _format_lift(
-                metrics.get(
-                    "lift_at_3pct"
-                )
-            ),
-            "Versus random review",
-            tone="success",
-        )
-
-
-    c1, c2, c3, c4 = (
-        st.columns(4)
-    )
-
-    with c1:
-
-        metric_card(
-            "Precision @ 3%",
-            _format_percent(
-                metrics.get(
-                    "precision_at_3pct"
-                ),
-                2,
-            ),
-            "Investigation yield",
-        )
-
-    with c2:
-
-        metric_card(
-            "Fraud Amount Capture",
-            _format_percent(
-                metrics.get(
-                    "fraud_amount_capture_at_3pct"
-                ),
-                2,
-            ),
-            "At 3% review capacity",
-            tone="success",
-        )
-
-    with c3:
-
-        metric_card(
-            "Brier Score",
-            _format_metric(
-                metrics.get(
-                    "brier_score"
-                ),
-                4,
-            ),
-            "Probability error • lower is better",
-        )
-
-    with c4:
-
-        metric_card(
-            "Log Loss",
-            _format_metric(
-                metrics.get(
-                    "log_loss"
-                ),
-                4,
-            ),
-            "Probability quality • lower is better",
-        )
-
-
-    info_panel(
-        "Operational Interpretation",
-        (
-            "This model is deployed as a ranking system rather than "
-            "a binary fraud adjudicator. Under constrained investigation "
-            f"capacity ({policy_label} by default), recall, precision, "
-            "lift and fraud-amount capture are therefore the primary "
-            "operational measures. ROC-AUC and Average Precision describe "
-            "broader ranking quality, while Brier score and log loss "
-            "describe probability quality."
-        ),
-        tone="info",
-    )
 
 
 # =============================================================================

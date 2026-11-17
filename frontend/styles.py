@@ -175,12 +175,15 @@ body {
    STREAMLIT CHROME
    ========================================================================== */
 
-[data-testid="stSidebarNav"],
-[data-testid="stSidebarNavItems"],
-[data-testid="stSidebarNavSeparator"] {
-    display: none !important;
+[data-testid="stSidebarNav"] a {
+    min-height: 44px;
+    border-radius: 10px;
+    padding: .55rem .8rem;
 }
-
+[data-testid="stSidebarNav"] a[aria-current="page"] {
+    background: rgba(76,141,255,.15);
+    box-shadow: inset 3px 0 0 #70A6FF;
+}
 
 #MainMenu {
     visibility: hidden;
@@ -3063,11 +3066,9 @@ pre {
 
     max-width: 100%;
 
-    overflow:
-        hidden;
+    overflow: visible;
 
-    padding:
-        .3rem;
+    padding: 0;
 
     border:
         1px solid var(--border-soft);
@@ -4029,6 +4030,8 @@ summary:focus-visible,
 }
 
 /* Compact workspace hierarchy and grouped navigation. */
+[data-testid="stSidebarCollapseButton"] { visibility: visible !important; opacity: 1 !important; }
+
 .app-topbar {
     display: flex;
     align-items: center;
@@ -4152,11 +4155,17 @@ div[data-baseweb="textarea"] textarea::placeholder {
     .st-key-science_kpis [data-testid="stHorizontalBlock"],
     .st-key-overview_kpis [data-testid="stHorizontalBlock"],
     .st-key-portfolio_kpis [data-testid="stHorizontalBlock"],
-    .st-key-queue_summary [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
+    .st-key-queue_summary [data-testid="stHorizontalBlock"],
+    .st-key-model_metrics [data-testid="stHorizontalBlock"],
+    .st-key-service_metrics [data-testid="stHorizontalBlock"],
+    .st-key-capacity_metrics [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
     .st-key-science_kpis [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
     .st-key-overview_kpis [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
     .st-key-portfolio_kpis [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
-    .st-key-queue_summary [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+    .st-key-queue_summary [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    .st-key-model_metrics [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    .st-key-service_metrics [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    .st-key-capacity_metrics [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
         flex: 1 1 calc(50% - .5rem) !important;
         width: calc(50% - .5rem) !important;
     }

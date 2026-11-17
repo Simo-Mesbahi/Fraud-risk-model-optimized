@@ -14,7 +14,7 @@ PURPLE = "#B79BFF"
 
 def show_chart(chart, *, height=300):
     chart = (
-        chart.properties(height=height)
+        chart.properties(height=height, autosize=alt.AutoSizeParams(type="fit-x", contains="padding"))
         .configure_view(strokeOpacity=0)
         .configure_axis(
             labelColor="#ABB8CE",
@@ -25,7 +25,7 @@ def show_chart(chart, *, height=300):
             labelLimit=210,
         )
         .configure_legend(labelColor="#C5D1E5", titleColor="#E5EDF9", labelLimit=260,
-                          orient="bottom", direction="horizontal", columns=2)
+                          orient="bottom", direction="vertical", columns=1)
     )
     st.altair_chart(chart, width="stretch")
 

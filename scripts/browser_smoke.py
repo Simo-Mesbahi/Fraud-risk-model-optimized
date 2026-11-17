@@ -44,7 +44,7 @@ def main():
             assert "Diagnostic reference:" not in target.locator("body").inner_text()
 
         def navigate(name):
-            page.get_by_test_id("stSidebar").get_by_role("button", name=name, exact=True).click()
+            page.get_by_test_id("stSidebar").get_by_role("link", name=name, exact=True).click()
             page.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
             clean()
             expect(page.get_by_test_id("stMain").locator("h1")).to_have_count(1)
@@ -206,11 +206,13 @@ def main():
             mobile.goto(args.url)
             mobile.get_by_role("heading", name="Executive Overview", level=1).wait_for(timeout=90000)
             for name in PAGES:
-                nav = mobile.get_by_test_id("stSidebar").get_by_role("button", name=name, exact=True)
+                nav = mobile.get_by_test_id("stSidebar").get_by_role("link", name=name, exact=True)
                 sidebar_control(mobile, True)
                 nav.click()
                 mobile.get_by_role("heading", name="Executive Overview" if name == "Overview" else name, exact=True, level=1).wait_for()
                 sidebar_control(mobile, False)
+                if width == 390:
+                    expect(mobile.get_by_test_id("stSidebar")).not_to_be_in_viewport()
                 clean(mobile)
                 expect(mobile.get_by_test_id("stMain").locator("h1")).to_have_count(1)
                 expect(mobile.get_by_test_id("stMain").locator("h1")).to_be_in_viewport()
@@ -233,10 +235,14 @@ def main():
                         clean(mobile)
                         charts = mobile.get_by_test_id("stVegaLiteChart")
                         if charts.count():
-                            charts.first.scroll_into_view_if_needed()
+                            for chart_index in range(charts.count()):
+                                chart = charts.nth(chart_index)
+                                chart.scroll_into_view_if_needed()
+                                assert chart.evaluate("e => e.scrollWidth <= e.clientWidth + 2"), f"Chart overflow: {width}px {workspace} chart {chart_index}"
+                                mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}-{chart_index}.png"), full_page=False)
                         else:
                             mobile.get_by_test_id("stDataFrame").first.scroll_into_view_if_needed()
-                        mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}.png"), full_page=False)
+                            mobile.screenshot(path=str(args.output / f"science-{WORKSPACE_LABELS[workspace].lower().replace(' ', '-')}-{width}.png"), full_page=False)
                         assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth + 4")
                         passed.append(f"responsive:{width}px:lab:{workspace}")
                 passed.append(f"responsive:{width}px:{name}")
