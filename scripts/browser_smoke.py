@@ -44,10 +44,19 @@ def main():
             assert "Diagnostic reference:" not in target.locator("body").inner_text()
 
         def appearance(name, target=page):
-            target.get_by_role("button", name="Main menu", exact=True).click()
-            target.get_by_role("menuitemradio", name=name, exact=True).click()
+            option = target.get_by_role("menuitemradio", name=name, exact=True)
+            if not option.is_visible():
+                target.get_by_role("button", name="Main menu", exact=True).click()
+            try:
+                option.click()
+            except Exception:
+                target.screenshot(path=str(args.output / "appearance-failure.png"))
+                raise
             if name != "System":
                 expect(target.locator("html")).to_have_attribute("data-fraud-theme", name.lower())
+            # Streamlit deliberately keeps the menu open while comparing themes.
+            target.keyboard.press("Escape")
+            expect(target.get_by_role("menu", name="Main menu", exact=True)).not_to_be_visible()
 
         # Exercise the public native selector, including persistence and OS changes.
         expect(page.locator("html")).to_have_attribute("data-fraud-theme", "light")
